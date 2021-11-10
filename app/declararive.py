@@ -407,3 +407,50 @@ class MetricJournalMonthlyFormatLanguage(MetricMixin, Base):
 
     year_month = Column(DATE, nullable=False)
 
+
+class SushiInstitution(Base):
+    __tablename__ = 'sushi_institution'
+
+    id = Column(MEDIUMINT(unsigned=True), primary_key=True, autoincrement=True)
+    type = Column(VARCHAR(20))
+    value = Column(VARCHAR(255))
+
+
+class SushiMember(Base):
+    __tablename__ = 'sushi_member'
+
+    id = Column(MEDIUMINT(unsigned=True), primary_key=True, autoincrement=True)
+    requestor_id = Column(SMALLINT(unsigned=True))
+    name = Column(VARCHAR(255), nullable=False)
+    notes = Column(VARCHAR(1024), nullable=True)
+
+    institution = Column(MEDIUMINT(unsigned=True), ForeignKey('sushi_institution.id'))
+
+
+class SushiReport(Base):
+    __tablename__ = 'sushi_report'
+
+    id = Column(VARCHAR(5), primary_key=True)
+    name = Column(VARCHAR(255), nullable=False)
+    release = Column(TINYINT(unsigned=True), nullable=False)
+    description = Column(VARCHAR(1024), nullable=False)
+    path = Column(VARCHAR(255), nullable=False)
+
+
+class SushiStatus(Base):
+    __tablename__ = 'sushi_status'
+
+    id = Column(TINYINT(unsigned=True), primary_key=True)
+    description = Column(VARCHAR(1024))
+    service_active = Column(BOOLEAN, nullable=False)
+    registry_url = Column(VARCHAR(255))
+    note = Column(VARCHAR(1024))
+
+
+class SushiAlert(Base):
+    __tablename__ = 'sushi_alert'
+
+    id = Column(SMALLINT(unsigned=True), primary_key=True)
+    created = Column(DATETIME, nullable=False)
+    description = Column(VARCHAR(1024))
+    is_active = Column(BOOLEAN, nullable=False)

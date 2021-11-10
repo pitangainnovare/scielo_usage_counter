@@ -309,3 +309,101 @@ class MetricJournalDaily(MetricMixin, Base):
 
     year_month_day = Column(DATE, nullable=False)
 
+
+class MetricJournalMonthly(MetricMixin, Base):
+    __tablename__ = 'metric_journal_monthly'
+    __table_args__ = (UniqueConstraint('collection', 'year_month', 'journal'),)
+    __table_args__ += (Index('i_col_ym_jou', 'collection', 'year_month', 'journal'),)
+
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+
+    year_month = Column(DATE, nullable=False)
+
+
+class MetricJournalMonthlyYOP(MetricMixin, Base):
+    __tablename__ = 'metric_journal_monthly_yop'
+    __table_args__ = (UniqueConstraint('collection', 'year_month', 'yop', 'journal'),)
+    __table_args__ += (Index('i_col_ym_jou', 'collection', 'year_month', 'yop', 'journal'),)
+
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    yop = Column(INTEGER(4))
+
+    year_month = Column(DATE, nullable=False)
+
+
+class MetricJournalMonthlyFormat(MetricMixin, Base):
+    __tablename__ = 'metric_journal_monthly_format'
+    __table_args__ = (UniqueConstraint('collection', 'year_month', 'format', 'journal'),)
+    __table_args__ += (Index('i_col_ym_jou', 'collection', 'year_month', 'format', 'journal'),)
+
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    format = Column(TINYINT(unsigned=True), ForeignKey('article_format.id'))
+
+    year_month = Column(DATE, nullable=False)
+
+
+class MetricJournalMonthlyLanguage(MetricMixin, Base):
+    __tablename__ = 'metric_journal_monthly_language'
+    __table_args__ = (UniqueConstraint('collection', 'year_month', 'language', 'journal'),)
+    __table_args__ += (Index('i_col_ym_jou', 'collection', 'year_month', 'language', 'journal'),)
+
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    language = Column(SMALLINT(unsigned=True), ForeignKey('article_language.id'))
+
+    year_month = Column(DATE, nullable=False)
+
+
+class MetricJournalMonthlyGeolocation(MetricMixin, Base):
+    __tablename__ = 'metric_journal_monthly_geolocation'
+    __table_args__ = (UniqueConstraint('collection', 'year_month', 'geolocation', 'journal'),)
+    __table_args__ += (Index('i_col_ym_jou', 'collection', 'year_month', 'geolocation', 'journal'),)
+
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    geolocation = Column(INTEGER(unsigned=True), ForeignKey('geolocation.id'))
+
+    year_month = Column(DATE, nullable=False)
+
+
+class MetricJournalMonthlyGeolocationFormat(MetricMixin, Base):
+    __tablename__ = 'metric_journal_monthly_geolocation_format'
+    __table_args__ = (UniqueConstraint('collection', 'year_month', 'geolocation', 'format', 'journal'),)
+    __table_args__ += (Index('i_col_ym_jou', 'collection', 'year_month', 'geolocation', 'format', 'journal'),)
+
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    geolocation = Column(INTEGER(unsigned=True), ForeignKey('geolocation.id'))
+    format = Column(TINYINT(unsigned=True), ForeignKey('article_format.id'))
+
+    year_month = Column(DATE, nullable=False)
+
+
+class MetricJournalMonthlyGeolocationLanguage(MetricMixin, Base):
+    __tablename__ = 'metric_journal_monthly_geolocation_language'
+    __table_args__ = (UniqueConstraint('collection', 'year_month', 'geolocation', 'language', 'journal'),)
+    __table_args__ += (Index('i_col_ym_jou', 'collection', 'year_month', 'geolocation', 'language', 'journal'),)
+
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    geolocation = Column(INTEGER(unsigned=True), ForeignKey('geolocation.id'))
+    language = Column(SMALLINT(unsigned=True), ForeignKey('article_language.id'))
+
+    year_month = Column(DATE, nullable=False)
+
+
+class MetricJournalMonthlyFormatLanguage(MetricMixin, Base):
+    __tablename__ = 'metric_journal_monthly_format_language'
+    __table_args__ = (UniqueConstraint('collection', 'year_month', 'format', 'language', 'journal'),)
+    __table_args__ += (Index('i_col_ym_jou', 'collection', 'year_month', 'format', 'language', 'journal'),)
+
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    format = Column(TINYINT(unsigned=True), ForeignKey('article_format.id'))
+    language = Column(SMALLINT(unsigned=True), ForeignKey('article_language.id'))
+
+    year_month = Column(DATE, nullable=False)
+

@@ -7,6 +7,14 @@ from sqlalchemy.orm import declarative_mixin
 
 Base = declarative_base()
 
+@declarative_mixin
+class MetricMixin:
+    id = Column(BIGINT, primary_key=True, autoincrement=True)
+
+    total_item_requests = Column(INTEGER, nullable=False)
+    total_item_investigations = Column(INTEGER, nullable=False)
+    unique_item_requests = Column(INTEGER, nullable=False)
+    unique_item_investigations = Column(INTEGER, nullable=False)
 
 
 class Collection(Base):

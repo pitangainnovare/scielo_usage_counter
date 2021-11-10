@@ -127,3 +127,14 @@ class Article(Base):
     yop = Column(SMALLINT(4))
     journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
 
+
+class Geolocation(Base):
+    __tablename__ = 'geolocation'
+    __table_args__ = (UniqueConstraint('latitude', 'longitude'),)
+    __table_args__ += (Index('i_geo', 'latitude', 'longitude'),)
+
+    id = Column(INTEGER(unsigned=True), primary_key=True, autoincrement=True)
+
+    latitude = Column(DECIMAL(9, 6))
+    longitude = Column(DECIMAL(9, 6))
+

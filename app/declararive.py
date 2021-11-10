@@ -174,6 +174,17 @@ class MetricArticleDetailed(MetricMixin, Base):
 
     year_month_day = Column(DATE, nullable=False)
 
+
+class MetricArticleDaily(MetricMixin, Base):
+    __tablename__ = 'metric_article_daily'
+    __table_args__ = (UniqueConstraint('collection', 'year_month_day', 'article'),)
+    __table_args__ += (Index('i_col_ymd_art', 'collection', 'year_month_day', 'article'),)
+
+    article = Column(INTEGER(unsigned=True), ForeignKey('article.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+
+    year_month_day = Column(DATE, nullable=False)
+
 class MetricJournalDetailed(MetricMixin, Base):
     __tablename__ = 'metric_journal_detailed'
     __table_args__ = (UniqueConstraint('year_month_day', 'collection', 'format', 'language', 'geolocation', 'journal', 'yop'),)
@@ -185,6 +196,29 @@ class MetricJournalDetailed(MetricMixin, Base):
     language = Column(SMALLINT(unsigned=True), ForeignKey('article_language.id'))
     geolocation = Column(INTEGER(unsigned=True), ForeignKey('geolocation.id'))
     yop = Column(INTEGER(4))
+
+    year_month_day = Column(DATE, nullable=False)
+
+
+class MetricJournalDailyYOP(MetricMixin, Base):
+    __tablename__ = 'metric_journal_daily_yop'
+    __table_args__ = (UniqueConstraint( 'year_month_day', 'collection', 'yop', 'journal'),)
+    __table_args__ += (Index('i_col_ymd_yop_journal', 'collection', 'year_month_day', 'yop', 'journal'),)
+
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    yop = Column(INTEGER(4))
+
+    year_month_day = Column(DATE, nullable=False)
+
+
+class MetricJournalDaily(MetricMixin, Base):
+    __tablename__ = 'metric_journal_daily'
+    __table_args__ = (UniqueConstraint( 'year_month_day', 'collection', 'journal'),)
+    __table_args__ += (Index('i_col_ymd_journal', 'collection', 'year_month_day', 'journal'),)
+
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
 
     year_month_day = Column(DATE, nullable=False)
 

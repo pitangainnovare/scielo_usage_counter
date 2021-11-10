@@ -160,3 +160,31 @@ class MetricStatus(Base):
     status = Column(BOOLEAN, default=False)
     updated = Column(DATETIME)
 
+
+class MetricArticleDetailed(MetricMixin, Base):
+    __tablename__ = 'metric_article_detailed'
+    __table_args__ = (UniqueConstraint('year_month_day', 'collection', 'article', 'format', 'language', 'geolocation'),)
+    __table_args__ += (Index('i_ymd_art_for_lan_geo', 'year_month_day', 'collection', 'article', 'format', 'language', 'geolocation'),)
+
+    article = Column(INTEGER(unsigned=True), ForeignKey('article.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    format = Column(TINYINT(unsigned=True), ForeignKey('article_format.id'))
+    language = Column(SMALLINT(unsigned=True), ForeignKey('article_language.id'))
+    geolocation = Column(INTEGER(unsigned=True), ForeignKey('geolocation.id'))
+
+    year_month_day = Column(DATE, nullable=False)
+
+class MetricJournalDetailed(MetricMixin, Base):
+    __tablename__ = 'metric_journal_detailed'
+    __table_args__ = (UniqueConstraint('year_month_day', 'collection', 'format', 'language', 'geolocation', 'journal', 'yop'),)
+    __table_args__ += (Index('i_col_ymd_for_lan_geo_yop_jou', 'collection', 'year_month_day', 'format', 'language', 'geolocation' ,'yop', 'journal'),)
+
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    format = Column(TINYINT(unsigned=True), ForeignKey('article_format.id'))
+    language = Column(SMALLINT(unsigned=True), ForeignKey('article_language.id'))
+    geolocation = Column(INTEGER(unsigned=True), ForeignKey('geolocation.id'))
+    yop = Column(INTEGER(4))
+
+    year_month_day = Column(DATE, nullable=False)
+

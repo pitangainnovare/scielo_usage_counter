@@ -96,3 +96,34 @@ class JournalCollection(Base):
 
     journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
 
+
+class ArticleLanguage(Base):
+    __tablename__ = 'article_language'
+    __table_args__ = (UniqueConstraint('language'),)
+
+    id = Column(SMALLINT(unsigned=True), primary_key=True, autoincrement=True)
+
+    language = Column(VARCHAR(6), nullable=False)
+
+
+class ArticleFormat(Base):
+    __tablename__ = 'article_format'
+    __table_args__ = (UniqueConstraint('format'),)
+
+    id = Column(TINYINT(unsigned=True), primary_key=True, autoincrement=True)
+
+    format = Column(VARCHAR(10), nullable=False)
+
+
+class Article(Base):
+    __tablename__ = 'article'
+    __table_args__ = (UniqueConstraint('collection', 'pid'),)
+    __table_args__ += (Index('i_col_pid_jou_yop', 'collection', 'pid', 'journal', 'yop'),)
+
+    id = Column(INTEGER(unsigned=True), primary_key=True, autoincrement=True)
+
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    pid = Column(VARCHAR(128), nullable=False)
+    yop = Column(SMALLINT(4))
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+

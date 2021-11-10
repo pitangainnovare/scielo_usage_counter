@@ -138,3 +138,17 @@ class Geolocation(Base):
     latitude = Column(DECIMAL(9, 6))
     longitude = Column(DECIMAL(9, 6))
 
+
+class MetricStatus(Base):
+    __tablename__ = 'metric_status'
+    __table_args__ = (UniqueConstraint('collection', 'metric_table', 'year_month_day',),)
+    __table_args__ += (Index('i_col_mt_ymd', 'collection', 'metric_table', 'year_month_day',),)
+
+    id = Column(MEDIUMINT(unsigned=True), primary_key=True, autoincrement=True)
+
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    metric_table = Column(VARCHAR(32), nullable=False)
+    year_month_day = Column(DATE, nullable=False, index=True)
+    status = Column(BOOLEAN, default=False)
+    updated = Column(DATETIME)
+

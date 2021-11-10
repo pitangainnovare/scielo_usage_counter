@@ -68,3 +68,31 @@ class ControlDateStatus(Base):
     status = Column(TINYINT, default=0)
     updated = Column(DATETIME)
 
+
+class Journal(Base):
+    __tablename__ = 'journal'
+    __table_args__ = (UniqueConstraint('print_issn', 'electronic_issn', 'scielo_issn'),)
+    __table_args__ += (Index('i_print_issn', 'print_issn'),)
+    __table_args__ += (Index('i_electronic_issn', 'electronic_issn'),)
+    __table_args__ += (Index('i_scielo_issn', 'scielo_issn'),)
+
+    id = Column(SMALLINT(unsigned=True), primary_key=True, autoincrement=True)
+
+    print_issn = Column(VARCHAR(9), nullable=False, index=True)
+    electronic_issn = Column(VARCHAR(9), nullable=False, index=True)
+    scielo_issn = Column(VARCHAR(9), nullable=False, index=True)
+
+
+class JournalCollection(Base):
+    __tablename__ = 'journal_collection'
+    __table_args__ = (UniqueConstraint('collection', 'journal'),)
+
+    id = Column(SMALLINT(unsigned=True), primary_key=True, autoincrement=True)
+
+    collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
+    title = Column(VARCHAR(255), nullable=False)
+    uri = Column(VARCHAR(255))
+    publisher_name = Column(VARCHAR(255))
+
+    journal = Column(SMALLINT(unsigned=True), ForeignKey('journal.id'))
+

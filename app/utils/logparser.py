@@ -171,3 +171,9 @@ class LogParser:
             referrer = data.get('referrer')
 
         return parsed_data
+
+    def parse(self):
+        self.start = time.time()
+        for line in self.logfile:
+            res = self.parse_line(line)
+            if res:

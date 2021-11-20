@@ -110,3 +110,64 @@ class LogParser:
             return date.strftime('%Y-%m-%d %H:%M:%S')
         except:
             raise
+
+    def parse_line(self, line):
+        parsed_data = []
+
+        decoded_row = line.decode().strip()
+
+        match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT, decoded_row)
+        if match:
+            data = match.groupdict()
+
+            method = data.get('method')
+            if not self.has_valid_method(method):
+                return
+
+            status = data.get('status')
+            if not self.has_valid_status(status):
+                return
+
+            user_agent = data.get('user_agent')
+            device = DeviceDetector(user_agent).parse()
+            if device.is_bot():
+                return
+
+            client_name = device.client_short_name()
+            if not client_name:
+                return
+
+            client_version = device.client_version()
+            if not client_version:
+                return
+            client_version_str = str(client_version)
+
+            action = data.get('path')
+            if not self.has_valid_path(action):
+                return
+
+            ip = data.get('ip')
+            geolocation = self.geoip.ip_to_geolocation(ip)
+            if not geolocation:
+                return
+            geolocation_str = self.geoip.geolocation_to_str(geolocation)
+
+            date = data.get('date')
+            timezone = data.get('timezone')
+            formatted_date = self.format_date(date, timezone)
+            if not formatted_date:
+                return
+
+            parsed_data.append(formatted_date)
+            parsed_data.append(client_name)
+            parsed_data.append(client_version_str)
+            parsed_data.append(ip)
+            parsed_data.append(geolocation_str)
+            parsed_data.append(action)
+
+            # atributos ignorados
+            userid = data.get('userid')
+            length = data.get('length')
+            referrer = data.get('referrer')
+
+        return parsed_data

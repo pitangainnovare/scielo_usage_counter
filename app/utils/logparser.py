@@ -177,3 +177,18 @@ class LogParser:
         for line in self.logfile:
             res = self.parse_line(line)
             if res:
+                yield res
+
+    def save(self, data, sep='\t'):
+        self.output.write(sep.join([
+            'serverTime',
+            'browserName',
+            'browserVersion',
+            'ip',
+            'latitude',
+            'longitude',
+            'actionName']) + '\n')
+
+        [self.output.write(sep.join(d) + '\n') for d in data if d]
+        self.end = time.time()
+        self.total_time = self.end - self.start

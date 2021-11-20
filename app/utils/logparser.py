@@ -54,3 +54,8 @@ class LogParser:
         if method == 'GET':
             return True
         return False
+
+    def has_valid_status(self, status):
+        if status in {'200', '304'}:
+            return True
+        return False

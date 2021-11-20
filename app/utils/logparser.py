@@ -92,3 +92,13 @@ class LogParser:
         if ext in EXTENSIONS_DOWNLOAD:
             return True
         return False
+
+    def timedelta_from_timezone(self, timezone):
+        timezone = int(timezone)
+        sign = 1 if timezone >= 0 else -1
+        n = abs(timezone)
+
+        hours = n / 100 * sign
+        minutes = n % 100 * sign
+
+        return datetime.timedelta(hours=hours, minutes=minutes)

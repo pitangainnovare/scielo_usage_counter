@@ -49,3 +49,8 @@ class LogParser:
     @robots.setter
     def robots(self, robots_path):
         self.__robots = robot_reader(robots_path)
+
+    def has_valid_method(self, method):
+        if method == 'GET':
+            return True
+        return False

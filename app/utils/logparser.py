@@ -71,3 +71,24 @@ class LogParser:
             if regex.search(user_agent_lowered):
                 return True
         return False
+
+    def has_valid_path(self, path):
+        if not self.action_is_static_file(path):
+            return True
+        return False
+
+    def action_is_static_file(self, path):
+        file_from_url = path.split('/')[-1]
+        ext = file_from_url.rsplit('.')[-1].lower()
+
+        if ext in EXTENSIONS_STATIC or file_from_url in EXTENSIONS_STATIC:
+            return True
+        return False
+
+    def action_is_download(self, path):
+        file_from_url = path.split('/')[-1]
+        ext = file_from_url.rsplit('.')[-1].lower()
+
+        if ext in EXTENSIONS_DOWNLOAD:
+            return True
+        return False

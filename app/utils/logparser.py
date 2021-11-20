@@ -59,3 +59,15 @@ class LogParser:
         if status in {'200', '304'}:
             return True
         return False
+
+    def has_valid_user_agent(self, user_agent):
+        if not self.user_agent_is_bot(user_agent):
+            return True
+        return False
+
+    def user_agent_is_bot(self, user_agent):
+        user_agent_lowered = user_agent.lower()
+        for regex in self.robots:
+            if regex.search(user_agent_lowered):
+                return True
+        return False

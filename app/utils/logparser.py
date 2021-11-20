@@ -37,3 +37,15 @@ class LogParser:
     @logfile.setter
     def logfile(self, file_path):
         self.__logfile = open_logfile(file_path)
+
+    @property
+    def geoip(self):
+        return self.__geoip
+
+    @property
+    def robots(self):
+        return self.__robots
+
+    @robots.setter
+    def robots(self, robots_path):
+        self.__robots = robot_reader(robots_path)

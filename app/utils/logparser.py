@@ -102,3 +102,11 @@ class LogParser:
         minutes = n % 100 * sign
 
         return datetime.timedelta(hours=hours, minutes=minutes)
+
+    def format_date(self, date, timezone):
+        try:
+            date = datetime.datetime.strptime(date, '%d/%b/%Y:%H:%M:%S')
+            date -= self.timedelta_from_timezone(timezone)
+            return date.strftime('%Y-%m-%d %H:%M:%S')
+        except:
+            raise

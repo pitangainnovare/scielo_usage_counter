@@ -1,11 +1,14 @@
 from setuptools import setup, find_packages
 
 install_requirements=[
+    'device-detector',
+    'geoip2',
     'mysqlclient',
     'requests',
     'reverse_geocoder',
     'sqlalchemy',
     'scielo_log_validator',
+    'wget',
 ]
 
 setup(

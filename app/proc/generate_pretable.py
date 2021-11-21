@@ -22,3 +22,42 @@ OUTPUT_DIRECTORY = os.environ.get(
     'OUTPUT_DIRECTORY',
     'data/pretables/'
 )
+
+
+def read_processed_log(filepath, delimiter='\t'):
+    """
+    Lê um arquivo de log processado e organizada os dados por dia.
+
+    Parameters
+    ----------
+    filepath : str
+        Nome do arquivo contendo dados de log processados
+    delimiter: str
+        Separador de colunas do arquivo de log processado
+
+    Returns
+    -------
+    dict
+        Um dicionário contendo dados de acesso processados e organizados por dia
+            [
+                ...,
+                '2021-10-01': [...],
+                '2021-10-02': [...],
+                ...,
+            ]
+    """
+    data = {}
+
+    with open(filepath) as fin:
+        logging.info('Lendo %s' % filepath)
+        csv_reader = csv.DictReader(fin, delimiter=delimiter)
+        
+        for line in csv_reader:
+            ymd = line.get('serverTime').split(' ')[0]
+            
+            if ymd not in data:
+                data[ymd] = []
+            
+            data[ymd].append(line)
+
+    return data

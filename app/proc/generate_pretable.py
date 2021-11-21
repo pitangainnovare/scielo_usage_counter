@@ -165,3 +165,36 @@ def generate_pretables(filepath, output_directory, extension='tsv', delimiter='\
     for y, d in ymd_to_data.items():
         pretable_filepath = generate_filepath_with_filename(output_directory, y, extension)
         write_pretable(pretable_filepath, PRETABLE_FILE_HEADER, 'ip', d, delimiter)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        '-f', '--file',
+        required=True,
+        help='Arquivo de log pré-processado',
+    )
+
+    parser.add_argument(
+        '-o',
+        '--output',
+        default=OUTPUT_DIRECTORY,
+        help='Diretório de saída',
+    )
+
+    params = parser.parse_args()
+
+    logging.basicConfig(
+        level=LOGGING_LEVEL,
+        format='[%(asctime)s] %(levelname)s %(message)s',
+        datefmt='%d/%b/%Y %H:%M:%S',
+    )
+
+    check_dir(params.output)
+    
+    generate_pretables(params.file, params.output)
+
+
+if __name__ == '__main__':
+    main()

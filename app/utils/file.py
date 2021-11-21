@@ -48,5 +48,12 @@ def generate_filepath_with_date(directory, date, extension='tsv'):
     filename = f'{date_str}.{datetime.datetime.utcnow().timestamp()}.{extension}'
 
     return os.path.join(directory, filename)
+
+
 def generate_filepath_with_filename(directory, filename, extension='tsv'):
     return os.path.join(directory, f'{filename}.{extension}')
+
+
+def create_file_with_header(path, header=[], delimiter='\t'):
+    with open(path, 'w') as fout:
+        fout.write(delimiter.join(header) + '\n')

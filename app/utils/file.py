@@ -57,3 +57,8 @@ def generate_filepath_with_filename(directory, filename, extension='tsv'):
 def create_file_with_header(path, header=[], delimiter='\t'):
     with open(path, 'w') as fout:
         fout.write(delimiter.join(header) + '\n')
+
+
+def create_backup(path_in):
+    path_out = f'{path_in}.{datetime.datetime.utcnow().timestamp()}.bak'
+    return shutil.copy(path_in, path_out)

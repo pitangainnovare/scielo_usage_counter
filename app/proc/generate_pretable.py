@@ -142,3 +142,26 @@ def write_pretable(filepath, header, sort_field, data, delimiter='\t'):
             fout.write(delimiter.join(i) + '\n')
 
     return filepath
+
+
+def generate_pretables(filepath, output_directory, extension='tsv', delimiter='\t'):
+    """
+    Gera arquivo(s) com os dados de log processados e ordenados.
+    Grava um arquivo por dia.
+
+    Parameters
+    ----------
+    filepath : str
+        Nome do arquivo contendo dados de log processados
+    output_directory : str
+        Caminho no disco em que o arquivo será gravado
+    extension: str
+        Extensão do nome dos arquivos a serem gerados
+    delimiter: str
+        Separador de colunas dos arquivos a serem gerados
+    """
+    ymd_to_data = read_processed_log(filepath)
+    
+    for y, d in ymd_to_data.items():
+        pretable_filepath = generate_filepath_with_filename(output_directory, y, extension)
+        write_pretable(pretable_filepath, PRETABLE_FILE_HEADER, 'ip', d, delimiter)

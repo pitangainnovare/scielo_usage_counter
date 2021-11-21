@@ -37,12 +37,6 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        '-s', '--str_connection',
-        default=STR_CONNECTION,
-        help='String de conexão com banco de dados (mysql://user:pass@host:port/database)',
-    )
-
-    parser.add_argument(
         '-c', '--collection',
         default=COLLECTION,
         help='Acrônimo de coleção',

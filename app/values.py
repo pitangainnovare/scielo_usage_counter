@@ -111,3 +111,13 @@ EXTENSIONS_DOWNLOAD = set([
     'md5',
     'sig'
 ])
+
+PRETABLE_FILE_HEADER = [
+    'serverTime', 
+    'browserName', 
+    'browserVersion', 
+    'ip', 
+    'latitude', 
+    'longitude', 
+    'actionName'
+]

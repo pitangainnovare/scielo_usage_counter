@@ -33,7 +33,7 @@ def get_mimetype(file_path):
 def open_logfile(file_path):
     file_mime = get_mimetype(file_path)
 
-    if file_mime == 'application/gzip':
+    if file_mime in ('application/gzip', 'application/x-gzip'):
         return open_gzip(file_path, 'rb')
     elif file_mime == 'application/text':
         return open(file_path, 'r')

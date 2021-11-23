@@ -4,6 +4,11 @@ import os
 import gzip
 import shutil
 
+from app.utils.exceptions import (
+    InvalidDateError,
+    InvalidLogFileMimeError,
+)
+
 
 def check_dir(output):
     if not os.path.isdir(output):
@@ -35,8 +40,10 @@ def open_logfile(file_path):
 
     if file_mime in ('application/gzip', 'application/x-gzip'):
         return open_gzip(file_path, 'rb')
-    elif file_mime == 'application/text':
+    elif file_mime in ('application/text', 'text/plain'):
         return open(file_path, 'r')
+    else:
+        raise InvalidLogFileMimeError(f'Arquivo de log inválido: {file_path}')
 
 
 def generate_filepath_with_date(directory, date, extension='tsv'):

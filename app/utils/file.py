@@ -67,5 +67,10 @@ def create_file_with_header(path, header=[], delimiter='\t'):
 
 
 def create_backup(path_in):
-    path_out = f'{path_in}.{datetime.datetime.utcnow().timestamp()}.bak'
-    return shutil.copy(path_in, path_out)
+    path_out = f'{path_in}.{datetime.datetime.utcnow().timestamp()}.bak.gz'
+
+    with open(path_in, 'rb') as fin:
+        with gzip.open(path_out, 'wb') as fout:
+            shutil.copyfileobj(fin, fout)
+
+    return path_out

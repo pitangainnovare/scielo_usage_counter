@@ -1,5 +1,6 @@
 import datetime
 import re
+import logging
 import time
 
 from app.values import (
@@ -115,9 +116,9 @@ class LogParser:
     def parse_line(self, line):
         parsed_data = []
 
-        decoded_row = line.decode().strip()
+        decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
 
-        match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT, decoded_row)
+        match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT, decoded_line)
         if match:
             data = match.groupdict()
 

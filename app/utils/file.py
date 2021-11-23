@@ -4,6 +4,11 @@ import os
 import gzip
 import shutil
 
+from app.utils.exceptions import (
+    InvalidDateError,
+    InvalidLogFileMimeError,
+)
+
 
 def check_dir(output):
     if not os.path.isdir(output):
@@ -35,15 +40,17 @@ def open_logfile(file_path):
 
     if file_mime in ('application/gzip', 'application/x-gzip'):
         return open_gzip(file_path, 'rb')
-    elif file_mime == 'application/text':
+    elif file_mime in ('application/text', 'text/plain'):
         return open(file_path, 'r')
+    else:
+        raise InvalidLogFileMimeError(f'Arquivo de log inválido: {file_path}')
 
 
 def generate_filepath_with_date(directory, date, extension='tsv'):
     try:
         date_str = date.strftime('%Y-%m-%d')
     except ValueError:
-        raise
+        raise InvalidDateError('Data inválida')
 
     filename = f'{date_str}.{datetime.datetime.utcnow().timestamp()}.{extension}'
 
@@ -60,5 +67,10 @@ def create_file_with_header(path, header=[], delimiter='\t'):
 
 
 def create_backup(path_in):
-    path_out = f'{path_in}.{datetime.datetime.utcnow().timestamp()}.bak'
-    return shutil.copy(path_in, path_out)
+    path_out = f'{path_in}.{datetime.datetime.utcnow().timestamp()}.bak.gz'
+
+    with open(path_in, 'rb') as fin:
+        with gzip.open(path_out, 'wb') as fout:
+            shutil.copyfileobj(fin, fout)
+
+    return path_out

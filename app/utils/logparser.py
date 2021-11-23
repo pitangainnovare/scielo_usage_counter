@@ -1,5 +1,6 @@
 import datetime
 import re
+import logging
 import time
 
 from app.values import (
@@ -10,6 +11,7 @@ from app.values import (
 from app.utils.file import open_logfile
 from app.utils.geo import GeoIp
 from app.utils.robot import robot_reader
+from app.utils.exceptions import DeviceDetectionError
 from device_detector import DeviceDetector
 
 
@@ -114,9 +116,9 @@ class LogParser:
     def parse_line(self, line):
         parsed_data = []
 
-        decoded_row = line.decode().strip()
+        decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
 
-        match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT, decoded_row)
+        match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT, decoded_line)
         if match:
             data = match.groupdict()
 
@@ -129,8 +131,12 @@ class LogParser:
                 return
 
             user_agent = data.get('user_agent')
-            device = DeviceDetector(user_agent).parse()
-            if device.is_bot():
+            try:
+                device = DeviceDetector(user_agent).parse()
+                if device.is_bot():
+                    return
+            except ZeroDivisionError:
+                logging.error(DeviceDetectionError(f'Não foi possível identificar UserAgent {user_agent} from line {decoded_line}'))
                 return
 
             client_name = device.client_short_name()

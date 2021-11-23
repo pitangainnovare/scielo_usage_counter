@@ -10,6 +10,7 @@ from app.values import (
 from app.utils.file import open_logfile
 from app.utils.geo import GeoIp
 from app.utils.robot import robot_reader
+from app.utils.exceptions import DeviceDetectionError
 from device_detector import DeviceDetector
 
 
@@ -129,8 +130,12 @@ class LogParser:
                 return
 
             user_agent = data.get('user_agent')
-            device = DeviceDetector(user_agent).parse()
-            if device.is_bot():
+            try:
+                device = DeviceDetector(user_agent).parse()
+                if device.is_bot():
+                    return
+            except ZeroDivisionError:
+                logging.error(DeviceDetectionError(f'Não foi possível identificar UserAgent {user_agent} from line {decoded_line}'))
                 return
 
             client_name = device.client_short_name()

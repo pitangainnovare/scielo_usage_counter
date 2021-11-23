@@ -50,7 +50,7 @@ def generate_filepath_with_date(directory, date, extension='tsv'):
     try:
         date_str = date.strftime('%Y-%m-%d')
     except ValueError:
-        raise
+        raise InvalidDateError('Data inválida')
 
     filename = f'{date_str}.{datetime.datetime.utcnow().timestamp()}.{extension}'
 

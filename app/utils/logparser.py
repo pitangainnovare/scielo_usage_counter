@@ -15,6 +15,198 @@ from app.utils.exceptions import DeviceDetectionError
 from device_detector import DeviceDetector
 
 
+class Stats:
+    def __init__(self):
+        self.__ignored_lines_static_resources = 0
+        self.__ignored_lines_bot = 0
+        self.__ignored_lines_invalid_method = 0
+        self.__ignored_lines_invalid_user_agent = 0
+        self.__ignored_lines_invalid_client_name = 0
+        self.__ignored_lines_invalid_client_version = 0
+        self.__ignored_lines_invalid_geolocation = 0
+        self.__ignored_lines_invalid_local_datetime = 0
+        self.__ignored_lines_http_redirects = 0
+        self.__ignored_lines_http_errors = 0
+        self.__total_ignored_lines = 0
+        self.__total_imported_lines = 0
+        self.__lines_parsed = 0
+        self.__total_time = 0.0
+
+    @property
+    def ignored_lines_static_resources(self):
+        return self.__ignored_lines_static_resources
+    
+    @ignored_lines_static_resources.setter
+    def ignored_lines_static_resources(self, value):
+        self.__ignored_lines_static_resources = value
+
+    @property
+    def ignored_lines_bot(self):
+        return self.__ignored_lines_bot
+    
+    @ignored_lines_bot.setter
+    def ignored_lines_bot(self, value):
+        self.__ignored_lines_bot = value
+
+    @property
+    def ignored_lines_invalid_method(self):
+        return self.__ignored_lines_invalid_method
+    
+    @ignored_lines_invalid_method.setter
+    def ignored_lines_invalid_method(self, value):
+        self.__ignored_lines_invalid_method = value
+
+    @property
+    def ignored_lines_invalid_user_agent(self):
+        return self.__ignored_lines_invalid_user_agent
+    
+    @ignored_lines_invalid_user_agent.setter
+    def ignored_lines_invalid_user_agent(self, value):
+        self.__ignored_lines_invalid_user_agent = value
+
+    @property
+    def ignored_lines_invalid_client_name(self):
+        return self.__ignored_lines_invalid_client_name
+    
+    @ignored_lines_invalid_client_name.setter
+    def ignored_lines_invalid_client_name(self, value):
+        self.__ignored_lines_invalid_client_name = value
+
+    @property
+    def ignored_lines_invalid_client_version(self):
+        return self.__ignored_lines_invalid_client_version
+    
+    @ignored_lines_invalid_client_version.setter
+    def ignored_lines_invalid_client_version(self, value):
+        self.__ignored_lines_invalid_client_version = value
+
+    @property
+    def ignored_lines_invalid_geolocation(self):
+        return self.__ignored_lines_invalid_geolocation
+    
+    @ignored_lines_invalid_geolocation.setter
+    def ignored_lines_invalid_geolocation(self, value):
+        self.__ignored_lines_invalid_geolocation = value
+
+    @property
+    def ignored_lines_invalid_local_datetime(self):
+        return self.__ignored_lines_invalid_local_datetime
+    
+    @ignored_lines_invalid_local_datetime.setter
+    def ignored_lines_invalid_local_datetime(self, value):
+        self.__ignored_lines_invalid_local_datetime = value
+
+    @property
+    def ignored_lines_http_redirects(self):
+        return self.__ignored_lines_http_redirects
+    
+    @ignored_lines_http_redirects.setter
+    def ignored_lines_http_redirects(self, value):
+        self.__ignored_lines_http_redirects = value
+
+    @property
+    def ignored_lines_http_errors(self):
+        return self.__ignored_lines_http_errors
+    
+    @ignored_lines_http_errors.setter
+    def ignored_lines_http_errors(self, value):
+        self.__ignored_lines_http_errors = value
+
+    @property
+    def total_ignored_lines(self):
+        return self.__total_ignored_lines
+    
+    @total_ignored_lines.setter
+    def total_ignored_lines(self, value):
+        self.__total_ignored_lines = value
+
+    @property
+    def total_imported_lines(self):
+        return self.__total_imported_lines
+    
+    @total_imported_lines.setter
+    def total_imported_lines(self, value):
+        self.__total_imported_lines = value
+
+    @property
+    def lines_parsed(self):
+        return self.__lines_parsed
+
+    @lines_parsed.setter
+    def lines_parsed(self, value):
+        self.__lines_parsed = value
+    
+    @property
+    def total_time(self):
+        return self.__total_time
+
+    @total_time.setter
+    def total_time(self, value):
+        self.__total_time = value
+
+    @property
+    def output(self):
+        return self.__output
+
+    @output.setter
+    def output(self, path):
+        try:
+            self.__output = open(path, 'w')
+        except:
+            logging.info(self.dump_to_str())
+
+    def increment(self, measure):
+        current_value = getattr(self, measure)
+        new_value = current_value + 1
+        setattr(self, measure, new_value)
+
+    def get_stats(self):
+        keys = [
+            'ignored_lines_static_resources',
+            'ignored_lines_bot',
+            'ignored_lines_invalid_method',
+            'ignored_lines_invalid_user_agent',
+            'ignored_lines_invalid_client_name',
+            'ignored_lines_invalid_client_version',
+            'ignored_lines_invalid_geolocation',
+            'ignored_lines_invalid_local_datetime',
+            'ignored_lines_http_redirects',
+            'ignored_lines_http_errors',
+            'total_ignored_lines',
+            'total_imported_lines',
+            'lines_parsed',
+            'total_time',
+        ]
+
+        values = [
+            self.ignored_lines_static_resources,
+            self.ignored_lines_bot,
+            self.ignored_lines_invalid_method,
+            self.ignored_lines_invalid_user_agent,
+            self.ignored_lines_invalid_client_name,
+            self.ignored_lines_invalid_client_version,
+            self.ignored_lines_invalid_geolocation,
+            self.ignored_lines_invalid_local_datetime,
+            self.ignored_lines_http_redirects,
+            self.ignored_lines_http_errors,
+            self.total_ignored_lines,
+            self.total_imported_lines,
+            self.lines_parsed,
+            self.total_time,
+        ]
+
+        return [keys, values]
+
+    def dump_to_str(self, sep='\t'):
+        stats_kv = self.get_stats()
+        for i in stats_kv:
+            logging(sep.join(i))
+
+    def save(self, sep='\t'):
+        stats_kv = self.get_stats()
+        for i in stats_kv:
+            self.output.write(sep.join([str(x) for x in i]) + '\n')
+        self.output.close()
 class LogParser:
     def __init__(self, mmdb_path, robots_path):
         self.__geoip = GeoIp()

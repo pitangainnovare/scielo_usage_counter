@@ -90,6 +90,7 @@ def main():
         lp = LogParser(params.mmdb, params.robots)
         lp.logfile = params.file
         lp.output = output_filepath
+        lp.stats.output = output_filepath + '.summary'
 
         logging.info(f'Processamento iniciado para arquivo {params.file} com saída em {output_filepath}')
         data = lp.parse()

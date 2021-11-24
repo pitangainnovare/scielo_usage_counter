@@ -350,6 +350,12 @@ class LogParser:
             return True
         return False
 
+    def status_is_redirect(self, status):
+        return status[0] == '3'and status != '304'
+
+    def status_is_error(self, status):
+        return status[0] in {'4', '5'}
+
     def has_valid_user_agent(self, user_agent):
         if not self.user_agent_is_bot(user_agent):
             return True
@@ -420,9 +426,9 @@ class LogParser:
 
             hit.status = data.get('status')
             if not self.has_valid_status(hit.status):
-                if hit.status[0] == '3' and hit.status != '304':
+                if self.status_is_redirect(hit.status):
                     self.stats.increment('ignored_lines_http_redirects')
-                if hit.status[0] in {'4', '5'}:
+                elif self.status_is_error(hit.status):
                     self.stats.increment('ignored_lines_http_errors')
                 hit.is_valid = False
 

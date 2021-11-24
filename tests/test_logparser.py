@@ -122,3 +122,27 @@ class TestLogParser(unittest.TestCase):
         for vp in valid_paths:
             obtained = self.lp.has_valid_path(vp)
             self.assertTrue(obtained)
+
+    def test_has_valid_method_true(self):
+        http_methods = [
+            'GET',
+            'HEAD',
+        ]
+
+        for m in http_methods:
+            obtained = self.lp.has_valid_method(m)
+            self.assertTrue(obtained)
+
+    def test_has_valid_method_false(self):
+        http_methods = [
+            'POST',
+            'PUT',
+            'PATCH',
+            'DELETE',
+            'CONNECT',
+            'OPTIONS'
+        ]
+
+        for m in http_methods:
+            obtained = self.lp.has_valid_method(m)
+            self.assertFalse(obtained)

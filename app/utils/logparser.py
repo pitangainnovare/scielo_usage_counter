@@ -499,6 +499,9 @@ class LogParser:
             'longitude',
             'actionName']) + '\n')
 
-        [self.output.write(sep.join(d) + '\n') for d in data if d]
+        [self.output.write(sep.join([str(di) for di in d]) + '\n') for d in data if d]
         self.end = time.time()
         self.total_time = self.end - self.start
+
+        self.stats.total_time = self.total_time
+        self.stats.save()

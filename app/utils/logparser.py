@@ -402,67 +402,83 @@ class LogParser:
             return
 
     def parse_line(self, line):
+        self.stats.increment('lines_parsed')
+        
         parsed_data = []
-
         decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
 
         match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT, decoded_line)
         if match:
+            hit = Hit()
+
             data = match.groupdict()
 
-            method = data.get('method')
-            if not self.has_valid_method(method):
-                return
+            hit.method = data.get('method')
+            if not self.has_valid_method(hit.method):
+                self.stats.increment('ignored_lines_invalid_method')
+                hit.is_valid = False
 
-            status = data.get('status')
-            if not self.has_valid_status(status):
-                return
+            hit.status = data.get('status')
+            if not self.has_valid_status(hit.status):
+                if hit.status[0] == '3' and hit.status != '304':
+                    self.stats.increment('ignored_lines_http_redirects')
+                if hit.status[0] in {'4', '5'}:
+                    self.stats.increment('ignored_lines_http_errors')
+                hit.is_valid = False
 
-            user_agent = data.get('user_agent')
+            hit.user_agent = data.get('user_agent')
             try:
-                device = DeviceDetector(user_agent).parse()
+                device = DeviceDetector(hit.user_agent).parse()
                 if device.is_bot():
-                    return
+                    self.stats.increment('ignored_lines_bot')
+                    hit.is_valid = False
             except ZeroDivisionError:
-                logging.error(DeviceDetectionError(f'Não foi possível identificar UserAgent {user_agent} from line {decoded_line}'))
-                return
+                self.stats.increment('ignored_lines_invalid_user_agent')
+                logging.error(DeviceDetectionError(f'Não foi possível identificar UserAgent {hit.user_agent} from line {decoded_line}'))
+                hit.is_valid = False
 
-            client_name = device.client_short_name()
-            if not client_name:
-                return
+            hit.client_name = device.client_short_name()
+            if not hit.client_name:
+                self.stats.increment('ignored_lines_invalid_client_name')
+                hit.is_valid = False
 
-            client_version = device.client_version()
-            if not client_version:
-                return
-            client_version_str = str(client_version)
+            hit.client_version = device.client_version()
+            if not hit.client_version:
+                self.stats.increment('ignored_lines_invalid_client_version')
+                hit.is_valid = False
 
-            action = data.get('path')
-            if not self.has_valid_path(action):
-                return
+            hit.action = data.get('path')
+            if not self.has_valid_path(hit.action):
+                self.stats.increment('ignored_lines_static_resources')
+                hit.is_valid = False
 
-            ip = data.get('ip')
-            geolocation = self.geoip.ip_to_geolocation(ip)
-            if not geolocation:
-                return
-            geolocation_str = self.geoip.geolocation_to_str(geolocation)
+            hit.ip = data.get('ip')
+            geocity = self.geoip.ip_to_geolocation(hit.ip)
+            if not geocity:
+                self.stats.increment('ignored_lines_invalid_geolocation')
+                hit.is_valid = False
+            hit.geolocation = self.geoip.geolocation_to_str(geocity)
 
             date = data.get('date')
             timezone = data.get('timezone')
-            formatted_date = self.format_date(date, timezone)
-            if not formatted_date:
-                return
+            hit.local_datetime = self.format_date(date, timezone)
+            if not hit.local_datetime:
+                self.stats.increment('ignored_lines_invalid_local_datetime')
+                hit.is_valid = False
 
-            parsed_data.append(formatted_date)
-            parsed_data.append(client_name)
-            parsed_data.append(client_version_str)
-            parsed_data.append(ip)
-            parsed_data.append(geolocation_str)
-            parsed_data.append(action)
+            if hit.is_valid:
+                self.stats.increment('total_imported_lines')
 
-            # atributos ignorados
-            userid = data.get('userid')
-            length = data.get('length')
-            referrer = data.get('referrer')
+                parsed_data.append(hit.local_datetime)
+                parsed_data.append(hit.client_name)
+                parsed_data.append(hit.client_version)
+                parsed_data.append(hit.ip)
+                parsed_data.append(hit.geolocation)
+                parsed_data.append(hit.action)
+            else:
+                self.stats.increment('total_ignored_lines')
+        else:
+            self.stats.increment('total_ignored_lines')
 
         return parsed_data
 

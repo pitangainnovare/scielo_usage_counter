@@ -212,6 +212,7 @@ class LogParser:
         self.__geoip = GeoIp()
         self.__geoip.map = mmdb_path
         self.__robots = robot_reader(robots_path)
+        self.__stats = Stats()
 
     @property
     def output(self):
@@ -243,6 +244,14 @@ class LogParser:
     @robots.setter
     def robots(self, robots_path):
         self.__robots = robot_reader(robots_path)
+
+    @property
+    def stats(self):
+        return self.__stats
+
+    @stats.setter
+    def stats(self):
+        self.__stats = Stats()
 
     def has_valid_method(self, method):
         if method == 'GET':

@@ -170,3 +170,25 @@ class TestLogParser(unittest.TestCase):
         for s in http_status:
             obtained = self.lp.has_valid_status(s)
             self.assertFalse(obtained)
+
+    def test_parse_success(self):
+        self.lp.logfile = 'tests/fixtures/usage.log'
+        self.lp.output = 'tests/fixtures/usage.log.processed'
+        self.lp.stats.output = 'tests/fixtures/usage.log.processed.summary'
+
+        data = self.lp.parse()
+        self.lp.save(data)
+
+        self.assertEqual(self.lp.stats.ignored_lines_bot, 2)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_method, 2)
+        self.assertEqual(self.lp.stats.ignored_lines_http_errors, 3)
+        self.assertEqual(self.lp.stats.ignored_lines_http_redirects, 5)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_client_name, 5)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_client_version, 4)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_geolocation, 2)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_local_datetime, 1)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_user_agent, 0)
+        self.assertEqual(self.lp.stats.ignored_lines_static_resources, 186)
+        self.assertEqual(self.lp.stats.lines_parsed, 200)
+        self.assertEqual(self.lp.stats.total_imported_lines, 9)
+        self.assertEqual(self.lp.stats.total_ignored_lines, 191)

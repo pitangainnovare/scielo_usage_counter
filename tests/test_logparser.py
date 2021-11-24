@@ -1,7 +1,10 @@
 import unittest
 import datetime
 
-from app.utils.logparser import LogParser
+from app.utils.logparser import (
+    LogParser,
+    Stats,
+)
 
 
 class TestLogParser(unittest.TestCase):
@@ -98,3 +101,24 @@ class TestLogParser(unittest.TestCase):
         obtained_date = self.lp.format_date(str_date, str_zone)
 
         self.assertEqual(test_date, obtained_date)
+
+    def test_has_valid_path_false(self):
+        invalid_paths = [
+            '/img/revistas/rbp/v26n3/a13img02.gif',
+            '/img/revistas/pab/v47n8/a19tab02.jpg',
+        ]
+
+        for vp in invalid_paths:
+            obtained = self.lp.has_valid_path(vp)
+            self.assertFalse(obtained)
+
+    def test_has_valid_path_true(self):
+        valid_paths = [
+            '/scielo.php?pid=S1981-77462017005002103&script=sci_arttext',
+            '/pdf/rem/v63n4/a07v63n4.pdf',
+
+        ]
+
+        for vp in valid_paths:
+            obtained = self.lp.has_valid_path(vp)
+            self.assertTrue(obtained)

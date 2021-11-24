@@ -207,6 +207,93 @@ class Stats:
         for i in stats_kv:
             self.output.write(sep.join([str(x) for x in i]) + '\n')
         self.output.close()
+
+
+class Hit:
+    def __init__(self):
+        self.__is_valid = True
+
+    @property
+    def is_valid(self):
+        return self.__is_valid
+
+    @is_valid.setter
+    def is_valid(self, value):
+        self.__is_valid = value
+
+    @property
+    def method(self):
+        return self.__method
+
+    @method.setter
+    def method(self, value):
+        self.__method = value
+    
+    @property
+    def status(self):
+        return self.__status
+
+    @status.setter
+    def status(self, value):
+        self.__status = value
+
+    @property
+    def user_agent(self):
+        return self.__user_agent
+
+    @user_agent.setter
+    def user_agent(self, value):
+        self.__user_agent = value
+
+    @property
+    def client_name(self):
+        return self.__client_name
+
+    @client_name.setter
+    def client_name(self, value):
+        self.__client_name = value
+
+    @property
+    def client_version(self):
+        return self.__client_version
+
+    @client_version.setter
+    def client_version(self, value):
+        self.__client_version = value
+
+    @property
+    def ip(self):
+        return self.__ip
+
+    @ip.setter
+    def ip(self, value):
+        self.__ip = value
+
+    @property
+    def geolocation(self):
+        return self.__geolocation
+
+    @geolocation.setter
+    def geolocation(self, value):
+        self.__geolocation = value
+
+    @property
+    def local_datetime(self):
+        return self.__local_datetime
+
+    @local_datetime.setter
+    def local_datetime(self, value):
+        self.__local_datetime = value
+
+    @property
+    def action(self):
+        return self.__action
+
+    @action.setter
+    def action(self, value):
+        self.__action = value
+
+
 class LogParser:
     def __init__(self, mmdb_path, robots_path):
         self.__geoip = GeoIp()

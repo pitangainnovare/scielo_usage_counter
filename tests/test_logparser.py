@@ -192,3 +192,42 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(self.lp.stats.lines_parsed, 200)
         self.assertEqual(self.lp.stats.total_imported_lines, 9)
         self.assertEqual(self.lp.stats.total_ignored_lines, 191)
+
+
+class TestStats(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.stats = Stats()
+
+    def test_increment(self):
+        for attr, v in [
+            ('ignored_lines_static_resources', 10),
+            ('ignored_lines_bot', 5),
+            ('ignored_lines_invalid_method', 4),
+            ('ignored_lines_invalid_user_agent', 3),
+            ('ignored_lines_invalid_client_name', 1),
+            ('ignored_lines_invalid_client_version', 2),
+            ('ignored_lines_invalid_geolocation', 20),
+            ('ignored_lines_invalid_local_datetime', 1),            
+            ('ignored_lines_http_redirects', 6),
+            ('ignored_lines_http_errors', 3),
+            ('total_ignored_lines', 50),
+            ('total_imported_lines', 50),
+            ('lines_parsed', 100),
+        ]:
+            for i in range(v):
+                self.stats.increment(attr)
+
+        self.assertEqual(self.stats.ignored_lines_static_resources, 10)
+        self.assertEqual(self.stats.ignored_lines_invalid_method, 4)
+        self.assertEqual(self.stats.ignored_lines_bot, 5)
+        self.assertEqual(self.stats.ignored_lines_invalid_user_agent, 3)
+        self.assertEqual(self.stats.ignored_lines_invalid_client_name, 1)
+        self.assertEqual(self.stats.ignored_lines_invalid_client_version, 2)
+        self.assertEqual(self.stats.ignored_lines_invalid_geolocation, 20)
+        self.assertEqual(self.stats.ignored_lines_invalid_local_datetime, 1)
+        self.assertEqual(self.stats.ignored_lines_http_redirects, 6)
+        self.assertEqual(self.stats.ignored_lines_http_errors, 3)
+        self.assertEqual(self.stats.total_ignored_lines, 50)
+        self.assertEqual(self.stats.total_imported_lines, 50)
+        self.assertEqual(self.stats.lines_parsed, 100)

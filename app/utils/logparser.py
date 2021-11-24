@@ -399,7 +399,7 @@ class LogParser:
             date -= self.timedelta_from_timezone(timezone)
             return date.strftime('%Y-%m-%d %H:%M:%S')
         except:
-            raise
+            return
 
     def parse_line(self, line):
         parsed_data = []

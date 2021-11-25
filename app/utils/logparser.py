@@ -446,12 +446,14 @@ class LogParser:
                     self.stats.increment('ignored_lines_http_errors')
                 hit.is_valid = False
 
-            hit.user_agent = data.get('user_agent')
+            hit.user_agent = self.format_user_agent(data.get('user_agent'))
+
+            if self.user_agent_is_bot(hit.user_agent):
+                self.stats.increment('ignored_lines_bot')
+                hit.is_valid = False
+
             try:
                 device = DeviceDetector(hit.user_agent).parse()
-                if device.is_bot():
-                    self.stats.increment('ignored_lines_bot')
-                    hit.is_valid = False
             except ZeroDivisionError:
                 self.stats.increment('ignored_lines_invalid_user_agent')
                 logging.error(DeviceDetectionError(f'Não foi possível identificar UserAgent {hit.user_agent} from line {decoded_line}'))

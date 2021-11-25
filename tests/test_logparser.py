@@ -236,9 +236,18 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.lines_parsed, 200)
         self.assertEqual(lp.stats.total_imported_lines, 13)
         self.assertEqual(lp.stats.total_ignored_lines, 187)
+
+    def test_parse_line_valid(self):
         line = '89.155.0.1 - - [21/May/2021:11:30:37 -0300] "GET /scielo.php?script=sci_arttext&pid=S0102-69092018000300512 HTTP/1.1" 200 44995 "https://www.google.com/" "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/137.2.345735309 Mobile/15E148 Safari/604.1"'
         obtained = self.lp.parse_line(line)
-        self.assertFalse('\t'.join(obtained) == '')
+        self.assertListEqual(obtained, [
+            '2021-05-21 14:30:37', 
+            'UNK', 
+            '137.2.345735309', 
+            '89.155.0.1', 
+            '38.7599\t-9.15765', 
+            '/scielo.php?script=sci_arttext&pid=S0102-69092018000300512'
+        ])
 
     def test_device_detector_client_name_valid(self):
 

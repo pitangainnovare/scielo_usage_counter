@@ -215,28 +215,27 @@ class TestLogParser(unittest.TestCase):
             self.assertFalse(obtained)
 
     def test_parse_success(self):
-        self.lp.logfile = 'tests/fixtures/usage.log'
-        self.lp.output = 'tests/fixtures/usage.log.processed'
-        self.lp.stats.output = 'tests/fixtures/usage.log.processed.summary'
+        lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
+        lp.logfile = 'tests/fixtures/usage.log'
+        lp.output = 'tests/fixtures/usage.log.processed'
+        lp.stats.output = 'tests/fixtures/usage.log.processed.summary'
 
-        data = self.lp.parse()
-        self.lp.save(data)
+        data = lp.parse()
+        lp.save(data)
 
-        self.assertEqual(self.lp.stats.ignored_lines_bot, 2)
-        self.assertEqual(self.lp.stats.ignored_lines_invalid_method, 2)
-        self.assertEqual(self.lp.stats.ignored_lines_http_errors, 3)
-        self.assertEqual(self.lp.stats.ignored_lines_http_redirects, 5)
-        self.assertEqual(self.lp.stats.ignored_lines_invalid_client_name, 0)
-        self.assertEqual(self.lp.stats.ignored_lines_invalid_client_version, 0)
-        self.assertEqual(self.lp.stats.ignored_lines_invalid_geolocation, 2)
-        self.assertEqual(self.lp.stats.ignored_lines_invalid_local_datetime, 1)
-        self.assertEqual(self.lp.stats.ignored_lines_invalid_user_agent, 0)
-        self.assertEqual(self.lp.stats.ignored_lines_static_resources, 186)
-        self.assertEqual(self.lp.stats.lines_parsed, 200)
-        self.assertEqual(self.lp.stats.total_imported_lines, 12)
-        self.assertEqual(self.lp.stats.total_ignored_lines, 188)
-
-    def test_parse_line_success(self):
+        self.assertEqual(lp.stats.ignored_lines_bot, 3)
+        self.assertEqual(lp.stats.ignored_lines_invalid_method, 2)
+        self.assertEqual(lp.stats.ignored_lines_http_errors, 3)
+        self.assertEqual(lp.stats.ignored_lines_http_redirects, 4)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_geolocation, 2)
+        self.assertEqual(lp.stats.ignored_lines_invalid_local_datetime, 1)
+        self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
+        self.assertEqual(lp.stats.ignored_lines_static_resources, 185)
+        self.assertEqual(lp.stats.lines_parsed, 200)
+        self.assertEqual(lp.stats.total_imported_lines, 13)
+        self.assertEqual(lp.stats.total_ignored_lines, 187)
         line = '89.155.0.1 - - [21/May/2021:11:30:37 -0300] "GET /scielo.php?script=sci_arttext&pid=S0102-69092018000300512 HTTP/1.1" 200 44995 "https://www.google.com/" "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/137.2.345735309 Mobile/15E148 Safari/604.1"'
         obtained = self.lp.parse_line(line)
         self.assertFalse('\t'.join(obtained) == '')

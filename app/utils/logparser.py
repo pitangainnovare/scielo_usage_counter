@@ -407,6 +407,13 @@ class LogParser:
         except:
             return
 
+    def format_user_agent(self, user_agent):
+        fmt_ua = user_agent
+        
+        if fmt_ua and fmt_ua.startswith('"'):
+            fmt_ua = fmt_ua[1:-1]
+        
+        return fmt_ua
     def parse_line(self, line):
         self.stats.increment('lines_parsed')
         

@@ -249,7 +249,10 @@ class TestLogParser(unittest.TestCase):
             '/scielo.php?script=sci_arttext&pid=S0102-69092018000300512'
         ])
 
-    def test_device_detector_client_name_valid(self):
+    def test_parse_line_invalid(self):
+        line = '67.205.129.249 - - [21/May/2021:05:05:16 -0300] "GET /scielo.php?download&pid=S0102-86502014000700465&format=EndNote HTTP/1.1" 200 491 "http://www.scielo.br/scielo.php?script=sci_isoref&pid=S0102-86502014000700465&lng=en" "LOCKSS cache"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [])
 
         user_agents = [a.strip() for a in open('tests/fixtures/user_agents.txt')]
         obtained_clients_names = set()

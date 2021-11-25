@@ -443,7 +443,7 @@ class LogParser:
                 logging.error(DeviceDetectionError(f'Não foi possível identificar UserAgent {hit.user_agent} from line {decoded_line}'))
                 hit.is_valid = False
 
-            hit.client_name = device.client_short_name()
+            hit.client_name = device.client_short_name() or device.client_name() or device.UNKNOWN
             if not hit.client_name:
                 self.stats.increment('ignored_lines_invalid_client_name')
                 hit.is_valid = False

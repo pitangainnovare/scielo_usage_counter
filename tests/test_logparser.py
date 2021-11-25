@@ -241,6 +241,30 @@ class TestLogParser(unittest.TestCase):
         obtained = self.lp.parse_line(line)
         self.assertFalse('\t'.join(obtained) == '')
 
+    def test_device_detector_client_name_valid(self):
+
+        user_agents = [a.strip() for a in open('tests/fixtures/user_agents.txt')]
+        obtained_clients_names = set()
+        obtained_clients_versions = set()
+
+        for ua in user_agents:
+            device = DeviceDetector(ua).parse()
+            client_name = device.client_short_name() or device.client_name() or device.UNKNOWN
+            client_version = device.client_version() or client_name
+            obtained_clients_names.add(client_name)
+            obtained_clients_versions.add(client_version)
+
+        self.assertSetEqual(
+            obtained_clients_names,
+            {'CM', 'CH', 'THEN 1 ELSE', 'SF', 'Google Search App', 'UNK'}
+        )
+
+        self.assertSetEqual(
+            obtained_clients_versions,
+            {'87.0.4280.101', '0', 'SF', '90.0.4430.212', '137.2.345735309', '88.0.4324.190', '90.0.4430.210', 'UNK'}
+        )
+
+
 class TestStats(unittest.TestCase):
     @classmethod
     def setUpClass(self):

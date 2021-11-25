@@ -448,7 +448,7 @@ class LogParser:
                 self.stats.increment('ignored_lines_invalid_client_name')
                 hit.is_valid = False
 
-            hit.client_version = device.client_version()
+            hit.client_version = device.client_version() or hit.client_name
             if not hit.client_version:
                 self.stats.increment('ignored_lines_invalid_client_version')
                 hit.is_valid = False

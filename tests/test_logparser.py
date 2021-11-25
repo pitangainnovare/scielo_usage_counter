@@ -1,6 +1,8 @@
 import unittest
 import datetime
 
+from device_detector import DeviceDetector
+
 from app.utils.logparser import (
     LogParser,
     Stats,

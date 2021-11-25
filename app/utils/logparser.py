@@ -417,6 +417,10 @@ class LogParser:
 
     def format_client_name(self, device):
         return device.client_short_name() or device.UNKNOWN
+
+    def format_client_version(self, device):
+        return device.client_version() or device.UNKNOWN
+
     def parse_line(self, line):
         self.stats.increment('lines_parsed')
         

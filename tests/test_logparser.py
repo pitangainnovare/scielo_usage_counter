@@ -78,6 +78,7 @@ class TestLogParser(unittest.TestCase):
 
     def test_user_agent_is_bot_true(self):
         ua_bots = [
+            "LOCKSS cache",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/600.2.5 (KHTML, like Gecko) Version/8.0.2 Safari/600.2.5 (Applebot/0.1; +http://www.apple.com/go/applebot)",
             "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
         ]
@@ -118,7 +119,6 @@ class TestLogParser(unittest.TestCase):
         valid_paths = [
             '/scielo.php?pid=S1981-77462017005002103&script=sci_arttext',
             '/pdf/rem/v63n4/a07v63n4.pdf',
-
         ]
 
         for vp in valid_paths:

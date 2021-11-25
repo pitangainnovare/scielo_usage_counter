@@ -12,7 +12,7 @@ from app.utils.logparser import (
 class TestLogParser(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.lp = LogParser('data/map.mmdb', 'data/counter-robots.txt')
+        self.lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
 
     def test_action_is_static_file_true(self):
         static_urls = [

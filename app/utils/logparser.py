@@ -414,6 +414,9 @@ class LogParser:
             fmt_ua = fmt_ua[1:-1]
         
         return fmt_ua
+
+    def format_client_name(self, device):
+        return device.client_short_name() or device.UNKNOWN
     def parse_line(self, line):
         self.stats.increment('lines_parsed')
         

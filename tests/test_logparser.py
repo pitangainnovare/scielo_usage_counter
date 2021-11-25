@@ -1,7 +1,10 @@
 import unittest
 import datetime
 
-from app.utils.logparser import LogParser
+from app.utils.logparser import (
+    LogParser,
+    Stats,
+)
 
 
 class TestLogParser(unittest.TestCase):
@@ -98,3 +101,174 @@ class TestLogParser(unittest.TestCase):
         obtained_date = self.lp.format_date(str_date, str_zone)
 
         self.assertEqual(test_date, obtained_date)
+
+    def test_has_valid_path_false(self):
+        invalid_paths = [
+            '/img/revistas/rbp/v26n3/a13img02.gif',
+            '/img/revistas/pab/v47n8/a19tab02.jpg',
+        ]
+
+        for vp in invalid_paths:
+            obtained = self.lp.has_valid_path(vp)
+            self.assertFalse(obtained)
+
+    def test_has_valid_path_true(self):
+        valid_paths = [
+            '/scielo.php?pid=S1981-77462017005002103&script=sci_arttext',
+            '/pdf/rem/v63n4/a07v63n4.pdf',
+
+        ]
+
+        for vp in valid_paths:
+            obtained = self.lp.has_valid_path(vp)
+            self.assertTrue(obtained)
+
+    def test_has_valid_method_true(self):
+        http_methods = [
+            'GET',
+            'HEAD',
+        ]
+
+        for m in http_methods:
+            obtained = self.lp.has_valid_method(m)
+            self.assertTrue(obtained)
+
+    def test_has_valid_method_false(self):
+        http_methods = [
+            'POST',
+            'PUT',
+            'PATCH',
+            'DELETE',
+            'CONNECT',
+            'OPTIONS'
+        ]
+
+        for m in http_methods:
+            obtained = self.lp.has_valid_method(m)
+            self.assertFalse(obtained)
+
+    def test_has_valid_status_true(self):
+        http_status = [
+            '200',
+            '304',
+        ]
+
+        for s in http_status:
+            obtained = self.lp.has_valid_status(s)
+            self.assertTrue(obtained)
+
+    def test_has_valid_status_false(self):
+        http_status = [
+            '100', '101', '102', 
+            '201', '202', '203', '204', '205', '206', '207', '208', '226', 
+            '300', '301', '302', '303', '305', '307', '308', 
+            '400', '401', '402', '403', '404', '405', '406', '407', '408', '409', 
+            '410', '411', '412', '413', '414', '415', '416', '417', '418', 
+            '421', '422', '423', '424', '426', '428', '429', '431', '444', '451', '499', 
+            '500', '501', '502', '503', '504', '505', '506', '507', '508', '510', '511', '599']
+
+        for s in http_status:
+            obtained = self.lp.has_valid_status(s)
+            self.assertFalse(obtained)
+
+    def test_status_is_redirect_true(self):
+        http_status = ['300', '301', '302', '303', '305', '307', '308']
+
+        for s in http_status:
+            obtained = self.lp.status_is_redirect(s)
+            self.assertTrue(obtained)
+
+    def test_status_is_redirect_false(self):
+        http_status = [
+            '100', '101', '102', 
+            '200', '201', '202', '203', '204', '205', '206', '207', '208', '226',  
+            '304', '400', '401', '402', '403', '404', '405', '406', '407', '408', '409', 
+            '410', '411', '412', '413', '414', '415', '416', '417', '418', 
+            '421', '422', '423', '424', '426', '428', '429', '431', '444', '451', '499', 
+            '500', '501', '502', '503', '504', '505', '506', '507', '508', '510', '511', '599']
+
+        for s in http_status:
+            obtained = self.lp.status_is_redirect(s)
+            self.assertFalse(obtained)
+
+    def test_status_is_error_true(self):
+        http_status = [
+            '400', '401', '402', '403', '404', '405', '406', '407', '408', '409', 
+            '410', '411', '412', '413', '414', '415', '416', '417', '418', 
+            '421', '422', '423', '424', '426', '428', '429', '431', '444', '451', '499', 
+            '500', '501', '502', '503', '504', '505', '506', '507', '508', '510', '511', '599']
+
+        for s in http_status:
+            obtained = self.lp.status_is_error(s)
+            self.assertTrue(obtained)
+
+    def test_status_is_error_false(self):
+        http_status = [
+            '100', '101', '102', 
+            '200', '201', '202', '203', '204', '205', '206', '207', '208', '226',  
+            '304']
+
+        for s in http_status:
+            obtained = self.lp.status_is_error(s)
+            self.assertFalse(obtained)
+
+    def test_parse_success(self):
+        self.lp.logfile = 'tests/fixtures/usage.log'
+        self.lp.output = 'tests/fixtures/usage.log.processed'
+        self.lp.stats.output = 'tests/fixtures/usage.log.processed.summary'
+
+        data = self.lp.parse()
+        self.lp.save(data)
+
+        self.assertEqual(self.lp.stats.ignored_lines_bot, 2)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_method, 2)
+        self.assertEqual(self.lp.stats.ignored_lines_http_errors, 3)
+        self.assertEqual(self.lp.stats.ignored_lines_http_redirects, 5)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_client_name, 5)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_client_version, 4)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_geolocation, 2)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_local_datetime, 1)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_user_agent, 0)
+        self.assertEqual(self.lp.stats.ignored_lines_static_resources, 186)
+        self.assertEqual(self.lp.stats.lines_parsed, 200)
+        self.assertEqual(self.lp.stats.total_imported_lines, 9)
+        self.assertEqual(self.lp.stats.total_ignored_lines, 191)
+
+
+class TestStats(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.stats = Stats()
+
+    def test_increment(self):
+        for attr, v in [
+            ('ignored_lines_static_resources', 10),
+            ('ignored_lines_bot', 5),
+            ('ignored_lines_invalid_method', 4),
+            ('ignored_lines_invalid_user_agent', 3),
+            ('ignored_lines_invalid_client_name', 1),
+            ('ignored_lines_invalid_client_version', 2),
+            ('ignored_lines_invalid_geolocation', 20),
+            ('ignored_lines_invalid_local_datetime', 1),            
+            ('ignored_lines_http_redirects', 6),
+            ('ignored_lines_http_errors', 3),
+            ('total_ignored_lines', 50),
+            ('total_imported_lines', 50),
+            ('lines_parsed', 100),
+        ]:
+            for i in range(v):
+                self.stats.increment(attr)
+
+        self.assertEqual(self.stats.ignored_lines_static_resources, 10)
+        self.assertEqual(self.stats.ignored_lines_invalid_method, 4)
+        self.assertEqual(self.stats.ignored_lines_bot, 5)
+        self.assertEqual(self.stats.ignored_lines_invalid_user_agent, 3)
+        self.assertEqual(self.stats.ignored_lines_invalid_client_name, 1)
+        self.assertEqual(self.stats.ignored_lines_invalid_client_version, 2)
+        self.assertEqual(self.stats.ignored_lines_invalid_geolocation, 20)
+        self.assertEqual(self.stats.ignored_lines_invalid_local_datetime, 1)
+        self.assertEqual(self.stats.ignored_lines_http_redirects, 6)
+        self.assertEqual(self.stats.ignored_lines_http_errors, 3)
+        self.assertEqual(self.stats.total_ignored_lines, 50)
+        self.assertEqual(self.stats.total_imported_lines, 50)
+        self.assertEqual(self.stats.lines_parsed, 100)

@@ -22,7 +22,10 @@ class GeoIp:
             return
 
     def geolocation_to_str(self, map_geo, sep='\t'):
-        return sep.join([str(i) for i in [
-            map_geo.location.latitude,
-            map_geo.location.longitude,
-        ]])
+        try:
+            return sep.join([str(i) for i in [
+                map_geo.location.latitude,
+                map_geo.location.longitude,
+            ]])
+        except AttributeError:
+            return

@@ -341,7 +341,7 @@ class LogParser:
         self.__stats = Stats()
 
     def has_valid_method(self, method):
-        if method in ('GET', 'HEAD'):
+        if method.upper() in ('GET', 'HEAD'):
             return True
         return False
 

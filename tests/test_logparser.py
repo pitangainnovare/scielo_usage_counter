@@ -236,6 +236,10 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(self.lp.stats.total_imported_lines, 12)
         self.assertEqual(self.lp.stats.total_ignored_lines, 188)
 
+    def test_parse_line_success(self):
+        line = '89.155.0.1 - - [21/May/2021:11:30:37 -0300] "GET /scielo.php?script=sci_arttext&pid=S0102-69092018000300512 HTTP/1.1" 200 44995 "https://www.google.com/" "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/137.2.345735309 Mobile/15E148 Safari/604.1"'
+        obtained = self.lp.parse_line(line)
+        self.assertFalse('\t'.join(obtained) == '')
 
 class TestStats(unittest.TestCase):
     @classmethod

@@ -341,7 +341,7 @@ class LogParser:
         self.__stats = Stats()
 
     def has_valid_method(self, method):
-        if method in ('GET', 'HEAD'):
+        if method.upper() in ('GET', 'HEAD'):
             return True
         return False
 
@@ -407,6 +407,20 @@ class LogParser:
         except:
             return
 
+    def format_user_agent(self, user_agent):
+        fmt_ua = user_agent
+        
+        if fmt_ua and fmt_ua.startswith('"'):
+            fmt_ua = fmt_ua[1:-1]
+        
+        return fmt_ua
+
+    def format_client_name(self, device):
+        return device.client_short_name() or device.UNKNOWN
+
+    def format_client_version(self, device):
+        return device.client_version() or device.UNKNOWN
+
     def parse_line(self, line):
         self.stats.increment('lines_parsed')
         
@@ -432,23 +446,25 @@ class LogParser:
                     self.stats.increment('ignored_lines_http_errors')
                 hit.is_valid = False
 
-            hit.user_agent = data.get('user_agent')
+            hit.user_agent = self.format_user_agent(data.get('user_agent'))
+
+            if self.user_agent_is_bot(hit.user_agent):
+                self.stats.increment('ignored_lines_bot')
+                hit.is_valid = False
+
             try:
                 device = DeviceDetector(hit.user_agent).parse()
-                if device.is_bot():
-                    self.stats.increment('ignored_lines_bot')
-                    hit.is_valid = False
             except ZeroDivisionError:
                 self.stats.increment('ignored_lines_invalid_user_agent')
                 logging.error(DeviceDetectionError(f'Não foi possível identificar UserAgent {hit.user_agent} from line {decoded_line}'))
                 hit.is_valid = False
 
-            hit.client_name = device.client_short_name()
+            hit.client_name = self.format_client_name(device)
             if not hit.client_name:
                 self.stats.increment('ignored_lines_invalid_client_name')
                 hit.is_valid = False
 
-            hit.client_version = device.client_version()
+            hit.client_version = self.format_client_version(device)
             if not hit.client_version:
                 self.stats.increment('ignored_lines_invalid_client_version')
                 hit.is_valid = False

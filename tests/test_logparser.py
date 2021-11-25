@@ -1,6 +1,8 @@
 import unittest
 import datetime
 
+from device_detector import DeviceDetector
+
 from app.utils.logparser import (
     LogParser,
     Stats,
@@ -10,7 +12,7 @@ from app.utils.logparser import (
 class TestLogParser(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.lp = LogParser('data/map.mmdb', 'data/counter-robots.txt')
+        self.lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
 
     def test_action_is_static_file_true(self):
         static_urls = [
@@ -76,6 +78,7 @@ class TestLogParser(unittest.TestCase):
 
     def test_user_agent_is_bot_true(self):
         ua_bots = [
+            "LOCKSS cache",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/600.2.5 (KHTML, like Gecko) Version/8.0.2 Safari/600.2.5 (Applebot/0.1; +http://www.apple.com/go/applebot)",
             "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
         ]
@@ -86,7 +89,7 @@ class TestLogParser(unittest.TestCase):
 
     def test_user_agent_is_bot_false(self):
         not_ua_bots = [
-            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534+ (KHTML, like Gecko) BingPreview/1.0b",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/137.2.345735309 Mobile/15E148 Safari/604.1",
             "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.162 Safari/537.36",
         ]
 
@@ -116,7 +119,6 @@ class TestLogParser(unittest.TestCase):
         valid_paths = [
             '/scielo.php?pid=S1981-77462017005002103&script=sci_arttext',
             '/pdf/rem/v63n4/a07v63n4.pdf',
-
         ]
 
         for vp in valid_paths:
@@ -213,26 +215,66 @@ class TestLogParser(unittest.TestCase):
             self.assertFalse(obtained)
 
     def test_parse_success(self):
-        self.lp.logfile = 'tests/fixtures/usage.log'
-        self.lp.output = 'tests/fixtures/usage.log.processed'
-        self.lp.stats.output = 'tests/fixtures/usage.log.processed.summary'
+        lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
+        lp.logfile = 'tests/fixtures/usage.log'
+        lp.output = 'tests/fixtures/usage.log.processed'
+        lp.stats.output = 'tests/fixtures/usage.log.processed.summary'
 
-        data = self.lp.parse()
-        self.lp.save(data)
+        data = lp.parse()
+        lp.save(data)
 
-        self.assertEqual(self.lp.stats.ignored_lines_bot, 2)
-        self.assertEqual(self.lp.stats.ignored_lines_invalid_method, 2)
-        self.assertEqual(self.lp.stats.ignored_lines_http_errors, 3)
-        self.assertEqual(self.lp.stats.ignored_lines_http_redirects, 5)
-        self.assertEqual(self.lp.stats.ignored_lines_invalid_client_name, 5)
-        self.assertEqual(self.lp.stats.ignored_lines_invalid_client_version, 4)
-        self.assertEqual(self.lp.stats.ignored_lines_invalid_geolocation, 2)
-        self.assertEqual(self.lp.stats.ignored_lines_invalid_local_datetime, 1)
-        self.assertEqual(self.lp.stats.ignored_lines_invalid_user_agent, 0)
-        self.assertEqual(self.lp.stats.ignored_lines_static_resources, 186)
-        self.assertEqual(self.lp.stats.lines_parsed, 200)
-        self.assertEqual(self.lp.stats.total_imported_lines, 9)
-        self.assertEqual(self.lp.stats.total_ignored_lines, 191)
+        self.assertEqual(lp.stats.ignored_lines_bot, 3)
+        self.assertEqual(lp.stats.ignored_lines_invalid_method, 2)
+        self.assertEqual(lp.stats.ignored_lines_http_errors, 3)
+        self.assertEqual(lp.stats.ignored_lines_http_redirects, 4)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_geolocation, 2)
+        self.assertEqual(lp.stats.ignored_lines_invalid_local_datetime, 1)
+        self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
+        self.assertEqual(lp.stats.ignored_lines_static_resources, 185)
+        self.assertEqual(lp.stats.lines_parsed, 200)
+        self.assertEqual(lp.stats.total_imported_lines, 13)
+        self.assertEqual(lp.stats.total_ignored_lines, 187)
+
+    def test_parse_line_valid(self):
+        line = '89.155.0.1 - - [21/May/2021:11:30:37 -0300] "GET /scielo.php?script=sci_arttext&pid=S0102-69092018000300512 HTTP/1.1" 200 44995 "https://www.google.com/" "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/137.2.345735309 Mobile/15E148 Safari/604.1"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [
+            '2021-05-21 14:30:37', 
+            'UNK', 
+            '137.2.345735309', 
+            '89.155.0.1', 
+            '38.7599\t-9.15765', 
+            '/scielo.php?script=sci_arttext&pid=S0102-69092018000300512'
+        ])
+
+    def test_parse_line_invalid(self):
+        line = '67.205.129.249 - - [21/May/2021:05:05:16 -0300] "GET /scielo.php?download&pid=S0102-86502014000700465&format=EndNote HTTP/1.1" 200 491 "http://www.scielo.br/scielo.php?script=sci_isoref&pid=S0102-86502014000700465&lng=en" "LOCKSS cache"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [])
+
+    def test_device_detector_client_name_valid(self):
+        user_agents = [a.strip() for a in open('tests/fixtures/user_agents.txt')]
+        obtained_clients_names = set()
+        obtained_clients_versions = set()
+
+        for ua in user_agents:
+            device = DeviceDetector(ua).parse()
+            client_name = self.lp.format_client_name(device)
+            client_version = self.lp.format_client_version(device)
+            obtained_clients_names.add(client_name)
+            obtained_clients_versions.add(client_version)
+
+        self.assertSetEqual(
+            obtained_clients_names,
+            {'CM', 'CH', 'SF', 'UNK'}
+        )
+
+        self.assertSetEqual(
+            obtained_clients_versions,
+            {'87.0.4280.101', '0', '90.0.4430.212', '137.2.345735309', '88.0.4324.190', '90.0.4430.210', 'UNK'}
+        )
 
 
 class TestStats(unittest.TestCase):

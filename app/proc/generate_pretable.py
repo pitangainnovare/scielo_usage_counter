@@ -194,7 +194,3 @@ def main():
     check_dir(params.output)
     
     generate_pretables(params.file, params.output)
-
-
-if __name__ == '__main__':
-    main()

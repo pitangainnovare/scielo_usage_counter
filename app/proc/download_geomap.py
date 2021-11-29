@@ -94,7 +94,3 @@ def main():
     if output:
         logging.info('Extraindo dados...')
         extract_gzip(output)
-
-
-if __name__ == '__main__':
-    main()

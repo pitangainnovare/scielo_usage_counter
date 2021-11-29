@@ -102,7 +102,3 @@ def main():
 
     else:
         logging.warning(f'Arquivo {params.file} não é válido')
-
-
-if __name__ == '__main__':
-    main()

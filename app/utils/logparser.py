@@ -309,9 +309,6 @@ class LogParser:
     def output(self, path):
         self.__output = open(path, 'w')
 
-    def close(self):
-        self.output.close()
-
     @property
     def logfile(self):
         return self.__logfile
@@ -522,6 +519,9 @@ class LogParser:
             'actionName']) + '\n')
 
         [self.output.write(sep.join([str(di) for di in d]) + '\n') for d in data if d]
+        self.output.close()
+        self.logfile.close()
+
         self.end = time.time()
         self.total_time = self.end - self.start
 

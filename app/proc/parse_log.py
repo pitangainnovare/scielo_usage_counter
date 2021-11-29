@@ -96,8 +96,6 @@ def main():
         data = lp.parse()
         lp.save(data)
 
-        lp.close()
-
         logging.info(f'Arquivo {params.file} foi processado em {lp.total_time} segundos')
 
     else:

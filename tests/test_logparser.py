@@ -255,26 +255,27 @@ class TestLogParser(unittest.TestCase):
         self.assertListEqual(obtained, [])
 
     def test_device_detector_client_name_valid(self):
-        user_agents = [a.strip() for a in open('tests/fixtures/user_agents.txt')]
-        obtained_clients_names = set()
-        obtained_clients_versions = set()
+        with open('tests/fixtures/user_agents.txt') as fin:
+            user_agents = [a.strip() for a in fin]
+            obtained_clients_names = set()
+            obtained_clients_versions = set()
 
-        for ua in user_agents:
-            device = DeviceDetector(ua).parse()
-            client_name = self.lp.format_client_name(device)
-            client_version = self.lp.format_client_version(device)
-            obtained_clients_names.add(client_name)
-            obtained_clients_versions.add(client_version)
+            for ua in user_agents:
+                device = DeviceDetector(ua).parse()
+                client_name = self.lp.format_client_name(device)
+                client_version = self.lp.format_client_version(device)
+                obtained_clients_names.add(client_name)
+                obtained_clients_versions.add(client_version)
 
-        self.assertSetEqual(
-            obtained_clients_names,
-            {'CM', 'CH', 'SF', 'UNK'}
-        )
+            self.assertSetEqual(
+                obtained_clients_names,
+                {'CM', 'CH', 'SF', 'UNK'}
+            )
 
-        self.assertSetEqual(
-            obtained_clients_versions,
-            {'87.0.4280.101', '0', '90.0.4430.212', '137.2.345735309', '88.0.4324.190', '90.0.4430.210', 'UNK'}
-        )
+            self.assertSetEqual(
+                obtained_clients_versions,
+                {'87.0.4280.101', '0', '90.0.4430.212', '137.2.345735309', '88.0.4324.190', '90.0.4430.210', 'UNK'}
+            )
 
 
 class TestStats(unittest.TestCase):

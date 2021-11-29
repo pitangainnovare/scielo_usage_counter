@@ -133,7 +133,3 @@ def main():
     data = get_robots(params.url)
 
     save(data, params.output)
-
-
-if __name__ == '__main__':
-    main()

@@ -36,7 +36,3 @@ def main():
 
     logging.info('Criando tabelas...')
     create_tables(params.str_connection)
-
-
-if __name__ == '__main__':
-    main()

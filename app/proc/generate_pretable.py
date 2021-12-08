@@ -91,10 +91,26 @@ def read_pretable(filepath, delimiter='\t', ignore_header=True):
             yield d.strip().split(delimiter)
 
 
-def write_pretable(filepath, header, sort_field, data, delimiter='\t'):
+def _get_formatted_data(data, header, join_char):
+    """Método auxiliar para extrair dados de dicionário.
+
+    Parameters
+    ----------
+    data : dict
+        Dicionário de dados
+    header : list
+        Chaves cujos valores serão usados para extrair os dados
+    join_char: str
+        Caractere utilizado para agrupar itens em uma string
+
+    Yields
+    ------
+    str
+        Uma string delimitada por join_char que representa os valores obtidos de data
     """
-    Grava arquivo de pré-tabela.
-    Caso arquivo já exista, lê dados pré-existentes e gera uma versão ordenada dos dados.
+    for d in data:
+        els = [d.get(h) for h in header]
+        yield join_char.join(els)
 
     Parameters
     ----------

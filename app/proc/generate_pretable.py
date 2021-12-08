@@ -112,14 +112,18 @@ def _get_formatted_data(data, header, join_char):
         els = [d.get(h) for h in header]
         yield join_char.join(els)
 
+
+def write_pretable(filepath, header, data, delimiter='\t'):
+    """
+    Grava arquivo de pré-tabela não ordenado.
+    Caso arquivo já exista, acrescenta nele os dados novos.
+
     Parameters
     ----------
     filepath : str
         Nome do arquivo de pré-tabela
     header: list
         Lista de strings que representam o cabeçalho do arquivo de saída
-    sort_field: str
-        Nome do campo de ordenação
     data: dict
         Dicionário contendo valores de acesso
     delimiter: str
@@ -130,32 +134,13 @@ def _get_formatted_data(data, header, join_char):
     str
         Caminho do arquivo de pré-tabela gravado
     """
-    tmp_data = [[i.get(h) for h in header] for i in data]
+    if not os.path.exists(filepath):
+        create_file_with_header(filepath, header)
 
-    if os.path.exists(filepath):
-        # cria cópia de backup de arquivo pré-existente
-        bak_output = create_backup(filepath)
-        logging.info('Gerado backup %s' % bak_output)
+    outfile = open(filepath, 'a')
 
-        # lê dados dados pré-existentes
-        tmp_data += read_pretable(filepath, delimiter)
-
-    # cria arquivo com cabeçalho conteúdo
-    create_file_with_header(filepath, header)
-
-    # remove linhas repetidas
-    lines = set([delimiter.join(i) for i in tmp_data])
-
-    # ordena as linhas de acordo com o IP
-
-    logging.info('Ordenando dados')
-    sorted_lines = sorted([l.split(delimiter) for l in lines], key=lambda x: ipaddress.IPv4Address(x[header.index(sort_field)]))
-
-    logging.info('Gravando dados em %s' % filepath)
-    with open(filepath, 'w') as fout:
-        fout.write(delimiter.join(header) + '\n')
-        for i in sorted_lines:
-            fout.write(delimiter.join(i) + '\n')
+    for fd in _get_formatted_data(data, header, delimiter):
+        outfile.write(fd + '\n')
 
     return filepath
 

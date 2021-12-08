@@ -87,7 +87,8 @@ def read_pretable(filepath, delimiter='\t', ignore_header=True):
     with open(filepath) as fin:
         if ignore_header:
             fin.readline()
-        return [d.strip().split(delimiter) for d in fin]
+        for d in fin:
+            yield d.strip().split(delimiter)
 
 
 def write_pretable(filepath, header, sort_field, data, delimiter='\t'):

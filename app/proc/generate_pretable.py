@@ -131,4 +131,10 @@ def main():
 
     check_dir(params.output_directory)
 
-    generate_pretables(params.input_file, params.output_directory)
+    generate_pretables(
+        input_file=params.input_file,
+        output_directory=params.output_directory,
+        header=PRETABLE_FILE_HEADER,
+        extension='tsv',
+        delimiter='\t',
+    )

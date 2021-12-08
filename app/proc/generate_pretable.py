@@ -27,76 +27,8 @@ UNSORTED_POSFIX = os.environ.get(
 )
 
 
-def read_processed_log(filepath, delimiter='\t'):
-    """
-    Lê um arquivo de log processado e organiza os dados por dia.
-
-    Parameters
-    ----------
-    filepath : str
-        Nome do arquivo contendo dados de log processados
-    delimiter: str
-        Separador de colunas do arquivo de log processado
-
-    Returns
-    -------
-    dict
-        Um dicionário contendo dados de acesso processados e organizados por dia
-            [
-                ...,
-                '2021-10-01': [...],
-                '2021-10-02': [...],
-                ...,
-            ]
-    """
-    data = {}
-
-    with open(filepath) as fin:
-        logging.info('Lendo %s' % filepath)
-        csv_reader = csv.DictReader(fin, delimiter=delimiter)
-
-        for line in csv_reader:
-            ymd = line.get('serverTime').split(' ')[0]
-
-            if ymd not in data:
-                data[ymd] = []
-
-            data[ymd].append(line)
-
-    return data
-
-
-def read_pretable(filepath, delimiter='\t', ignore_header=True):
-    """
-    Lê arquivo de pré-tabela.
-
-    Parameters
-    ----------
-    filepath : str
-        Nome do arquivo contendo dados de pré-tabela
-    delimiter: str
-        Separador de colunas do arquivo de log processado
-    ignore_header: boolean
-        Ignora primeira linha se True
-
-    Returns
-    -------
-    list
-        Uma lista de lista (com dados de acesso nos moldes de pré-tabela)
-            [
-                ['2021-05-20 09:48:53','CM','90.0.4430.210','1.0.102.87','34.4002','132.475','/scielo.php?script=sci_arttext&pid=S0100-85872017000300173'],
-                ...,
-            ]
-    """
-    with open(filepath) as fin:
-        if ignore_header:
-            fin.readline()
-        for d in fin:
-            yield d.strip().split(delimiter)
-
-
-def _get_formatted_data(data, header, join_char):
-    """Método auxiliar para extrair dados de dicionário.
+def extract_values(data, header, delimiter):
+    """Método auxiliar para extrair valores de um dicionário usando chaves indicadas em um header.
 
     Parameters
     ----------
@@ -104,7 +36,7 @@ def _get_formatted_data(data, header, join_char):
         Dicionário de dados
     header : list
         Chaves cujos valores serão usados para extrair os dados
-    join_char: str
+    delimiter: str
         Caractere utilizado para agrupar itens em uma string
 
     Yields
@@ -112,75 +44,65 @@ def _get_formatted_data(data, header, join_char):
     str
         Uma string delimitada por join_char que representa os valores obtidos de data
     """
-    for d in data:
-        els = [d.get(h) for h in header]
-        yield join_char.join(els)
+    return delimiter.join([data.get(h) for h in header])
 
 
-def write_pretable(filepath, header, data, delimiter='\t'):
-    """
-    Grava arquivo de pré-tabela não ordenado.
-    Caso arquivo já exista, acrescenta nele os dados novos.
-
-    Parameters
-    ----------
-    filepath : str
-        Nome do arquivo de pré-tabela
-    header: list
-        Lista de strings que representam o cabeçalho do arquivo de saída
-    data: dict
-        Dicionário contendo valores de acesso
-    delimiter: str
-        Separador de colunas do arquivo de pré-tabela
-
-    Returns
-    -------
-    str
-        Caminho do arquivo de pré-tabela gravado
-    """
-    if not os.path.exists(filepath):
-        create_file_with_header(filepath, header)
-
-    outfile = open(filepath, 'a')
-
-    for fd in _get_formatted_data(data, header, delimiter):
-        outfile.write(fd + '\n')
-
-    return filepath
-
-
-def generate_pretables(filepath, output_directory, extension='tsv', delimiter='\t'):
+def generate_pretables(input_file, output_directory, header, extension='tsv', delimiter='\t'):
     """
     Gera arquivo(s) com os dados de log processados.
     Grava um arquivo por dia.
 
     Parameters
     ----------
-    filepath : str
+    input_file : str
         Nome do arquivo contendo dados de log processados
     output_directory : str
         Caminho no disco em que o arquivo será gravado
-    extension: str
+    header : list
+        Lista de nomes de campos a serem gravados no arquivo de pré-tabela
+    extension : str
         Extensão do nome dos arquivos a serem gerados
-    delimiter: str
+    delimiter : str
         Separador de colunas dos arquivos a serem gerados
     """
-    ymd_to_data = read_processed_log(filepath)
+    logging.info('Lendo %s' % input_file)
+    with open(input_file) as fin:
+        output_files = {}
 
-    for ymd, d in ymd_to_data.items():
-        pretable_filepath = generate_filepath_with_filename(
-            directory=output_directory,
-            filename=ymd,
-            posfix=UNSORTED_POSFIX,
-            extension=extension,
-        )
+        csv_reader = csv.DictReader(fin, delimiter=delimiter)
 
-        write_pretable(
-            filepath=pretable_filepath,
-            header=PRETABLE_FILE_HEADER,
-            data=d,
-            delimiter=delimiter,
-        )
+        try:
+            for row in csv_reader:
+                # obtém yyyy-mm-dd do acesso
+                ymd = row.get('serverTime').split(' ')[0]
+
+                # gera nome de arquivo relacionado a ymd
+                ymd_output_path = generate_filepath_with_filename(
+                    directory=output_directory,
+                    filename=ymd,
+                    posfix=UNSORTED_POSFIX,
+                    extension=extension,
+                )
+
+                # verifica se arquivo já existe
+                if not os.path.exists(ymd_output_path):
+                    logging.info('Criado arquivo %s' % ymd_output_path)
+                    create_file_with_header(ymd_output_path, header)
+
+                # abre arquivo em modo append, caso ainda não esteja aberto. adiciona em dicionário uma referência ao arquivo
+                if ymd not in output_files:
+                    output_files[ymd] = open(ymd_output_path, 'a')
+
+                # obtém uma linha moldada ao formato pré-tabela
+                fmt_values = extract_values(row, header, delimiter)
+
+                # grava linha no arquivo de data correta
+                output_files[ymd].write(fmt_values + '\n')
+
+        finally:
+            # garante fechamento dos arquivos
+            for v in output_files.values():
+                v.close()
 
 
 def main():
@@ -209,4 +131,10 @@ def main():
 
     check_dir(params.output_directory)
 
-    generate_pretables(params.input_file, params.output_directory)
+    generate_pretables(
+        input_file=params.input_file,
+        output_directory=params.output_directory,
+        header=PRETABLE_FILE_HEADER,
+        extension='tsv',
+        delimiter='\t',
+    )

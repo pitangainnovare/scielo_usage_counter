@@ -1,6 +1,5 @@
 import argparse
 import csv
-import ipaddress
 import logging
 import os
 
@@ -20,6 +19,11 @@ LOGGING_LEVEL = os.environ.get(
 OUTPUT_DIRECTORY = os.environ.get(
     'OUTPUT_DIRECTORY',
     'data/pretables/'
+)
+
+UNSORTED_POSFIX = os.environ.get(
+    'UNSORTED_POSFIX',
+    'unsorted'
 )
 
 
@@ -147,7 +151,7 @@ def write_pretable(filepath, header, data, delimiter='\t'):
 
 def generate_pretables(filepath, output_directory, extension='tsv', delimiter='\t'):
     """
-    Gera arquivo(s) com os dados de log processados e ordenados.
+    Gera arquivo(s) com os dados de log processados.
     Grava um arquivo por dia.
 
     Parameters
@@ -162,10 +166,21 @@ def generate_pretables(filepath, output_directory, extension='tsv', delimiter='\
         Separador de colunas dos arquivos a serem gerados
     """
     ymd_to_data = read_processed_log(filepath)
-    
-    for y, d in ymd_to_data.items():
-        pretable_filepath = generate_filepath_with_filename(output_directory, y, extension)
-        write_pretable(pretable_filepath, PRETABLE_FILE_HEADER, 'ip', d, delimiter)
+
+    for ymd, d in ymd_to_data.items():
+        pretable_filepath = generate_filepath_with_filename(
+            directory=output_directory,
+            filename=ymd,
+            posfix=UNSORTED_POSFIX,
+            extension=extension,
+        )
+
+        write_pretable(
+            filepath=pretable_filepath,
+            header=PRETABLE_FILE_HEADER,
+            data=d,
+            delimiter=delimiter,
+        )
 
 
 def main():

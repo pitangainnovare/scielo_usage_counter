@@ -57,7 +57,9 @@ def generate_filepath_with_date(directory, date, extension='tsv'):
     return os.path.join(directory, filename)
 
 
-def generate_filepath_with_filename(directory, filename, extension='tsv'):
+def generate_filepath_with_filename(directory, filename, posfix, extension='tsv'):
+    if posfix:
+        return os.path.join(directory, f'{filename}.{posfix}.{extension}')
     return os.path.join(directory, f'{filename}.{extension}')
 
 

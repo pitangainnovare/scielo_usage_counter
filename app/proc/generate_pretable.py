@@ -25,7 +25,7 @@ OUTPUT_DIRECTORY = os.environ.get(
 
 def read_processed_log(filepath, delimiter='\t'):
     """
-    Lê um arquivo de log processado e organizada os dados por dia.
+    Lê um arquivo de log processado e organiza os dados por dia.
 
     Parameters
     ----------
@@ -50,13 +50,13 @@ def read_processed_log(filepath, delimiter='\t'):
     with open(filepath) as fin:
         logging.info('Lendo %s' % filepath)
         csv_reader = csv.DictReader(fin, delimiter=delimiter)
-        
+
         for line in csv_reader:
             ymd = line.get('serverTime').split(' ')[0]
-            
+
             if ymd not in data:
                 data[ymd] = []
-            
+
             data[ymd].append(line)
 
     return data
@@ -170,14 +170,14 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        '-f', '--file',
+        '-f', '--input_file',
         required=True,
         help='Arquivo de log pré-processado',
     )
 
     parser.add_argument(
         '-o',
-        '--output',
+        '--output_directory',
         default=OUTPUT_DIRECTORY,
         help='Diretório de saída',
     )
@@ -190,6 +190,6 @@ def main():
         datefmt='%d/%b/%Y %H:%M:%S',
     )
 
-    check_dir(params.output)
-    
-    generate_pretables(params.file, params.output)
+    check_dir(params.output_directory)
+
+    generate_pretables(params.input_file, params.output_directory)

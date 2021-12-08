@@ -66,33 +66,6 @@ def read_processed_log(filepath, delimiter='\t'):
     return data
 
 
-def read_pretable(filepath, delimiter='\t', ignore_header=True):
-    """
-    Lê arquivo de pré-tabela.
-
-    Parameters
-    ----------
-    filepath : str
-        Nome do arquivo contendo dados de pré-tabela
-    delimiter: str
-        Separador de colunas do arquivo de log processado
-    ignore_header: boolean
-        Ignora primeira linha se True
-
-    Returns
-    -------
-    list
-        Uma lista de lista (com dados de acesso nos moldes de pré-tabela)
-            [
-                ['2021-05-20 09:48:53','CM','90.0.4430.210','1.0.102.87','34.4002','132.475','/scielo.php?script=sci_arttext&pid=S0100-85872017000300173'],
-                ...,
-            ]
-    """
-    with open(filepath) as fin:
-        if ignore_header:
-            fin.readline()
-        for d in fin:
-            yield d.strip().split(delimiter)
 
 
 def _get_formatted_data(data, header, join_char):

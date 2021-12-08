@@ -27,49 +27,8 @@ UNSORTED_POSFIX = os.environ.get(
 )
 
 
-def read_processed_log(filepath, delimiter='\t'):
-    """
-    Lê um arquivo de log processado e organiza os dados por dia.
-
-    Parameters
-    ----------
-    filepath : str
-        Nome do arquivo contendo dados de log processados
-    delimiter: str
-        Separador de colunas do arquivo de log processado
-
-    Returns
-    -------
-    dict
-        Um dicionário contendo dados de acesso processados e organizados por dia
-            [
-                ...,
-                '2021-10-01': [...],
-                '2021-10-02': [...],
-                ...,
-            ]
-    """
-    data = {}
-
-    with open(filepath) as fin:
-        logging.info('Lendo %s' % filepath)
-        csv_reader = csv.DictReader(fin, delimiter=delimiter)
-
-        for line in csv_reader:
-            ymd = line.get('serverTime').split(' ')[0]
-
-            if ymd not in data:
-                data[ymd] = []
-
-            data[ymd].append(line)
-
-    return data
-
-
-
-
-def _get_formatted_data(data, header, join_char):
-    """Método auxiliar para extrair dados de dicionário.
+def extract_values(data, header, delimiter):
+    """Método auxiliar para extrair valores de um dicionário usando chaves indicadas em um header.
 
     Parameters
     ----------

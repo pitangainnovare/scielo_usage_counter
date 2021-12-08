@@ -64,13 +64,3 @@ def generate_filepath_with_filename(directory, filename, extension='tsv'):
 def create_file_with_header(path, header=[], delimiter='\t'):
     with open(path, 'w') as fout:
         fout.write(delimiter.join(header) + '\n')
-
-
-def create_backup(path_in):
-    path_out = f'{path_in}.{datetime.datetime.utcnow().timestamp()}.bak.gz'
-
-    with open(path_in, 'rb') as fin:
-        with gzip.open(path_out, 'wb') as fout:
-            shutil.copyfileobj(fin, fout)
-
-    return path_out

@@ -6,7 +6,6 @@ import os
 
 from app.utils.file import (
     check_dir,
-    create_backup,
     create_file_with_header,
     generate_filepath_with_filename,
 )

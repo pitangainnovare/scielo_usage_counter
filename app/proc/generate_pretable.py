@@ -1,12 +1,10 @@
 import argparse
 import csv
-import ipaddress
 import logging
 import os
 
 from app.utils.file import (
     check_dir,
-    create_backup,
     create_file_with_header,
     generate_filepath_with_filename,
 )
@@ -23,10 +21,15 @@ OUTPUT_DIRECTORY = os.environ.get(
     'data/pretables/'
 )
 
+UNSORTED_POSFIX = os.environ.get(
+    'UNSORTED_POSFIX',
+    'unsorted'
+)
+
 
 def read_processed_log(filepath, delimiter='\t'):
     """
-    Lê um arquivo de log processado e organizada os dados por dia.
+    Lê um arquivo de log processado e organiza os dados por dia.
 
     Parameters
     ----------
@@ -51,13 +54,13 @@ def read_processed_log(filepath, delimiter='\t'):
     with open(filepath) as fin:
         logging.info('Lendo %s' % filepath)
         csv_reader = csv.DictReader(fin, delimiter=delimiter)
-        
+
         for line in csv_reader:
             ymd = line.get('serverTime').split(' ')[0]
-            
+
             if ymd not in data:
                 data[ymd] = []
-            
+
             data[ymd].append(line)
 
     return data
@@ -88,13 +91,36 @@ def read_pretable(filepath, delimiter='\t', ignore_header=True):
     with open(filepath) as fin:
         if ignore_header:
             fin.readline()
-        return [d.strip().split(delimiter) for d in fin]
+        for d in fin:
+            yield d.strip().split(delimiter)
 
 
-def write_pretable(filepath, header, sort_field, data, delimiter='\t'):
+def _get_formatted_data(data, header, join_char):
+    """Método auxiliar para extrair dados de dicionário.
+
+    Parameters
+    ----------
+    data : dict
+        Dicionário de dados
+    header : list
+        Chaves cujos valores serão usados para extrair os dados
+    join_char: str
+        Caractere utilizado para agrupar itens em uma string
+
+    Yields
+    ------
+    str
+        Uma string delimitada por join_char que representa os valores obtidos de data
     """
-    Grava arquivo de pré-tabela.
-    Caso arquivo já exista, lê dados pré-existentes e gera uma versão ordenada dos dados.
+    for d in data:
+        els = [d.get(h) for h in header]
+        yield join_char.join(els)
+
+
+def write_pretable(filepath, header, data, delimiter='\t'):
+    """
+    Grava arquivo de pré-tabela não ordenado.
+    Caso arquivo já exista, acrescenta nele os dados novos.
 
     Parameters
     ----------
@@ -102,8 +128,6 @@ def write_pretable(filepath, header, sort_field, data, delimiter='\t'):
         Nome do arquivo de pré-tabela
     header: list
         Lista de strings que representam o cabeçalho do arquivo de saída
-    sort_field: str
-        Nome do campo de ordenação
     data: dict
         Dicionário contendo valores de acesso
     delimiter: str
@@ -114,39 +138,20 @@ def write_pretable(filepath, header, sort_field, data, delimiter='\t'):
     str
         Caminho do arquivo de pré-tabela gravado
     """
-    tmp_data = [[i.get(h) for h in header] for i in data]
+    if not os.path.exists(filepath):
+        create_file_with_header(filepath, header)
 
-    if os.path.exists(filepath):
-        # cria cópia de backup de arquivo pré-existente
-        bak_output = create_backup(filepath)
-        logging.info('Gerado backup %s' % bak_output)
+    outfile = open(filepath, 'a')
 
-        # lê dados dados pré-existentes
-        tmp_data += read_pretable(filepath, delimiter)
-
-    # cria arquivo com cabeçalho conteúdo
-    create_file_with_header(filepath, header)
-
-    # remove linhas repetidas
-    lines = set([delimiter.join(i) for i in tmp_data])
-
-    # ordena as linhas de acordo com o IP
-
-    logging.info('Ordenando dados')
-    sorted_lines = sorted([l.split(delimiter) for l in lines], key=lambda x: ipaddress.IPv4Address(x[header.index(sort_field)]))
-
-    logging.info('Gravando dados em %s' % filepath)
-    with open(filepath, 'w') as fout:
-        fout.write(delimiter.join(header) + '\n')
-        for i in sorted_lines:
-            fout.write(delimiter.join(i) + '\n')
+    for fd in _get_formatted_data(data, header, delimiter):
+        outfile.write(fd + '\n')
 
     return filepath
 
 
 def generate_pretables(filepath, output_directory, extension='tsv', delimiter='\t'):
     """
-    Gera arquivo(s) com os dados de log processados e ordenados.
+    Gera arquivo(s) com os dados de log processados.
     Grava um arquivo por dia.
 
     Parameters
@@ -161,24 +166,35 @@ def generate_pretables(filepath, output_directory, extension='tsv', delimiter='\
         Separador de colunas dos arquivos a serem gerados
     """
     ymd_to_data = read_processed_log(filepath)
-    
-    for y, d in ymd_to_data.items():
-        pretable_filepath = generate_filepath_with_filename(output_directory, y, extension)
-        write_pretable(pretable_filepath, PRETABLE_FILE_HEADER, 'ip', d, delimiter)
+
+    for ymd, d in ymd_to_data.items():
+        pretable_filepath = generate_filepath_with_filename(
+            directory=output_directory,
+            filename=ymd,
+            posfix=UNSORTED_POSFIX,
+            extension=extension,
+        )
+
+        write_pretable(
+            filepath=pretable_filepath,
+            header=PRETABLE_FILE_HEADER,
+            data=d,
+            delimiter=delimiter,
+        )
 
 
 def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        '-f', '--file',
+        '-f', '--input_file',
         required=True,
         help='Arquivo de log pré-processado',
     )
 
     parser.add_argument(
         '-o',
-        '--output',
+        '--output_directory',
         default=OUTPUT_DIRECTORY,
         help='Diretório de saída',
     )
@@ -191,6 +207,6 @@ def main():
         datefmt='%d/%b/%Y %H:%M:%S',
     )
 
-    check_dir(params.output)
-    
-    generate_pretables(params.file, params.output)
+    check_dir(params.output_directory)
+
+    generate_pretables(params.input_file, params.output_directory)

@@ -57,20 +57,12 @@ def generate_filepath_with_date(directory, date, extension='tsv'):
     return os.path.join(directory, filename)
 
 
-def generate_filepath_with_filename(directory, filename, extension='tsv'):
+def generate_filepath_with_filename(directory, filename, posfix, extension='tsv'):
+    if posfix:
+        return os.path.join(directory, f'{filename}.{posfix}.{extension}')
     return os.path.join(directory, f'{filename}.{extension}')
 
 
 def create_file_with_header(path, header=[], delimiter='\t'):
     with open(path, 'w') as fout:
         fout.write(delimiter.join(header) + '\n')
-
-
-def create_backup(path_in):
-    path_out = f'{path_in}.{datetime.datetime.utcnow().timestamp()}.bak.gz'
-
-    with open(path_in, 'rb') as fin:
-        with gzip.open(path_out, 'wb') as fout:
-            shutil.copyfileobj(fin, fout)
-
-    return path_out

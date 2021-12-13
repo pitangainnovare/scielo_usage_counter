@@ -20,6 +20,8 @@ class GeoIp:
             return self.map.city(ip)
         except AddressNotFoundError:
             return
+        except ValueError:
+            return
 
     def geolocation_to_str(self, map_geo, sep='\t'):
         try:

@@ -2,6 +2,7 @@ import datetime
 import re
 import logging
 import time
+import urllib.parse
 
 from app.values import (
     EXTENSIONS_DOWNLOAD,
@@ -371,11 +372,16 @@ class LogParser:
         return False
 
     def action_is_static_file(self, path):
-        file_from_url = path.split('/')[-1]
+        file_from_url = urllib.parse.urlparse(path).path
+
+        if not file_from_url:
+            file_from_url = path.split('/')[-1]
+
         ext = file_from_url.rsplit('.')[-1].lower()
 
         if ext in EXTENSIONS_STATIC or file_from_url in EXTENSIONS_STATIC:
             return True
+
         return False
 
     def action_is_download(self, path):

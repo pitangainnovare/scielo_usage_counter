@@ -23,6 +23,8 @@ class TestLogParser(unittest.TestCase):
             '/applications/scielo-org/css/public/style-es.css',
             '/applications/scielo-org/js/jquery-1.4.2.min.js',
             '/img/revistas/rbgo/v34n1/a07tab02.jpg',
+            'http://www.scielo.br/static/css/scielo-bundle-print.css?v=',
+            '/favicon.ico?script=sci_arttext&pid=S0102-35862003000500003',
         ]
 
         for url in static_urls:
@@ -36,7 +38,6 @@ class TestLogParser(unittest.TestCase):
             '/pdf/rbfis/v12n5/en_a09v12n5.pdf',
             '/google_metrics/get_h5_m5.php?issn=1413-6538&callback=jsonp1530327621274',
             '/scielo.php?script=sci_serial&pid=1678-6971&lng=en&nrm=iso',
-            '/favicon.ico?script=sci_arttext&pid=S0102-35862003000500003',
             '/cgi-bin/wxis.exe/iah/?IsisScript=iah/iah.xis&base=title&fmt=iso.pft&lang=p',
         ]
 

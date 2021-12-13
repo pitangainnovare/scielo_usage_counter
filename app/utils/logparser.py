@@ -2,6 +2,7 @@ import datetime
 import re
 import logging
 import time
+import urllib.parse
 
 from app.values import (
     EXTENSIONS_DOWNLOAD,
@@ -35,7 +36,7 @@ class Stats:
     @property
     def ignored_lines_static_resources(self):
         return self.__ignored_lines_static_resources
-    
+
     @ignored_lines_static_resources.setter
     def ignored_lines_static_resources(self, value):
         self.__ignored_lines_static_resources = value
@@ -43,7 +44,7 @@ class Stats:
     @property
     def ignored_lines_bot(self):
         return self.__ignored_lines_bot
-    
+
     @ignored_lines_bot.setter
     def ignored_lines_bot(self, value):
         self.__ignored_lines_bot = value
@@ -51,7 +52,7 @@ class Stats:
     @property
     def ignored_lines_invalid_method(self):
         return self.__ignored_lines_invalid_method
-    
+
     @ignored_lines_invalid_method.setter
     def ignored_lines_invalid_method(self, value):
         self.__ignored_lines_invalid_method = value
@@ -59,7 +60,7 @@ class Stats:
     @property
     def ignored_lines_invalid_user_agent(self):
         return self.__ignored_lines_invalid_user_agent
-    
+
     @ignored_lines_invalid_user_agent.setter
     def ignored_lines_invalid_user_agent(self, value):
         self.__ignored_lines_invalid_user_agent = value
@@ -67,7 +68,7 @@ class Stats:
     @property
     def ignored_lines_invalid_client_name(self):
         return self.__ignored_lines_invalid_client_name
-    
+
     @ignored_lines_invalid_client_name.setter
     def ignored_lines_invalid_client_name(self, value):
         self.__ignored_lines_invalid_client_name = value
@@ -75,7 +76,7 @@ class Stats:
     @property
     def ignored_lines_invalid_client_version(self):
         return self.__ignored_lines_invalid_client_version
-    
+
     @ignored_lines_invalid_client_version.setter
     def ignored_lines_invalid_client_version(self, value):
         self.__ignored_lines_invalid_client_version = value
@@ -83,7 +84,7 @@ class Stats:
     @property
     def ignored_lines_invalid_geolocation(self):
         return self.__ignored_lines_invalid_geolocation
-    
+
     @ignored_lines_invalid_geolocation.setter
     def ignored_lines_invalid_geolocation(self, value):
         self.__ignored_lines_invalid_geolocation = value
@@ -91,7 +92,7 @@ class Stats:
     @property
     def ignored_lines_invalid_local_datetime(self):
         return self.__ignored_lines_invalid_local_datetime
-    
+
     @ignored_lines_invalid_local_datetime.setter
     def ignored_lines_invalid_local_datetime(self, value):
         self.__ignored_lines_invalid_local_datetime = value
@@ -99,7 +100,7 @@ class Stats:
     @property
     def ignored_lines_http_redirects(self):
         return self.__ignored_lines_http_redirects
-    
+
     @ignored_lines_http_redirects.setter
     def ignored_lines_http_redirects(self, value):
         self.__ignored_lines_http_redirects = value
@@ -107,7 +108,7 @@ class Stats:
     @property
     def ignored_lines_http_errors(self):
         return self.__ignored_lines_http_errors
-    
+
     @ignored_lines_http_errors.setter
     def ignored_lines_http_errors(self, value):
         self.__ignored_lines_http_errors = value
@@ -115,7 +116,7 @@ class Stats:
     @property
     def total_ignored_lines(self):
         return self.__total_ignored_lines
-    
+
     @total_ignored_lines.setter
     def total_ignored_lines(self, value):
         self.__total_ignored_lines = value
@@ -123,7 +124,7 @@ class Stats:
     @property
     def total_imported_lines(self):
         return self.__total_imported_lines
-    
+
     @total_imported_lines.setter
     def total_imported_lines(self, value):
         self.__total_imported_lines = value
@@ -135,7 +136,7 @@ class Stats:
     @lines_parsed.setter
     def lines_parsed(self, value):
         self.__lines_parsed = value
-    
+
     @property
     def total_time(self):
         return self.__total_time
@@ -228,7 +229,7 @@ class Hit:
     @method.setter
     def method(self, value):
         self.__method = value
-    
+
     @property
     def status(self):
         return self.__status
@@ -371,11 +372,16 @@ class LogParser:
         return False
 
     def action_is_static_file(self, path):
-        file_from_url = path.split('/')[-1]
+        file_from_url = urllib.parse.urlparse(path).path
+
+        if not file_from_url:
+            file_from_url = path.split('/')[-1]
+
         ext = file_from_url.rsplit('.')[-1].lower()
 
         if ext in EXTENSIONS_STATIC or file_from_url in EXTENSIONS_STATIC:
             return True
+
         return False
 
     def action_is_download(self, path):
@@ -406,10 +412,10 @@ class LogParser:
 
     def format_user_agent(self, user_agent):
         fmt_ua = user_agent
-        
+
         if fmt_ua and fmt_ua.startswith('"'):
             fmt_ua = fmt_ua[1:-1]
-        
+
         return fmt_ua
 
     def format_client_name(self, device):
@@ -420,7 +426,7 @@ class LogParser:
 
     def parse_line(self, line):
         self.stats.increment('lines_parsed')
-        
+
         parsed_data = []
         decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
 

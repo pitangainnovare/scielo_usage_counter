@@ -5,7 +5,6 @@ import gzip
 import shutil
 
 from app.utils.exceptions import (
-    InvalidDateError,
     InvalidLogFileMimeError,
 )
 
@@ -46,13 +45,8 @@ def open_logfile(file_path):
         raise InvalidLogFileMimeError(f'Arquivo de log inválido: {file_path}')
 
 
-def generate_filepath_with_date(directory, date, extension='tsv'):
-    try:
-        date_str = date.strftime('%Y-%m-%d')
-    except ValueError:
-        raise InvalidDateError('Data inválida')
-
-    filename = f'{date_str}.{datetime.datetime.utcnow().timestamp()}.{extension}'
+def generate_filepath(directory, filename, extension='tsv'):
+    filename = f'{filename}.{datetime.datetime.utcnow().timestamp()}.{extension}'
 
     return os.path.join(directory, filename)
 

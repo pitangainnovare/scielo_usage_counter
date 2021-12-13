@@ -45,10 +45,11 @@ def open_logfile(file_path):
         raise InvalidLogFileMimeError(f'Arquivo de log inválido: {file_path}')
 
 
-def generate_filepath(directory, filename, extension='tsv'):
-    filename = f'{filename}.{datetime.datetime.utcnow().timestamp()}.{extension}'
+def generate_filepath(output_directory, input_filepath, extension='tsv'):
+    filename = os.path.basename(input_filepath)
+    output_filename = f'{filename}.{datetime.datetime.utcnow().timestamp()}.{extension}'
 
-    return os.path.join(directory, filename)
+    return os.path.join(output_directory, output_filename)
 
 
 def generate_filepath_with_filename(directory, filename, posfix, extension='tsv'):

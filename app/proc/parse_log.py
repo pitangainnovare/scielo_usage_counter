@@ -8,7 +8,7 @@ from scielo_log_validator.validator import (
     _validate_path,
     _validate_content
 )
-from app.utils.file import generate_filepath_with_date
+from app.utils.file import generate_filepath
 from app.utils.logparser import LogParser
 
 
@@ -50,7 +50,7 @@ def main():
 
     parser.add_argument(
         '-o',
-        '--output',
+        '--output_directory',
         default=OUTPUT_DIRECTORY,
         help='Diretório de saída',
     )
@@ -85,7 +85,7 @@ def main():
     )
 
     if validation_results.get('is_valid', {}).get('all', False):
-        output_filepath = generate_filepath_with_date(params.output, validation_results.get('probably_date'))
+        output_filepath = generate_filepath(params.output_directory, params.file)
 
         lp = LogParser(params.mmdb, params.robots)
         lp.logfile = params.file

@@ -372,9 +372,9 @@ class LogParser:
         return False
 
     def action_is_static_file(self, path):
-        file_from_url = urllib.parse.urlparse(path).path
-
-        if not file_from_url:
+        try:
+            file_from_url = urllib.parse.urlparse(path).path
+        except ValueError:
             file_from_url = path.split('/')[-1]
 
         ext = file_from_url.rsplit('.')[-1].lower()

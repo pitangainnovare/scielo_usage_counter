@@ -4,7 +4,7 @@ import logging
 import requests
 import os
 
-from app.utils.file import (
+from app.lib.file import (
     check_dir,
     extract_gzip,
 )

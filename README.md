@@ -27,7 +27,7 @@ python setup.py test
 ## Usage
 _Get the official COUNTER list of robots_
 ```bash
-usage: get_robots [-h] [-u URL] [-o OUTPUT]
+usage: dl-robots [-h] [-u URL] [-o OUTPUT]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -38,7 +38,7 @@ optional arguments:
 
 _Get the Maxming GeoIP Map_
 ```bash
-usage: get_geomap [-h] [--year YEAR] [--month MONTH] [--url URL] [-o OUTPUT]
+usage: dl-geomap [-h] [--year YEAR] [--month MONTH] [--url URL] [-o OUTPUT]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -49,36 +49,39 @@ optional arguments:
                         Arquivo do mapa de geolocalizações
 ```
 
-_Parse a logfile_
-```bash
-usage: parse [-h] [-c COLLECTION] -f FILE [-o OUTPUT] -m MMDB -r ROBOTS
+_Parse log file_
+```
+usage: parse-log [-h] -m MMDB -r ROBOTS [-o OUTPUT_DIRECTORY] {file,database} ...
 
 optional arguments:
   -h, --help            show this help message and exit
-  -c COLLECTION, --collection COLLECTION
-                        Acrônimo de coleção
-  -f FILE, --file FILE  Arquivo de log de acesso
-  -o OUTPUT, --output OUTPUT
-                        Diretório de saída
   -m MMDB, --mmdb MMDB  Arquivo de mapa de geolocalizações
   -r ROBOTS, --robots ROBOTS
                         Arquivo de robôs
+  -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
+                        Diretório de saída
+
+mode:
+  {file,database}
+    file                Modo de caminho de arquivo
+    database            Modo de banco de dados
 ```
 
-_Generate pretables_
+_Generate pre-table_
 ```bash
-usage: gen_pt [-h] -f FILE [-o OUTPUT]
+usage: gen-pretable [-h] -f INPUT_FILE [-o OUTPUT_DIRECTORY]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f FILE, --file FILE  Arquivo de log pré-processado
-  -o OUTPUT, --output OUTPUT
+  -f INPUT_FILE, --input_file INPUT_FILE
+                        Arquivo de log pré-processado
+  -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         Diretório de saída
 ```
 
 _Initialize database_
 ```bash
-usage: init_db [-h] [-s STR_CONNECTION]
+usage: init-db [-h] [-s STR_CONNECTION]
 
 optional arguments:
   -h, --help            show this help message and exit

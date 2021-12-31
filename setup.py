@@ -13,7 +13,7 @@ install_requirements=[
 
 setup(
     name='scielo-usage-counter',
-    version='0.3.5.2',
+    version='0.3.6.0',
     description='The SciELO Usage Counter Tool',
     author='SciELO',
     author_email='scielo-dev@googlegroups.com',
@@ -25,10 +25,10 @@ setup(
     packages=find_packages(),
     entry_points="""
         [console_scripts]
-        get_geomap=app.proc.download_geomap:main
-        get_robots=app.proc.download_robots:main
-        init_db=app.proc.initialize_database:main
-        parse=app.proc.parse_log:main
-        gen_pt=app.proc.generate_pretable:main
+        dl-geomap=app.proc.download_geomap:main
+        dl-robots=app.proc.download_robots:main
+        init-db=app.proc.initialize_database:main
+        parse-log=app.proc.parse_log:main
+        gen-pretable=app.proc.generate_pretable:main
     """
 )

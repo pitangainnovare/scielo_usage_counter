@@ -4,7 +4,7 @@ import os
 import gzip
 import shutil
 
-from app.utils.exceptions import (
+from app.lib.exceptions import (
     InvalidLogFileMimeError,
 )
 

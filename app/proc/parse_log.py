@@ -3,13 +3,9 @@ import argparse
 import logging
 import os
 
-from scielo_log_validator.validator import (
-    validate,
-    _validate_path,
-    _validate_content
-)
-from app.utils.file import generate_filepath
-from app.utils.logparser import LogParser
+from scielo_log_validator import validator
+from app import utils, values
+from app.lib import db, file, logparser
 
 
 COLLECTION = os.environ.get(

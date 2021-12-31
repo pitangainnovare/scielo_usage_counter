@@ -5,7 +5,7 @@ import os
 import requests
 
 from time import sleep
-from app.utils.file import check_dir
+from app.lib.file import check_dir
 
 
 LOGGING_LEVEL = os.environ.get(

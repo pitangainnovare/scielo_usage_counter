@@ -135,3 +135,13 @@ DATE_STATUS_COMPUTED = 4
 DATE_STATUS_COMPLETED = 5
 DATE_STATUS_EXTRACTING_PRETABLE = -3
 
+LOG_PATH_TRANSLATOR = {
+    '/app/usage-logs-ratchet': '/logs-ratchet',
+    '/app/usage-logs-dataverse': '/logs-dataverse',
+    '/app/usage-logs-preprints': '/logs-submission-node01',
+    '/app/usage-logs-venezuela': '/logs-venezuela',
+    '/app/usage-logs-hiperion': '/logs-oldscielobr',
+    '/app/usage-logs-node03': '/logs-node03-oldscielobr',
+    '/app/usage-logs-newbrvarnish02': '/logs-newbrvarnish02',
+    '/app/usage-logs-newbrvarnish03': '/logs-newbrvarnish03',
+}

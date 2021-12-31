@@ -8,6 +8,11 @@ from app import utils, values
 from app.lib import db, file, logparser
 
 
+STR_CONNECTION = os.environ.get(
+    'PARSE_LOG_STR_CONNECTION',
+    'mysql://user:pass@localhost:port/database',
+)
+
 COLLECTION = os.environ.get(
     'PARSE_LOG_COLLECTION',
     'scl'

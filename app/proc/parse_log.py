@@ -34,27 +34,41 @@ OUTPUT_DIRECTORY = os.environ.get(
 )
 
 
+def parse_file(logfile: str, output_directory: str, mmdb: str, robots: str):
+    logging.info(f'Validação iniciada para arquivo {logfile}')
+    validations = [validator._validate_path, validator._validate_content]
+    validation_results = validator.validate(logfile, validations, sample_size=0.05)
+
+    if validation_results.get('is_valid', {}).get('all', False):
+        output_filepath = file.generate_filepath(output_directory, logfile)
+
+        lp = logparser.LogParser(mmdb, robots)
+        lp.logfile = logfile
+        lp.output = output_filepath
+        lp.stats.output = output_filepath + '.summary'
+
+        logging.info(f'Processamento iniciado para arquivo {logfile} com saída em {output_filepath}')
+        data = lp.parse()
+        lp.save(data)
+
+        logging.info(f'Arquivo {logfile} foi processado em {lp.total_time} segundos')        
+        return values.LOGFILE_STATUS_LOADED
+    else:
+        logging.warning(f'Arquivo {logfile} foi invalidado')
+        return values.LOGFILE_STATUS_INVALIDATED
+
+
+def parse_files_db(str_connection: str, collection: str, output_directory: str, mmdb: str, robots: str):    
+    non_parsed_logs = db.get_non_parsed_logs(str_connection, collection)
+
+    for lf in non_parsed_logs:
+        lf_path = utils.translate_path(lf.full_path)
+        lf_status = parse_file(lf_path, output_directory, mmdb, robots)
+        db.set_logfile_status(str_connection, lf.id, lf_status)
+
+
 def main():
     parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        '-c', '--collection',
-        default=COLLECTION,
-        help='Acrônimo de coleção',
-    )
-
-    parser.add_argument(
-        '-f', '--file',
-        required=True,
-        help='Arquivo de log de acesso',
-    )
-
-    parser.add_argument(
-        '-o',
-        '--output_directory',
-        default=OUTPUT_DIRECTORY,
-        help='Diretório de saída',
-    )
 
     parser.add_argument(
         '-m',
@@ -70,7 +84,46 @@ def main():
         help='Arquivo de robôs',
     )
 
-    params = parser.parse_args()
+    parser.add_argument(
+        '-o',
+        '--output_directory',
+        default=OUTPUT_DIRECTORY,
+        help='Diretório de saída',
+    )
+
+    subparsers = parser.add_subparsers(
+        title='mode',
+        required=True,
+    )
+
+    file_parser = subparsers.add_parser('file', help='Modo de caminho de arquivo')
+
+    file_parser.add_argument(
+        '-f',
+        '--logfile',
+        help='Caminho de arquivo de log de acesso',
+        required=True,
+    )
+
+    database_parser = subparsers.add_parser('database', help='Modo de banco de dados')
+
+    database_parser.add_argument(
+        '-u', 
+        '--str_connection',
+        default=STR_CONNECTION,
+        help='String de conexão com banco de dados',
+        required=True,
+    )
+    
+    database_parser.add_argument(
+        '-c', 
+        '--collection',
+        default=COLLECTION,
+        help='Acrônimo de coleção',
+        required=True,
+    )
+
+    args = parser.parse_args()
 
     logging.basicConfig(
         level=LOGGING_LEVEL,
@@ -78,26 +131,9 @@ def main():
         datefmt='%d/%b/%Y %H:%M:%S',
     )
 
-    logging.info(f'Validação iniciada para arquivo {params.file}')
-    validation_results = validate(
-        params.file,
-        [_validate_path, _validate_content],
-        sample_size=0.05,
-    )
-
-    if validation_results.get('is_valid', {}).get('all', False):
-        output_filepath = generate_filepath(params.output_directory, params.file)
-
-        lp = LogParser(params.mmdb, params.robots)
-        lp.logfile = params.file
-        lp.output = output_filepath
-        lp.stats.output = output_filepath + '.summary'
-
-        logging.info(f'Processamento iniciado para arquivo {params.file} com saída em {output_filepath}')
-        data = lp.parse()
-        lp.save(data)
-
-        logging.info(f'Arquivo {params.file} foi processado em {lp.total_time} segundos')
-
-    else:
-        logging.warning(f'Arquivo {params.file} não é válido')
+    if getattr(args, 'logfile', None):
+        logging.info('Inicializado em modo de arquivo')
+        parse_file(**args.__dict__)
+    elif getattr(args, 'str_connection', None):
+        logging.info('Inicializado em modo de banco de dados')
+        parse_files_db(**args.__dict__)

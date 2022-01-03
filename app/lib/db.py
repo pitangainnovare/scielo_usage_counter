@@ -50,6 +50,17 @@ def _get_date_status(dates):
         date_status[r.date] = r.status
 
     return date_status
+
+
+def _get_previous_and_next_dates(date, interval=2):
+    all_days = [date]
+
+    for i in range(1, interval + 1):
+        all_days.append(date + datetime.timedelta(days=-i))
+        all_days.append(date + datetime.timedelta(days=+i))
+
+    return all_days
+
 def get_logfile_status(str_connection, logfile_id):
     session = get_session(str_connection)
     try:

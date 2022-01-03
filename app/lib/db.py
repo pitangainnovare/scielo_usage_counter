@@ -80,6 +80,25 @@ def _get_enabled_dates_by_status_value(date_status: dict, status_value: int):
     return enabled_dates
 
 
+def _check_previous_and_next_dates(session, collection, dates):
+    for d in dates:
+        try:
+            cds = session.query(models.ControlDateStatus).filter(
+                and_(
+                    models.ControlDateStatus.collection == collection,
+                    models.ControlDateStatus.date == d,
+                )
+            ).one()
+
+            if cds.status != values.DATE_STATUS_EXTRACTING_PRETABLE and cds.status < values.DATE_STATUS_LOADED:
+                return False
+
+        except NoResultFound:
+            return False
+
+    return True
+
+
 def get_non_pretable_dates(str_connection, collection):
     session = get_session(str_connection)
     try:

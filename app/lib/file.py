@@ -64,3 +64,10 @@ def generate_filepath_with_filename(directory, filename, posfix, extension='tsv'
 def create_file_with_header(path, header=[], delimiter='\t'):
     with open(path, 'w') as fout:
         fout.write(delimiter.join(header) + '\n')
+
+
+def get_processed_files(date, processed_logs_directory: str, extension='tsv'):
+    date_str = date.strftime('%Y-%m-%d')
+    files = [f for f in os.listdir(processed_logs_directory) if f.endswith(extension)]
+    return [os.path.join(processed_logs_directory, i) for i in files if date_str in i]
+

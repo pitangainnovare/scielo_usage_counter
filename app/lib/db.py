@@ -124,7 +124,7 @@ def get_unsorted_pretables(str_connection, collection):
 
         date2status = _get_date_status(unsorted_pretable_dates)
 
-        return _get_enabled_dates_by_status_value(date2status, values.DATE_STATUS_EXTRACTING_PRETABLE)
+        return _get_enabled_dates_by_status_value(session, collection, date2status, values.DATE_STATUS_EXTRACTING_PRETABLE)
 
     except NoResultFound:
         return []

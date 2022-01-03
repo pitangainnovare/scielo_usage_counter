@@ -80,3 +80,6 @@ def translate_date_to_output_path(date, output_directory, posfix='', extension='
         output_filename = f'{str_date}.{extension}'
     return os.path.join(output_directory, output_filename)
 
+
+def is_valid_path(path):
+    return os.path.exists(path)

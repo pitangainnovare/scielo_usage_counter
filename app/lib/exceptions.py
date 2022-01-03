@@ -6,3 +6,6 @@ class InvalidDateError(Exception):
 
 class InvalidLogFileMimeError(Exception):
     ...
+
+class InvalidFilePath(Exception):
+    ...

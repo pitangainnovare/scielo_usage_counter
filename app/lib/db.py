@@ -1,10 +1,11 @@
 
 import app.declararive as models
 import app.values as values
+import datetime
 
 from sqlalchemy import and_, create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 
 def create_tables(str_connection):
@@ -42,6 +43,13 @@ def get_non_parsed_logs(str_connection, collection):
         return []
 
 
+def _get_date_status(dates):
+    date_status = {}
+
+    for r in dates:
+        date_status[r.date] = r.status
+
+    return date_status
 def get_logfile_status(str_connection, logfile_id):
     session = get_session(str_connection)
     try:

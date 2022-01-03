@@ -34,11 +34,11 @@ class ControlLogFile(Base):
 
     collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
     full_path = Column(VARCHAR(255), nullable=False, unique=True)
-    created = Column(DATETIME, nullable=False)
+    created_at = Column(DATETIME, nullable=False)
     size = Column(BIGINT, nullable=False)
     name = Column(VARCHAR(255), nullable=False)
     server = Column(VARCHAR(255), nullable=False)
-    year_month_day = Column(DATE, nullable=False, index=True)
+    date = Column(DATE, nullable=False, index=True)
     status = Column(TINYINT, default=0)
 
 
@@ -67,14 +67,18 @@ class ControlLogFileSummary(Base):
 
 class ControlDateStatus(Base):
     __tablename__ = 'control_date_status'
-    __table_args__ = (UniqueConstraint('collection', 'year_month_day'),)
+    __table_args__ = (UniqueConstraint('collection', 'date'),)
 
     id = Column(MEDIUMINT(unsigned=True), primary_key=True, autoincrement=True)
 
     collection = Column(TINYINT(unsigned=True), ForeignKey('collection.id'))
-    year_month_day = Column(DATE, nullable=False, index=True)
+    date = Column(DATE, nullable=False, index=True)
     status = Column(TINYINT, default=0)
-    updated = Column(DATETIME)
+    status_counter_article_metric = Column(TINYINT, default=0)
+    status_counter_journal_metric = Column(TINYINT, default=0)
+    status_sushi_article_metric = Column(TINYINT, default=0)
+    status_sushi_journal_metric = Column(TINYINT, default=0)
+    status_sushi_journal_yop_metric = Column(TINYINT, default=0)
 
 
 class Journal(Base):

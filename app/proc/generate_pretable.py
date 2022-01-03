@@ -73,14 +73,20 @@ def extract_values(data, header, delimiter):
     return delimiter.join([data.get(h) for h in header])
 
 
-def generate_pretables(input_file, output_directory, header, extension='tsv', delimiter='\t'):
+def generate_pretables(
+    parsed_file, 
+    output_directory, 
+    header=values.PRETABLE_FILE_HEADER, 
+    extension='tsv', 
+    delimiter='\t'
+):
     """
     Gera arquivo(s) com os dados de log processados.
     Grava um arquivo por dia.
 
     Parameters
     ----------
-    input_file : str
+    parsed_file : str
         Nome do arquivo contendo dados de log processados
     output_directory : str
         Caminho no disco em que o arquivo será gravado
@@ -91,8 +97,8 @@ def generate_pretables(input_file, output_directory, header, extension='tsv', de
     delimiter : str
         Separador de colunas dos arquivos a serem gerados
     """
-    logging.info('Lendo %s' % input_file)
-    with open(input_file) as fin:
+    logging.info('Lendo %s' % parsed_file)
+    with open(parsed_file) as fin:
         output_files = {}
 
         csv_reader = csv.DictReader(fin, delimiter=delimiter)
@@ -103,7 +109,7 @@ def generate_pretables(input_file, output_directory, header, extension='tsv', de
                 ymd = row.get('serverTime').split(' ')[0]
 
                 # gera nome de arquivo relacionado a ymd
-                ymd_output_path = generate_filepath_with_filename(
+                ymd_output_path = file.generate_filepath_with_filename(
                     directory=output_directory,
                     filename=ymd,
                     posfix=UNSORTED_POSFIX,
@@ -113,7 +119,7 @@ def generate_pretables(input_file, output_directory, header, extension='tsv', de
                 # verifica se arquivo já existe
                 if not os.path.exists(ymd_output_path):
                     logging.info('Criado arquivo %s' % ymd_output_path)
-                    create_file_with_header(ymd_output_path, header)
+                    file.create_file_with_header(ymd_output_path, header)
 
                 # abre arquivo em modo append, caso ainda não esteja aberto. adiciona em dicionário uma referência ao arquivo
                 if ymd not in output_files:
@@ -130,6 +136,7 @@ def generate_pretables(input_file, output_directory, header, extension='tsv', de
             for v in output_files.values():
                 v.close()
 
+        return output_files
 
 def main():
     parser = argparse.ArgumentParser()

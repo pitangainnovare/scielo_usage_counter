@@ -254,12 +254,21 @@ def main():
         datefmt='%d/%b/%Y %H:%M:%S',
     )
 
-    check_dir(params.output_directory)
+    file.check_dir(args.output_directory, force_tail=True)
 
-    generate_pretables(
-        input_file=params.input_file,
-        output_directory=params.output_directory,
-        header=PRETABLE_FILE_HEADER,
-        extension='tsv',
-        delimiter='\t',
-    )
+    if getattr(args, 'parsed_file', None):
+        logging.info('Inicializado em modo de arquivo')
+        generate_pretables(**args.__dict__)
+
+    elif getattr(args, 'str_connection', None):
+        logging.info('Inicializado em modo de banco de dados')
+
+        if getattr(args, 'processed_logs_directory', None):
+            logging.info('Gerando pré-tabelas')
+            params = _args_to_param(args, ignore=['unsorted_pretables_directory'])
+            generate_pretables_db(**params)
+
+        elif getattr(args, 'unsorted_pretables_directory', None):
+            logging.info('Ordenando pré-tabelas')
+            params = _args_to_param(args, ignore=['processed_logs_directory'])
+            sort_pretables(**params)

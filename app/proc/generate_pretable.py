@@ -45,6 +45,14 @@ UNSORTED_PRETABLES_DIRECTORY = os.environ.get(
 )
 
 
+def _args_to_param(args, ignore):
+    params = {}
+    for k, v in args.__dict__.items():
+        if k not in ignore:
+            params[k] = v
+    return params
+
+
 def extract_values(data, header, delimiter):
     """Método auxiliar para extrair valores de um dicionário usando chaves indicadas em um header.
 

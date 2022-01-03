@@ -96,6 +96,26 @@ def get_non_pretable_dates(str_connection, collection):
 
     except NoResultFound:
         return []
+
+
+def get_unsorted_pretables(str_connection, collection):
+    session = get_session(str_connection)
+    try:
+        unsorted_pretable_dates = session.query(models.ControlDateStatus).filter(
+            and_(
+                models.ControlDateStatus.collection == collection,
+                models.ControlDateStatus.status == values.DATE_STATUS_EXTRACTING_PRETABLE,
+            )
+        ).order_by(models.ControlDateStatus.date.desc())
+
+        date2status = _get_date_status(unsorted_pretable_dates)
+
+        return _get_enabled_dates_by_status_value(date2status, values.DATE_STATUS_EXTRACTING_PRETABLE)
+
+    except NoResultFound:
+        return []
+
+
 def get_logfile_status(str_connection, logfile_id):
     session = get_session(str_connection)
     try:

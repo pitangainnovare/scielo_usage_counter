@@ -61,6 +61,23 @@ def _get_previous_and_next_dates(date, interval=2):
 
     return all_days
 
+
+def _get_enabled_dates_by_status_value(date_status: dict, status_value: int):
+    enabled_dates = []
+        
+    for date, status in date_status.items():
+        pn_dates = _get_previous_and_next_dates(date)
+
+        is_valid = True
+        for d in pn_dates:
+            if d not in date_status:
+                is_valid = False
+                break
+
+        if status == status_value and is_valid:
+            enabled_dates.append(date)
+
+    return enabled_dates
 def get_logfile_status(str_connection, logfile_id):
     session = get_session(str_connection)
     try:

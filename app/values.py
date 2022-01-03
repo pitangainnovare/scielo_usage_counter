@@ -135,6 +135,8 @@ DATE_STATUS_COMPUTED = 4
 DATE_STATUS_COMPLETED = 5
 DATE_STATUS_EXTRACTING_PRETABLE = -3
 
+SORT_RESULT_SUCCESS = 0
+
 LOG_PATH_TRANSLATOR = {
     '/app/usage-logs-ratchet': '/logs-ratchet',
     '/app/usage-logs-dataverse': '/logs-dataverse',

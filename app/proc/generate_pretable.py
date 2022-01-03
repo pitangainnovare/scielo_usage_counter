@@ -14,14 +14,34 @@ LOGGING_LEVEL = os.environ.get(
     'INFO'
 )
 
+PROCESSED_LOGS_DIRECTORY = os.environ.get(
+    'GENERATE_PRETABLE_PROCESSED_LOGS_DIRECTORY',
+    'data/processed/'
+)
+
 OUTPUT_DIRECTORY = os.environ.get(
     'OUTPUT_DIRECTORY',
     'data/pretables/'
 )
 
 UNSORTED_POSFIX = os.environ.get(
-    'UNSORTED_POSFIX',
+    'GENERATE_PRETABLE_UNSORTED_POSFIX',
     'unsorted'
+)
+
+COLLECTION = os.environ.get(
+    'GENERATE_PRETABLE_PARSE_LOG_COLLECTION',
+    'scl'
+)
+
+STR_CONNECTION = os.environ.get(
+    'GENERATE_PRETABLE_PARSE_LOG_STR_CONNECTION',
+    'mysql://user:pass@localhost:3306/usage'
+)
+
+UNSORTED_PRETABLES_DIRECTORY = os.environ.get(
+    'GENERATE_PRETABLE_UNSORTED_PRETABLES_DIRECTORY',
+    'data/unsorted_pretables/'
 )
 
 

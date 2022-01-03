@@ -9,9 +9,12 @@ from app.lib.exceptions import (
 )
 
 
-def check_dir(output):
-    if not os.path.isdir(output):
-        dirname = os.path.dirname(output)
+def check_dir(output, force_tail=False):
+    if not force_tail:
+        if not os.path.isdir(output):
+            dirname = os.path.dirname(output)
+        else:
+            dirname = output
     else:
         dirname = output
 

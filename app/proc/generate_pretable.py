@@ -138,6 +138,28 @@ def generate_pretables(
 
         return output_files
 
+
+def generate_pretables_db(
+    str_connection, 
+    collection, 
+    output_directory, 
+    header=values.PRETABLE_FILE_HEADER, 
+    extension='tsv', 
+    delimiter='\t', 
+    processed_logs_directory=PROCESSED_LOGS_DIRECTORY,
+):
+    non_pretable_dates = db.get_non_pretable_dates(str_connection, collection)
+
+    for npt in non_pretable_dates:
+        processed_files = file.get_processed_files(npt, processed_logs_directory)
+        output_files = {}
+
+        for pf in processed_files:
+            pf_results = generate_pretables(parsed_file=pf, output_directory=output_directory, header=header, extension=extension, delimiter=delimiter)
+            output_files.update(pf_results)
+
+        for k in output_files:
+            db.set_control_date_status(str_connection, collection, k, values.DATE_STATUS_EXTRACTING_PRETABLE)
 def main():
     parser = argparse.ArgumentParser()
 

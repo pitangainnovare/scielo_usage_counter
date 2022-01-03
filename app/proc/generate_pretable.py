@@ -44,6 +44,11 @@ UNSORTED_PRETABLES_DIRECTORY = os.environ.get(
     'data/unsorted_pretables/'
 )
 
+SCRIPT_SORT_PATH = os.environ.get(
+    'GENERATE_PRETABLE_SCRIPT_SORT_PATH',
+    'scripts/sort_uniq.sh'
+)
+
 
 def _args_to_param(args, ignore):
     params = {}
@@ -183,7 +188,7 @@ def sort_pretables(
             output_directory=output_directory,
         )
         
-        sort_result = subprocess.call(shlex.split('scripts/sort_uniq.sh -i %s -o %s' % (unsorted_pt_path, sorted_pt_path)))
+        sort_result = subprocess.call(shlex.split('%s -i %s -o %s' % (SCRIPT_SORT_PATH, unsorted_pt_path, sorted_pt_path)))
         if sort_result == values.SORT_RESULT_SUCCESS:
             db.set_control_date_status(str_connection, collection, upt_date, values.DATE_STATUS_PRETABLE)
 

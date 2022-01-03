@@ -62,22 +62,36 @@ def _get_previous_and_next_dates(date, interval=2):
     return all_days
 
 
-def _get_enabled_dates_by_status_value(date_status: dict, status_value: int):
+def _get_enabled_dates_by_status_value(session, collection, date_status: dict, status_value: int):
     enabled_dates = []
         
     for date, status in date_status.items():
         pn_dates = _get_previous_and_next_dates(date)
+        is_valid_date = _check_previous_and_next_dates(session, collection, pn_dates)
 
-        is_valid = True
-        for d in pn_dates:
-            if d not in date_status:
-                is_valid = False
-                break
-
-        if status == status_value and is_valid:
+        if status == status_value and is_valid_date:
             enabled_dates.append(date)
 
     return enabled_dates
+
+
+def _check_previous_and_next_dates(session, collection, dates):
+    for d in dates:
+        try:
+            cds = session.query(models.ControlDateStatus).filter(
+                and_(
+                    models.ControlDateStatus.collection == collection,
+                    models.ControlDateStatus.date == d,
+                )
+            ).one()
+
+            if cds.status != values.DATE_STATUS_EXTRACTING_PRETABLE and cds.status < values.DATE_STATUS_LOADED:
+                return False
+
+        except NoResultFound:
+            return False
+
+    return True
 
 
 def get_non_pretable_dates(str_connection, collection):
@@ -92,7 +106,7 @@ def get_non_pretable_dates(str_connection, collection):
         
         date2status = _get_date_status(parsed_dates)
         
-        return _get_enabled_dates_by_status_value(date2status, values.DATE_STATUS_LOADED)
+        return _get_enabled_dates_by_status_value(session, collection, date2status, values.DATE_STATUS_LOADED)
 
     except NoResultFound:
         return []
@@ -110,7 +124,7 @@ def get_unsorted_pretables(str_connection, collection):
 
         date2status = _get_date_status(unsorted_pretable_dates)
 
-        return _get_enabled_dates_by_status_value(date2status, values.DATE_STATUS_EXTRACTING_PRETABLE)
+        return _get_enabled_dates_by_status_value(session, collection, date2status, values.DATE_STATUS_EXTRACTING_PRETABLE)
 
     except NoResultFound:
         return []

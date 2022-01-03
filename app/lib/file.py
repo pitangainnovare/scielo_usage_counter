@@ -71,3 +71,12 @@ def get_processed_files(date, processed_logs_directory: str, extension='tsv'):
     files = [f for f in os.listdir(processed_logs_directory) if f.endswith(extension)]
     return [os.path.join(processed_logs_directory, i) for i in files if date_str in i]
 
+
+def translate_date_to_output_path(date, output_directory, posfix='', extension='tsv'):
+    str_date = date.strftime('%Y-%m-%d')
+    if posfix:
+        output_filename = f'{str_date}.{posfix}.{extension}'
+    else:
+        output_filename = f'{str_date}.{extension}'
+    return os.path.join(output_directory, output_filename)
+

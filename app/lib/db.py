@@ -132,3 +132,20 @@ def set_logfile_status(str_connection, logfile_id, status):
     lf = session.get(models.ControlLogFile, logfile_id) 
     lf.status = status
     session.commit()
+
+
+def set_control_date_status(str_connection, collection, date, status):
+    session = get_session(str_connection)
+    try:
+        cds = session.query(models.ControlDateStatus).filter(
+            and_(
+                models.ControlDateStatus.collection == collection,
+                models.ControlDateStatus.date == date,
+            )
+        ).one()
+        cds.status = status
+        session.commit()
+    except NoResultFound:
+        ...
+    except MultipleResultsFound:
+        ...

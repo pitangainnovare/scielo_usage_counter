@@ -135,19 +135,61 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        '-f', '--input_file',
-        required=True,
-        help='Arquivo de log pré-processado',
-    )
-
-    parser.add_argument(
         '-o',
         '--output_directory',
         default=OUTPUT_DIRECTORY,
         help='Diretório de saída',
     )
 
-    params = parser.parse_args()
+    subparsers = parser.add_subparsers(
+        title='mode',
+    )
+
+    file_parser = subparsers.add_parser('file', help='Modo de caminho de arquivo')
+
+    file_parser.add_argument(
+        '-f',
+        '--parsed_file',
+        help='Caminho de arquivo de log processado',
+    )
+
+    database_parser = subparsers.add_parser('database', help='Modo de banco de dados')
+
+    database_parser.add_argument(
+        '-u', 
+        '--str_connection',
+        default=STR_CONNECTION,
+        help='String de conexão com banco de dados',
+    )
+    
+    database_parser.add_argument(
+        '-c', 
+        '--collection',
+        default=COLLECTION,
+        help='Acrônimo de coleção',
+    )
+
+    database_parser_subparsers = database_parser.add_subparsers(title='command')
+
+    database_parser_subparsers_generate = database_parser_subparsers.add_parser('generate')
+
+    database_parser_subparsers_generate.add_argument(
+        '-p',
+        '--processed_logs_directory',
+        default=PROCESSED_LOGS_DIRECTORY,
+        help='Diretório de arquivos de log pré-processados'
+    )
+
+    database_parser_subparsers_sort = database_parser_subparsers.add_parser('sort')
+
+    database_parser_subparsers_sort.add_argument(
+        '-t',
+        '--unsorted_pretables_directory',
+        default=UNSORTED_PRETABLES_DIRECTORY,
+        help='Diretório de pré-tabelas não ordenadas'
+    )
+
+    args = parser.parse_args()
 
     logging.basicConfig(
         level=LOGGING_LEVEL,

@@ -160,6 +160,34 @@ def generate_pretables_db(
 
         for k in output_files:
             db.set_control_date_status(str_connection, collection, k, values.DATE_STATUS_EXTRACTING_PRETABLE)
+
+
+def sort_pretables(
+    str_connection, 
+    collection,
+    output_directory,
+    unsorted_pretables_directory=UNSORTED_PRETABLES_DIRECTORY,
+    ):
+    unsorted_pretables = db.get_unsorted_pretables(str_connection, collection)
+    for upt_date in unsorted_pretables:
+        unsorted_pt_path = file.translate_date_to_output_path(
+            date=upt_date, 
+            output_directory=unsorted_pretables_directory, 
+            posfix=UNSORTED_POSFIX,
+        )
+        if not file.is_valid_path(unsorted_pt_path):
+            raise exceptions.InvalidFilePath('%s não é um caminho válido' % unsorted_pt_path)
+
+        sorted_pt_path = file.translate_date_to_output_path(
+            date=upt_date,
+            output_directory=output_directory,
+        )
+        
+        sort_result = subprocess.call(shlex.split('scripts/sort_uniq.sh -i %s -o %s' % (unsorted_pt_path, sorted_pt_path)))
+        if sort_result == values.SORT_RESULT_SUCCESS:
+            db.set_control_date_status(str_connection, collection, upt_date, values.DATE_STATUS_PRETABLE)
+
+
 def main():
     parser = argparse.ArgumentParser()
 

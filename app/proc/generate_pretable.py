@@ -154,16 +154,18 @@ def generate_pretables_db(
     processed_logs_directory=PROCESSED_LOGS_DIRECTORY,
 ):
     non_pretable_dates = db.get_non_pretable_dates(str_connection, collection)
-
+    processed_files = []
     for npt in non_pretable_dates:
-        processed_files = file.get_processed_files(npt, processed_logs_directory)
-        output_files = {}
+        processed_files.extend(file.get_processed_files(npt, processed_logs_directory))
 
-        for pf in processed_files:
-            pf_results = generate_pretables(parsed_file=pf, output_directory=output_directory, header=header, extension=extension, delimiter=delimiter)
-            output_files.update(pf_results)
+    output_files = {}
+    for pf in set(sorted(processed_files)):
+        pf_results = generate_pretables(parsed_file=pf, output_directory=output_directory, header=header, extension=extension, delimiter=delimiter)
+        output_files.update(pf_results)
 
-        for k in output_files:
+    non_pretable_dates_str = [d.strftime('%Y-%m-%d') for d in non_pretable_dates]
+    for k in output_files:
+        if k in non_pretable_dates_str:
             db.set_control_date_status(str_connection, collection, k, values.DATE_STATUS_EXTRACTING_PRETABLE)
 
 

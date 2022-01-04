@@ -66,10 +66,24 @@ def create_file_with_header(path, header=[], delimiter='\t'):
         fout.write(delimiter.join(header) + '\n')
 
 
+def _filename_contains_dates(filename, dates):
+    for d in dates:
+        if d in filename:
+            return True
+    return False
+
+
 def get_processed_files(date, processed_logs_directory: str, extension='tsv'):
-    date_str = date.strftime('%Y-%m-%d')
+    all_days = [date]
+    
+    for i in range(1, 3):
+        all_days.append(date + datetime.timedelta(days=-i))
+        all_days.append(date + datetime.timedelta(days=+i))
+
+    all_days_str = [d.strftime('%Y-%m-%d') for d in all_days]
     files = [f for f in os.listdir(processed_logs_directory) if f.endswith(extension)]
-    return [os.path.join(processed_logs_directory, i) for i in files if date_str in i]
+
+    return [os.path.join(processed_logs_directory, f) for f in files if _filename_contains_dates(f, all_days_str)]
 
 
 def translate_date_to_output_path(date, output_directory, posfix='', extension='tsv'):

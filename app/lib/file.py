@@ -1,3 +1,4 @@
+import bz2
 import datetime
 import magic
 import os
@@ -26,6 +27,10 @@ def open_gzip(file_path, mode):
     return gzip.GzipFile(file_path, mode)
 
 
+def open_bz2(file_path, mode):
+    return bz2.open(file_path, mode)
+
+
 def extract_gzip(file_path):
     with gzip.open(file_path, 'rb') as fin:
         with open(file_path.replace('.gz', ''), 'wb') as fout:
@@ -42,6 +47,8 @@ def open_logfile(file_path):
 
     if file_mime in ('application/gzip', 'application/x-gzip'):
         return open_gzip(file_path, 'rb')
+    elif file_mime in ('application/x-bzip2',):
+        return open_bz2(file_path, 'rb')
     elif file_mime in ('application/text', 'text/plain'):
         return open(file_path, 'r')
     else:

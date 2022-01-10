@@ -35,10 +35,10 @@ def get_non_parsed_logs(str_connection, collection):
         return session.query(
             models.ControlLogFile).filter(
                 and_(
-                    models.ControlLogFile.collection == collection, 
+                    models.ControlLogFile.collection == collection,
                     models.ControlLogFile.status == values.LOGFILE_STATUS_QUEUE,
                 )
-            ).order_by(models.ControlLogFile.year_month_day)
+            ).order_by(models.ControlLogFile.date)
     except NoResultFound:
         return []
 

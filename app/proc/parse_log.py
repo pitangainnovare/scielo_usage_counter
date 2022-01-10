@@ -93,7 +93,6 @@ def main():
 
     subparsers = parser.add_subparsers(
         title='mode',
-        required=True,
     )
 
     file_parser = subparsers.add_parser('file', help='Modo de caminho de arquivo')
@@ -102,25 +101,22 @@ def main():
         '-f',
         '--logfile',
         help='Caminho de arquivo de log de acesso',
-        required=True,
     )
 
     database_parser = subparsers.add_parser('database', help='Modo de banco de dados')
 
     database_parser.add_argument(
-        '-u', 
+        '-u',
         '--str_connection',
         default=STR_CONNECTION,
         help='String de conexão com banco de dados',
-        required=True,
     )
-    
+
     database_parser.add_argument(
-        '-c', 
+        '-c',
         '--collection',
         default=COLLECTION,
         help='Acrônimo de coleção',
-        required=True,
     )
 
     args = parser.parse_args()

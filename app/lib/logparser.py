@@ -428,7 +428,10 @@ class LogParser:
         self.stats.increment('lines_parsed')
 
         parsed_data = []
-        decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
+        try:
+            decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
+        except UnicodeDecodeError:
+            decoded_line = line.decode('utf-8', errors='ignore').strip() if isinstance(line, bytes) else line.strip()
 
         match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT, decoded_line)
         if match:

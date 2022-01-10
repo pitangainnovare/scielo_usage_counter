@@ -64,7 +64,7 @@ def _get_previous_and_next_dates(date, interval=2):
 
 def _get_enabled_dates_by_status_value(session, collection, date_status: dict, status_value: int):
     enabled_dates = []
-        
+
     for date, status in date_status.items():
         pn_dates = _get_previous_and_next_dates(date)
         is_valid_date = _check_previous_and_next_dates(session, collection, pn_dates)
@@ -103,9 +103,9 @@ def get_non_pretable_dates(str_connection, collection):
                 models.ControlDateStatus.status == values.DATE_STATUS_LOADED,
             )
         ).order_by(models.ControlDateStatus.date.desc())
-        
+
         date2status = _get_date_status(parsed_dates)
-        
+
         return _get_enabled_dates_by_status_value(session, collection, date2status, values.DATE_STATUS_LOADED)
 
     except NoResultFound:
@@ -143,7 +143,7 @@ def get_logfile_status(str_connection, logfile_id):
 
 def set_logfile_status(str_connection, logfile_id, status):
     session = get_session(str_connection)
-    lf = session.get(models.ControlLogFile, logfile_id) 
+    lf = session.get(models.ControlLogFile, logfile_id)
     lf.status = status
     session.commit()
 

@@ -51,14 +51,14 @@ def parse_file(logfile: str, output_directory: str, mmdb: str, robots: str):
         data = lp.parse()
         lp.save(data)
 
-        logging.info(f'Arquivo {logfile} foi processado em {lp.total_time} segundos')        
+        logging.info(f'Arquivo {logfile} foi processado em {lp.total_time} segundos')
         return values.LOGFILE_STATUS_LOADED
     else:
         logging.warning(f'Arquivo {logfile} foi invalidado')
         return values.LOGFILE_STATUS_INVALIDATED
 
 
-def parse_files_db(str_connection: str, collection: str, output_directory: str, mmdb: str, robots: str):    
+def parse_files_db(str_connection: str, collection: str, output_directory: str, mmdb: str, robots: str):
     non_parsed_logs = db.get_non_parsed_logs(str_connection, collection)
 
     for lf in non_parsed_logs:

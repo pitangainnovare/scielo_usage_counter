@@ -9,14 +9,14 @@ help(){
 
 run(){
 	DIR_PREPROCESSED_LOGS=$1;
+	DIR_OUTPUT=$2;
 	echo "[DIR_PREPROCESSED_LOGS] $DIR_PREPROCESSED_LOGS"
 
 	for i in `ls "$DIR_PREPROCESSED_LOGS"`; do
 		PPLOG=$DIR_PREPROCESSED_LOGS/$i;
 
 		echo "[Processando] $PPLOG";
-		gen_pt \
-			-f $PPLOG
+		gen-pretable -o $DIR_OUTPUT file -f $PPLOG;
 	done
 }
 

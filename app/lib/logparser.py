@@ -461,6 +461,7 @@ class LogParser:
             try:
                 device = DeviceDetector(hit.user_agent).parse()
             except ZeroDivisionError:
+                device = DeviceDetector('').parse()
                 self.stats.increment('ignored_lines_invalid_user_agent')
                 logging.error(DeviceDetectionError(f'Não foi possível identificar UserAgent {hit.user_agent} from line {decoded_line}'))
                 hit.is_valid = False

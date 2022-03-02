@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 help(){
 	echo "SciELO Usage COUNTER - Batch script Generate Pretable"
-	echo "Please, inform the directory of logs (parameter -d). For example: "
+	echo "Please, inform the output directory (parameter -o) and directory containing preprocessed log files (parameter -d). For example: "
 	echo ""
-	echo "   scripts/batch_generate_pretable.sh -d /logs_preprocessed"
+	echo "   scripts/batch_generate_pretable.sh -d /home/user/preprocessed_dir -o /home/user/output_dir"
 	echo ""
 }
 

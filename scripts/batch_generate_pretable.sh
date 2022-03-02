@@ -20,10 +20,11 @@ run(){
 	done
 }
 
-while getopts d: opts; do
+while getopts d:o: opts; do
 	case ${opts} in
 		# Diretório contendo arquivos de log preprocessados
       	d) DIR_PREPROCESSED_LOGS=${OPTARG} ;;
+		o) DIR_OUTPUT=${OPTARG} ;;
 	esac
 done
 
@@ -32,5 +33,5 @@ if [[ -z "$DIR_PREPROCESSED_LOGS" ]]
 		help;
 		exit;
 	else
-		run $DIR_PREPROCESSED_LOGS;
+		run $DIR_PREPROCESSED_LOGS $DIR_OUTPUT;
 fi

@@ -146,4 +146,6 @@ LOG_PATH_TRANSLATOR = {
     '/app/usage-logs-node03': '/logs-node03-oldscielobr',
     '/app/usage-logs-newbrvarnish02': '/logs-newbrvarnish02',
     '/app/usage-logs-newbrvarnish03': '/logs-newbrvarnish03',
+    '/app/usage-logs-newbrvarnish05': '/logs-newbrvarnish05',
+    '/app/usage-logs-newbrvarnish06': '/logs-newbrvarnish06',
 }

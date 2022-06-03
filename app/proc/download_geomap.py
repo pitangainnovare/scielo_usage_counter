@@ -7,7 +7,7 @@ import os
 from app.lib.file import extract_gzip
 
 
-DEFAULT_URL = 'https://download.db-ip.com/free/dbip-city-lite-{0}-{1}.mmdb.gz'
+MMDB_DEFAULT_URL_FORMAT = 'https://download.db-ip.com/free/dbip-city-lite-{0}-{1}.mmdb.gz'
 
 LOGGING_LEVEL = os.environ.get(
     'GEOIP_LOGGING_LEVEL',

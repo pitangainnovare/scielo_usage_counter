@@ -31,9 +31,9 @@ def open_bz2(file_path, mode):
     return bz2.open(file_path, mode)
 
 
-def extract_gzip(file_path):
+def extract_gzip(file_path, path_output):
     with gzip.open(file_path, 'rb') as fin:
-        with open(file_path.replace('.gz', ''), 'wb') as fout:
+        with open(path_output, 'wb') as fout:
             shutil.copyfileobj(fin, fout)
 
 

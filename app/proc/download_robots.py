@@ -104,7 +104,7 @@ def main():
         '-u',
         '--url',
         default=COUNTER_ROBOTS_URL,
-        help='URL da lista de robots',
+        help='URL da lista de robôs',
     )
 
     parser.add_argument(

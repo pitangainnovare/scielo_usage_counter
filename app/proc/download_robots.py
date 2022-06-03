@@ -5,7 +5,6 @@ import os
 import requests
 
 from time import sleep
-from app.lib.file import check_dir
 
 
 LOGGING_LEVEL = os.environ.get(
@@ -18,15 +17,19 @@ MAX_RETRIES = int(os.environ.get(
     5
 ))
 
-OUTPUT_FILENAME = os.environ.get(
-    'COUNTER_ROBOTS_OUTPUT_FILENAME',
-    'data/counter-robots.txt'
-)
-
 COUNTER_ROBOTS_URL = os.environ.get(
     'COUNTER_ROBOTS_URL',
     'https://raw.githubusercontent.com/atmire/COUNTER-Robots/master/COUNTER_Robots_list.json'
 )
+
+SLEEP_TIME = int(os.environ.get(
+    'COUNTER_ROBOTS_URL_SLEEP_TIME',
+    30
+))
+
+
+class FileRobotsWasNotDownloadError(Exception):
+    ...
 
 
 def _extract_patterns(robots_json):
@@ -66,20 +69,23 @@ def get_robots(url):
                 },
             ]
     """
-    logging.info('Coletando dados...')
-    try:
-        for t in range(MAX_RETRIES):
-            logging.debug(f'Tentativa {t + 1}')
-            response = requests.get(url)
+    for t in range(1, MAX_RETRIES + 1):
+        response = requests.get(url)
 
-            if response.status_code != 200:
-                logging.warning('Não foi possível obter a lista de robôs')
-            else:
-                return response.json()
-
-            sleep(30)
-    except Exception as e:
-        logging.error(e)
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            logging.warning(
+                'Não foi possível coletar dados de %s. Aguardando %d segundos para tentativa %d de %d' % (
+                    url, 
+                    SLEEP_TIME, 
+                    t, 
+                    MAX_RETRIES
+                )
+            )
+            sleep(SLEEP_TIME)
+        else:
+            return response.json()
 
 
 def save(data, output):
@@ -98,7 +104,6 @@ def save(data, output):
         with open(output, 'w') as fout:
             robots_patterns = _extract_patterns(data)
             fout.writelines(robots_patterns)
-            logging.info('Lista de robôs obtida com sucesso: %s' % output)
     except Exception as e:
         logging.error(e)
 
@@ -110,13 +115,12 @@ def main():
         '-u',
         '--url',
         default=COUNTER_ROBOTS_URL,
-        help='URL da lista de robots',
+        help='URL da lista de robôs',
     )
 
     parser.add_argument(
-        '-o',
-        '--output',
-        default=OUTPUT_FILENAME,
+        '--path_output',
+        required=True,
         help='Arquivo de saída',
     )
 
@@ -128,8 +132,11 @@ def main():
         datefmt='%d/%b/%Y %H:%M:%S'
     )
 
-    check_dir(params.output)
+    try:
+        data = get_robots(params.url)
+    except FileRobotsWasNotDownloadError:
+        logging.error('Não foi possível obter a lista de robôs de %s' % params.url)
+        exit(1)
 
-    data = get_robots(params.url)
-
-    save(data, params.output)
+    logging.info('Gravando lista de robôs em %s' % params.path_output)
+    save(data, params.path_output)

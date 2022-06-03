@@ -4,45 +4,44 @@ import logging
 import requests
 import os
 
-from app.lib.file import (
-    check_dir,
-    extract_gzip,
-)
+from app.lib.file import extract_gzip
 
 
-DEFAULT_URL = 'https://download.db-ip.com/free/dbip-city-lite-{0}-{1}.mmdb.gz'
+MMDB_DEFAULT_URL_FORMAT = 'https://download.db-ip.com/free/dbip-city-lite-{0}-{1}.mmdb.gz'
 
 LOGGING_LEVEL = os.environ.get(
     'GEOIP_LOGGING_LEVEL',
     'INFO'
 )
 
-OUTPUT_FILENAME = os.environ.get(
-    'GEOIP_OUTPUT_FILENAME',
-    'data/map.mmdb.gz'
-)
+
+class FileMMDBWasNotDownloadError(Exception):
+    ...
 
 
-def _download(url, output, chunk_size=128):
+def download_mmdb(url, path_output, chunk_size=128):
     r = requests.get(url, stream=True)
-    with open(output, 'wb') as fd:
+
+    try:
+        r.raise_for_status()
+    except requests.exceptions.HTTPError:
+        raise FileMMDBWasNotDownloadError('Arquivo de geolocalizações não foi coletado')
+
+    with open(path_output,'wb') as fd:
         for chunk in r.iter_content(chunk_size=chunk_size):
             fd.write(chunk)
-    return output
+
+    return True
 
 
-def download_mmdb_from_date(year, month, output):
+def _generate_mmdb_url_from_date(default_mmdb_route, year, month):
     if year == '' or month == '':
         today = datetime.date.today()
 
         year = today.year
         month = today.month
 
-    return _download(DEFAULT_URL.format(year, month), output)
-
-
-def download_mmdb_from_url(url, output):
-    return _download(url, output)
+    return default_mmdb_route.format(year, month)
 
 
 def main():
@@ -66,10 +65,9 @@ def main():
     )
 
     parser.add_argument(
-        '-o',
-        '--output',
-        default=OUTPUT_FILENAME,
-        help='Arquivo do mapa de geolocalizações'
+        '--path_output',
+        required=True,
+        help='Caminho do arquivo de mapa de geolocalizações'
     )
 
     params = parser.parse_args()
@@ -80,17 +78,18 @@ def main():
         datefmt='%d/%b/%Y %H:%M:%S'
     )
 
-    check_dir(params.output)
-    output = ''
-
     if params.url:
-        logging.info('Coletando dados...')
-        output = download_mmdb_from_url(params.url, params.output)
+        mmdb_url = params.url
 
     elif params.year and params.month:
-        logging.info('Coletando dados a partir de data e ano: (%s, %s)' % (params.year, params.month))
-        output = download_mmdb_from_date(params.year, params.month, params.output)
+        mmdb_url = _generate_mmdb_url_from_date(MMDB_DEFAULT_URL_FORMAT, params.year, params.month)
 
-    if output:
-        logging.info('Extraindo dados...')
-        extract_gzip(output)
+    try:
+        logging.info('Coletando arquivo MMDB de %s' % mmdb_url)
+        download_mmdb(mmdb_url, params.path_output)
+    except FileMMDBWasNotDownloadError:
+        logging.warning('Arquivo MMDB não está disponível em %s' % mmdb_url)
+        exit(1)
+
+    logging.info('Extraindo dados de %s' % params.path_output)
+    extract_gzip(params.path_output, params.path_output.replace('mmdb.gz', 'mmdb'))

@@ -5,7 +5,6 @@ import os
 import requests
 
 from time import sleep
-from app.lib.file import check_dir
 
 
 LOGGING_LEVEL = os.environ.get(
@@ -128,7 +127,7 @@ def main():
         datefmt='%d/%b/%Y %H:%M:%S'
     )
 
-    check_dir(params.output)
+    try:
 
     data = get_robots(params.url)
 

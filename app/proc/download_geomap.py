@@ -14,10 +14,9 @@ LOGGING_LEVEL = os.environ.get(
     'INFO'
 )
 
-OUTPUT_FILENAME = os.environ.get(
-    'GEOIP_OUTPUT_FILENAME',
-    'data/map.mmdb.gz'
-)
+
+class FileMMDBWasNotDownloadError(Exception):
+    ...
 
 
 def _download(url, output, chunk_size=128):
@@ -63,10 +62,9 @@ def main():
     )
 
     parser.add_argument(
-        '-o',
-        '--output',
-        default=OUTPUT_FILENAME,
-        help='Arquivo do mapa de geolocalizações'
+        '--path_output',
+        required=True,
+        help='Caminho do arquivo de mapa de geolocalizações'
     )
 
     params = parser.parse_args()

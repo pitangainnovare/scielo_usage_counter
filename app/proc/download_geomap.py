@@ -4,10 +4,7 @@ import logging
 import requests
 import os
 
-from app.lib.file import (
-    check_dir,
-    extract_gzip,
-)
+from app.lib.file import extract_gzip
 
 
 DEFAULT_URL = 'https://download.db-ip.com/free/dbip-city-lite-{0}-{1}.mmdb.gz'
@@ -80,7 +77,6 @@ def main():
         datefmt='%d/%b/%Y %H:%M:%S'
     )
 
-    check_dir(params.output)
     output = ''
 
     if params.url:

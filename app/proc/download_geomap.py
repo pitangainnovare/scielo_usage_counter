@@ -19,26 +19,29 @@ class FileMMDBWasNotDownloadError(Exception):
     ...
 
 
-def _download(url, output, chunk_size=128):
+def download_mmdb(url, path_output, chunk_size=128):
     r = requests.get(url, stream=True)
-    with open(output, 'wb') as fd:
+
+    try:
+        r.raise_for_status()
+    except requests.exceptions.HTTPError:
+        raise FileMMDBWasNotDownloadError('Arquivo de geolocalizações não foi coletado')
+
+    with open(path_output,'wb') as fd:
         for chunk in r.iter_content(chunk_size=chunk_size):
             fd.write(chunk)
-    return output
+
+    return True
 
 
-def download_mmdb_from_date(year, month, output):
+def _generate_mmdb_url_from_date(default_mmdb_route, year, month):
     if year == '' or month == '':
         today = datetime.date.today()
 
         year = today.year
         month = today.month
 
-    return _download(DEFAULT_URL.format(year, month), output)
-
-
-def download_mmdb_from_url(url, output):
-    return _download(url, output)
+    return default_mmdb_route.format(year, month)
 
 
 def main():

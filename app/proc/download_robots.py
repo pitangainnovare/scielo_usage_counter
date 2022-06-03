@@ -69,20 +69,23 @@ def get_robots(url):
                 },
             ]
     """
-    logging.info('Coletando dados...')
-    try:
-        for t in range(MAX_RETRIES):
-            logging.debug(f'Tentativa {t + 1}')
-            response = requests.get(url)
+    for t in range(1, MAX_RETRIES + 1):
+        response = requests.get(url)
 
-            if response.status_code != 200:
-                logging.warning('Não foi possível obter a lista de robôs')
-            else:
-                return response.json()
-
-            sleep(30)
-    except Exception as e:
-        logging.error(e)
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            logging.warning(
+                'Não foi possível coletar dados de %s. Aguardando %d segundos para tentativa %d de %d' % (
+                    url, 
+                    SLEEP_TIME, 
+                    t, 
+                    MAX_RETRIES
+                )
+            )
+            sleep(SLEEP_TIME)
+        else:
+            return response.json()
 
 
 def save(data, output):

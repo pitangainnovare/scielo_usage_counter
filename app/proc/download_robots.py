@@ -17,11 +17,6 @@ MAX_RETRIES = int(os.environ.get(
     5
 ))
 
-OUTPUT_FILENAME = os.environ.get(
-    'COUNTER_ROBOTS_OUTPUT_FILENAME',
-    'data/counter-robots.txt'
-)
-
 COUNTER_ROBOTS_URL = os.environ.get(
     'COUNTER_ROBOTS_URL',
     'https://raw.githubusercontent.com/atmire/COUNTER-Robots/master/COUNTER_Robots_list.json'
@@ -113,9 +108,8 @@ def main():
     )
 
     parser.add_argument(
-        '-o',
-        '--output',
-        default=OUTPUT_FILENAME,
+        '--path_output',
+        required=True,
         help='Arquivo de saída',
     )
 

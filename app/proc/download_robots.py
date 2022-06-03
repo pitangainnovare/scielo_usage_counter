@@ -104,7 +104,6 @@ def save(data, output):
         with open(output, 'w') as fout:
             robots_patterns = _extract_patterns(data)
             fout.writelines(robots_patterns)
-            logging.info('Lista de robôs obtida com sucesso: %s' % output)
     except Exception as e:
         logging.error(e)
 
@@ -134,7 +133,10 @@ def main():
     )
 
     try:
+        data = get_robots(params.url)
+    except FileRobotsWasNotDownloadError:
+        logging.error('Não foi possível obter a lista de robôs de %s' % params.url)
+        exit(1)
 
-    data = get_robots(params.url)
-
-    save(data, params.output)
+    logging.info('Gravando lista de robôs em %s' % params.path_output)
+    save(data, params.path_output)

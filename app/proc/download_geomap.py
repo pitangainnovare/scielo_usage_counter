@@ -78,16 +78,18 @@ def main():
         datefmt='%d/%b/%Y %H:%M:%S'
     )
 
-    output = ''
-
     if params.url:
-        logging.info('Coletando dados...')
-        output = download_mmdb_from_url(params.url, params.output)
+        mmdb_url = params.url
 
     elif params.year and params.month:
-        logging.info('Coletando dados a partir de data e ano: (%s, %s)' % (params.year, params.month))
-        output = download_mmdb_from_date(params.year, params.month, params.output)
+        mmdb_url = _generate_mmdb_url_from_date(MMDB_DEFAULT_URL_FORMAT, params.year, params.month)
 
-    if output:
-        logging.info('Extraindo dados...')
-        extract_gzip(output)
+    try:
+        logging.info('Coletando arquivo MMDB de %s' % mmdb_url)
+        download_mmdb(mmdb_url, params.path_output)
+    except FileMMDBWasNotDownloadError:
+        logging.warning('Arquivo MMDB não está disponível em %s' % mmdb_url)
+        exit(1)
+
+    logging.info('Extraindo dados de %s' % params.path_output)
+    extract_gzip(params.path_output, params.path_output.replace('mmdb.gz', 'mmdb'))

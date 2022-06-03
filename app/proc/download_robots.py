@@ -22,6 +22,15 @@ COUNTER_ROBOTS_URL = os.environ.get(
     'https://raw.githubusercontent.com/atmire/COUNTER-Robots/master/COUNTER_Robots_list.json'
 )
 
+SLEEP_TIME = int(os.environ.get(
+    'COUNTER_ROBOTS_URL_SLEEP_TIME',
+    30
+))
+
+
+class FileRobotsWasNotDownloadError(Exception):
+    ...
+
 
 def _extract_patterns(robots_json):
     for i in robots_json:

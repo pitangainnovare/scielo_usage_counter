@@ -7,6 +7,7 @@ import urllib.parse
 from app.values import (
     EXTENSIONS_DOWNLOAD,
     PATTERN_NCSA_EXTENDED_LOG_FORMAT,
+    PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN,
     EXTENSIONS_STATIC,
 )
 from app.lib.file import open_logfile
@@ -434,6 +435,10 @@ class LogParser:
             decoded_line = line.decode('utf-8', errors='ignore').strip() if isinstance(line, bytes) else line.strip()
 
         match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT, decoded_line)
+
+        if not match:
+            match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN, decoded_line)
+        
         if match:
             hit = Hit()
 

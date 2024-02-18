@@ -9,6 +9,11 @@ PATTERN_NCSA_EXTENDED_LOG_FORMAT = (
     PATTERN_COMMON_LOG_FORMAT + r'\s+"(?P<referrer>.*?)"\s+"(?P<user_agent>.*?)"'
 )
 
+# Pattern designed to capture rows that begin with the domain name
+PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN = (
+    r'(?P<domain>.*?)\s' + PATTERN_COMMON_LOG_FORMAT + r'\s+"(?P<referrer>.*?)"\s+"(?P<user_agent>.*?)"'
+)
+
 # https://github.com/matomo-org/matomo-log-analytics/blob/4.x-dev/import_logs.py
 EXTENSIONS_STATIC = set([
     'gif',

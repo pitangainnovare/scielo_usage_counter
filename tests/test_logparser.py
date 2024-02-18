@@ -296,6 +296,18 @@ class TestLogParser(unittest.TestCase):
             '/scielo.php?script=sci_arttext&pid=S0102-69092018000300512'
         ])
 
+    def test_parse_line_valid_with_domain(self):
+        line = 'scielo.isciii.es 117.64.147.191 - - [12/Feb/2024:04:23:09 +0100] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 18575 "-" "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3432.118 Safari/537.36" 90571 364 18950'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [
+            '2024-02-12 03:23:09',
+            'CH',
+            '65.0.3432.118',
+            '117.64.147.191',
+            '30.6007\t117.925',
+            '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
+        ])
+
     def test_parse_line_invalid(self):
         line = '67.205.129.249 - - [21/May/2021:05:05:16 -0300] "GET /scielo.php?download&pid=S0102-86502014000700465&format=EndNote HTTP/1.1" 200 491 "http://www.scielo.br/scielo.php?script=sci_isoref&pid=S0102-86502014000700465&lng=en" "LOCKSS cache"'
         obtained = self.lp.parse_line(line)

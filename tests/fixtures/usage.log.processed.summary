@@ -1,2 +1,2 @@
 ignored_lines_static_resources	ignored_lines_bot	ignored_lines_invalid_method	ignored_lines_invalid_user_agent	ignored_lines_invalid_client_name	ignored_lines_invalid_client_version	ignored_lines_invalid_geolocation	ignored_lines_invalid_local_datetime	ignored_lines_http_redirects	ignored_lines_http_errors	total_ignored_lines	total_imported_lines	lines_parsed	total_time
-185	3	2	0	0	0	2	1	4	3	187	13	200	0.1689445972442627
+185	3	2	0	0	0	2	1	4	3	187	13	200	0.12427258491516113

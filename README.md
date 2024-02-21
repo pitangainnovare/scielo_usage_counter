@@ -11,6 +11,9 @@ virtualenv -p python3 .venv
 # Access the virtual environment
 source .venv/bin/activated
 
+# Please ensure that the MySQL developer library is installed on your system. For Ubuntu-based distributions, you can install it using the following command
+sudo apt install libmysql++-dev
+
 # Install dependencies
 pip install -r requirements.txt
 

@@ -238,6 +238,52 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.total_imported_lines, 13)
         self.assertEqual(lp.stats.total_ignored_lines, 187)
 
+    def test_parse_success_cub(self):
+        lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
+        lp.logfile = 'tests/fixtures/usage.cub.log'
+        lp.output = 'tests/fixtures/usage.cub.log.processed'
+        lp.stats.output = 'tests/fixtures/usage.cub.log.processed.summary'
+
+        data = lp.parse()
+        lp.save(data)
+
+        self.assertEqual(lp.stats.ignored_lines_bot, 16)
+        self.assertEqual(lp.stats.ignored_lines_invalid_method, 0)
+        self.assertEqual(lp.stats.ignored_lines_http_errors, 0)
+        self.assertEqual(lp.stats.ignored_lines_http_redirects, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_geolocation, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_local_datetime, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
+        self.assertEqual(lp.stats.ignored_lines_static_resources, 36)
+        self.assertEqual(lp.stats.lines_parsed, 48)
+        self.assertEqual(lp.stats.total_imported_lines, 2)
+        self.assertEqual(lp.stats.total_ignored_lines, 46)
+
+    def test_parse_success_esp(self):
+        lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
+        lp.logfile = 'tests/fixtures/usage.esp.log'
+        lp.output = 'tests/fixtures/usage.esp.log.processed'
+        lp.stats.output = 'tests/fixtures/usage.esp.log.processed.summary'
+
+        data = lp.parse()
+        lp.save(data)
+
+        self.assertEqual(lp.stats.ignored_lines_bot, 1)
+        self.assertEqual(lp.stats.ignored_lines_invalid_method, 0)
+        self.assertEqual(lp.stats.ignored_lines_http_errors, 0)
+        self.assertEqual(lp.stats.ignored_lines_http_redirects, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_geolocation, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_local_datetime, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
+        self.assertEqual(lp.stats.ignored_lines_static_resources, 46)
+        self.assertEqual(lp.stats.lines_parsed, 64)
+        self.assertEqual(lp.stats.total_imported_lines, 17)
+        self.assertEqual(lp.stats.total_ignored_lines, 47)
+
     def test_parse_line_valid(self):
         line = '89.155.0.1 - - [21/May/2021:11:30:37 -0300] "GET /scielo.php?script=sci_arttext&pid=S0102-69092018000300512 HTTP/1.1" 200 44995 "https://www.google.com/" "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/137.2.345735309 Mobile/15E148 Safari/604.1"'
         obtained = self.lp.parse_line(line)
@@ -248,6 +294,18 @@ class TestLogParser(unittest.TestCase):
             '89.155.0.1',
             '38.7599\t-9.15765',
             '/scielo.php?script=sci_arttext&pid=S0102-69092018000300512'
+        ])
+
+    def test_parse_line_valid_with_domain(self):
+        line = 'scielo.isciii.es 117.64.147.191 - - [12/Feb/2024:04:23:09 +0100] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 18575 "-" "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3432.118 Safari/537.36" 90571 364 18950'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [
+            '2024-02-12 03:23:09',
+            'CH',
+            '65.0.3432.118',
+            '117.64.147.191',
+            '30.6007\t117.925',
+            '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
         ])
 
     def test_parse_line_invalid(self):

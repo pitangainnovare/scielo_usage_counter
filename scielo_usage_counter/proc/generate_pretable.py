@@ -5,8 +5,9 @@ import os
 import shlex
 import subprocess
 
-from app import values
-from app.lib import db, file, exceptions
+from scielo_usage_counter import exceptions, values
+from scielo_usage_counter.database import db
+from scielo_usage_counter.utils import file_utils
 
 
 LOGGING_LEVEL = os.environ.get(
@@ -114,7 +115,7 @@ def generate_pretables(
                 ymd = row.get('serverTime').split(' ')[0]
 
                 # gera nome de arquivo relacionado a ymd
-                ymd_output_path = file.generate_filepath_with_filename(
+                ymd_output_path = file_utils.generate_filepath_with_filename(
                     directory=output_directory,
                     filename=ymd,
                     posfix=UNSORTED_POSFIX,
@@ -124,7 +125,7 @@ def generate_pretables(
                 # verifica se arquivo já existe
                 if not os.path.exists(ymd_output_path):
                     logging.info('Criado arquivo %s' % ymd_output_path)
-                    file.create_file_with_header(ymd_output_path, header)
+                    file_utils.create_file_with_header(ymd_output_path, header)
 
                 # abre arquivo em modo append, caso ainda não esteja aberto. adiciona em dicionário uma referência ao arquivo
                 if ymd not in output_files:
@@ -156,7 +157,7 @@ def generate_pretables_db(
     non_pretable_dates = db.get_non_pretable_dates(str_connection, collection)
     processed_files = []
     for npt in non_pretable_dates:
-        processed_files.extend(file.get_processed_files(npt, processed_logs_directory))
+        processed_files.extend(file_utils.get_processed_files(npt, processed_logs_directory))
 
     output_files = {}
     for pf in set(sorted(processed_files)):
@@ -177,15 +178,15 @@ def sort_pretables(
     ):
     unsorted_pretables = db.get_unsorted_pretables(str_connection, collection)
     for upt_date in unsorted_pretables:
-        unsorted_pt_path = file.translate_date_to_output_path(
+        unsorted_pt_path = file_utils.translate_date_to_output_path(
             date=upt_date, 
             output_directory=unsorted_pretables_directory, 
             posfix=UNSORTED_POSFIX,
         )
-        if not file.is_valid_path(unsorted_pt_path):
+        if not file_utils.is_valid_path(unsorted_pt_path):
             raise exceptions.InvalidFilePath('%s não é um caminho válido' % unsorted_pt_path)
 
-        sorted_pt_path = file.translate_date_to_output_path(
+        sorted_pt_path = file_utils.translate_date_to_output_path(
             date=upt_date,
             output_directory=output_directory,
         )
@@ -261,7 +262,7 @@ def main():
         datefmt='%d/%b/%Y %H:%M:%S',
     )
 
-    file.check_dir(args.output_directory, force_tail=True)
+    file_utils.check_dir(args.output_directory, force_tail=True)
 
     if getattr(args, 'parsed_file', None):
         logging.info('Inicializado em modo de arquivo')

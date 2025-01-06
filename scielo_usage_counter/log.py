@@ -26,6 +26,8 @@ class Stats:
         self.__total_imported_lines = 0
         self.__lines_parsed = 0
         self.__total_time = 0.0
+        self.__output = None
+
 
     @property
     def ignored_lines_static_resources(self):
@@ -198,10 +200,20 @@ class Stats:
             logging(sep.join(i))
 
     def save(self, sep='\t'):
+        if self.output is None:
+            logging.error('You should define an output path before trying to save.\n\tTip: lp.output = <YOUR PATH GOES HERE>\n\t     lp.stats.output = <YOUR SUMMARY PATH GOES HERE>')
+            return
+
         stats_kv = self.get_stats()
-        for i in stats_kv:
-            self.output.write(sep.join([str(x) for x in i]) + '\n')
-        self.output.close()
+
+        try:
+            for i in stats_kv:
+                self.output.write(sep.join([str(x) for x in i]) + '\n')
+        except Exception as e:
+            logging.error(f"Failed to write stats to file: {e}")
+        finally:
+            if self.output:
+                self.output.close()
 
 
 class Hit:
@@ -301,6 +313,7 @@ class LogParser:
             robots_path=robots_path,
         )
         self.__stats = Stats()
+        self.__output = None
 
     @property
     def output(self):

@@ -292,7 +292,7 @@ class TestLogParser(unittest.TestCase):
         obtained = self.lp.parse_line(line)
         self.assertListEqual(obtained, [
             '2021-05-21 14:30:37',
-            'UNK',
+            'Google Search App',
             '137.2.345735309',
             '89.155.0.1',
             '38.7599\t-9.15765',
@@ -331,7 +331,7 @@ class TestLogParser(unittest.TestCase):
 
             self.assertSetEqual(
                 obtained_clients_names,
-                {'CM', 'CH', 'SF', 'UNK'}
+                {'CM', 'CH', 'SF', '"LOCKSS cache"', 'UNK', 'THEN 1 ELSE', 'Google Search App'}
             )
 
             self.assertSetEqual(

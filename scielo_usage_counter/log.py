@@ -435,7 +435,7 @@ class LogParser:
         return fmt_ua
 
     def format_client_name(self, device):
-        return device.client_short_name() or device.UNKNOWN
+        return device.client_short_name() or device.client_name() or device.UNKNOWN
 
     def format_client_version(self, device):
         return device.client_version() or device.UNKNOWN

@@ -4,17 +4,10 @@ import logging
 import time
 import urllib.parse
 
-from app.values import (
-    EXTENSIONS_DOWNLOAD,
-    PATTERN_NCSA_EXTENDED_LOG_FORMAT,
-    PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN,
-    EXTENSIONS_STATIC,
-)
-from app.lib.file import open_logfile
-from app.lib.geo import GeoIp
-from app.lib.robot import robot_reader
-from app.lib.exceptions import DeviceDetectionError
 from device_detector import DeviceDetector
+
+from . import exceptions, geo, values
+from .utils import file_utils, resource_utils
 
 
 class Stats:
@@ -297,10 +290,16 @@ class Hit:
 
 
 class LogParser:
-    def __init__(self, mmdb_path, robots_path):
-        self.__geoip = GeoIp()
-        self.__geoip.map = mmdb_path
-        self.__robots = robot_reader(robots_path)
+    def __init__(self, mmdb_path=None, robots_path=None, mmdb_data=None, robots_list=None):
+        self.__geoip = geo.GeoIp()
+        self.__geoip.map = resource_utils.load_mmdb(
+            mmdb_data=mmdb_data,
+            mmdb_path=mmdb_path,
+        )
+        self.__robots = resource_utils.load_robots(
+            robots_list=robots_list, 
+            robots_path=robots_path,
+        )
         self.__stats = Stats()
 
     @property
@@ -317,7 +316,7 @@ class LogParser:
 
     @logfile.setter
     def logfile(self, file_path):
-        self.__logfile = open_logfile(file_path)
+        self.__logfile = file_utils.open_logfile(file_path)
 
     @property
     def geoip(self):
@@ -328,8 +327,11 @@ class LogParser:
         return self.__robots
 
     @robots.setter
-    def robots(self, robots_path):
-        self.__robots = robot_reader(robots_path)
+    def robots(self, robots_list, robots_path):
+        self.__robots = resource_utils.load_robots(
+            robots_list=robots_list,
+            robots_path=robots_path,
+        )
 
     @property
     def stats(self):
@@ -380,7 +382,7 @@ class LogParser:
 
         ext = file_from_url.rsplit('.')[-1].lower()
 
-        if ext in EXTENSIONS_STATIC or file_from_url in EXTENSIONS_STATIC:
+        if ext in values.EXTENSIONS_STATIC or file_from_url in values.EXTENSIONS_STATIC:
             return True
 
         return False
@@ -389,7 +391,7 @@ class LogParser:
         file_from_url = path.split('/')[-1]
         ext = file_from_url.rsplit('.')[-1].lower()
 
-        if ext in EXTENSIONS_DOWNLOAD:
+        if ext in values.EXTENSIONS_DOWNLOAD:
             return True
         return False
 
@@ -434,10 +436,10 @@ class LogParser:
         except UnicodeDecodeError:
             decoded_line = line.decode('utf-8', errors='ignore').strip() if isinstance(line, bytes) else line.strip()
 
-        match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT, decoded_line)
+        match = re.match(values.PATTERN_NCSA_EXTENDED_LOG_FORMAT, decoded_line)
 
         if not match:
-            match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN, decoded_line)
+            match = re.match(values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN, decoded_line)
         
         if match:
             hit = Hit()
@@ -468,7 +470,7 @@ class LogParser:
             except ZeroDivisionError:
                 device = DeviceDetector('').parse()
                 self.stats.increment('ignored_lines_invalid_user_agent')
-                logging.error(DeviceDetectionError(f'Não foi possível identificar UserAgent {hit.user_agent} from line {decoded_line}'))
+                logging.error(exceptions.DeviceDetectionError(f'Não foi possível identificar UserAgent {hit.user_agent} from line {decoded_line}'))
                 hit.is_valid = False
 
             hit.client_name = self.format_client_name(device)

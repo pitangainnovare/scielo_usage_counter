@@ -149,7 +149,8 @@ class Stats:
     def output(self, path):
         try:
             self.__output = open(path, 'w')
-        except:
+        except Exception as e:
+            logging.error(f"Failed to open file: {e}")
             logging.info(self.dump_to_str())
 
     def increment(self, measure):

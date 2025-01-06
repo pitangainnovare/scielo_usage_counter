@@ -3,16 +3,16 @@ import datetime
 
 from device_detector import DeviceDetector
 
-from app.lib.logparser import (
-    LogParser,
-    Stats,
-)
+from scielo_usage_counter import log
 
 
 class TestLogParser(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
+        self.lp = log.LogParser(
+            mmdb_path='tests/fixtures/map.mmdb',
+            robots_path='tests/fixtures/counter-robots.txt'
+        )
 
     def test_action_is_static_file_true(self):
         static_urls = [
@@ -216,7 +216,10 @@ class TestLogParser(unittest.TestCase):
             self.assertFalse(obtained)
 
     def test_parse_success(self):
-        lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
+        lp = log.LogParser(
+            mmdb_path='tests/fixtures/map.mmdb',
+            robots_path='tests/fixtures/counter-robots.txt'
+        )
         lp.logfile = 'tests/fixtures/usage.log'
         lp.output = 'tests/fixtures/usage.log.processed'
         lp.stats.output = 'tests/fixtures/usage.log.processed.summary'
@@ -239,7 +242,7 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.total_ignored_lines, 187)
 
     def test_parse_success_cub(self):
-        lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
+        lp = log.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
         lp.logfile = 'tests/fixtures/usage.cub.log'
         lp.output = 'tests/fixtures/usage.cub.log.processed'
         lp.stats.output = 'tests/fixtures/usage.cub.log.processed.summary'
@@ -262,7 +265,7 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.total_ignored_lines, 46)
 
     def test_parse_success_esp(self):
-        lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
+        lp = log.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
         lp.logfile = 'tests/fixtures/usage.esp.log'
         lp.output = 'tests/fixtures/usage.esp.log.processed'
         lp.stats.output = 'tests/fixtures/usage.esp.log.processed.summary'
@@ -340,7 +343,7 @@ class TestLogParser(unittest.TestCase):
 class TestStats(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.stats = Stats()
+        self.stats = log.Stats()
 
     def test_increment(self):
         for attr, v in [

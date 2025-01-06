@@ -1,11 +1,12 @@
-
-import app.declararive as models
-import app.values as values
-import datetime
-
 from sqlalchemy import and_, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+
+import datetime
+
+from scielo_usage_counter import values
+
+import scielo_usage_counter.database.declararive as models
 
 
 def create_tables(str_connection):

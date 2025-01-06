@@ -377,9 +377,8 @@ class LogParser:
         return False
 
     def user_agent_is_bot(self, user_agent):
-        user_agent_lowered = user_agent.lower()
         for regex in self.robots:
-            if regex.search(user_agent_lowered):
+            if regex.search(user_agent):
                 return True
         return False
 

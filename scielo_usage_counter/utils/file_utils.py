@@ -73,7 +73,7 @@ def create_file_with_header(path, header=[], delimiter='\t'):
 
 def _filename_contains_dates(filename, dates):
     for d in dates:
-        if d in filename:
+        if d in filename or d.replace('-', '') in filename:
             return True
     return False
 

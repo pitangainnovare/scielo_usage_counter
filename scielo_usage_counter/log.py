@@ -472,6 +472,21 @@ class LogParser:
                             return match, i.strip()
         
         return match, ip_value
+
+
+    def get_ip_type(self, ip):
+        try:
+            ipa = ipaddress.ip_address(ip)
+        except ValueError:
+            return 'unknown'
+
+        if ipa.is_global:
+            return 'remote'
+        elif ipa.is_private or ipa.is_loopback or ipa.is_link_local:
+            return 'local'
+
+        return 'unknown'
+
     def parse_line(self, line):
         self.stats.increment('lines_parsed')
 

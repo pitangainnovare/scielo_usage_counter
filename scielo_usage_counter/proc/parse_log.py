@@ -45,7 +45,7 @@ def parse_file(logfile: str, output_directory: str, mmdb: str, robots: str):
     if validation_results.get('is_valid', {}).get('all', False):
         output_filepath = file_utils.generate_filepath(output_directory, logfile)
 
-        lp = log.LogParser(mmdb, robots)
+        lp = log.LogParser(mmdb_path=mmdb, robots_path=robots)
         lp.logfile = logfile
         lp.output = output_filepath
         lp.stats.output = output_filepath + '.summary'

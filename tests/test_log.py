@@ -7,8 +7,10 @@ from scielo_usage_counter import log
 
 
 class TestLogParser(unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
+        self.maxDiff = None
         self.lp = log.LogParser(
             mmdb_path='tests/fixtures/map.mmdb',
             robots_path='tests/fixtures/counter-robots.txt'

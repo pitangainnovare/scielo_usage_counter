@@ -481,11 +481,8 @@ class LogParser:
         except UnicodeDecodeError:
             decoded_line = line.decode('utf-8', errors='ignore').strip() if isinstance(line, bytes) else line.strip()
 
-        match = re.match(values.PATTERN_NCSA_EXTENDED_LOG_FORMAT, decoded_line)
+        match, ip_value = self.match_with_best_pattern(decoded_line)
 
-        if not match:
-            match = re.match(values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN, decoded_line)
-        
         if match:
             hit = Hit()
 
@@ -533,7 +530,7 @@ class LogParser:
                 self.stats.increment('ignored_lines_static_resources')
                 hit.is_valid = False
 
-            hit.ip = data.get('ip')
+            hit.ip = ip_value
             geocity = self.geoip.ip_to_geolocation(hit.ip)
             if not geocity:
                 self.stats.increment('ignored_lines_invalid_geolocation')

@@ -441,6 +441,37 @@ class LogParser:
     def format_client_version(self, device):
         return device.client_version() or device.UNKNOWN
 
+    def match_with_best_pattern(self, line):
+        patterns = [
+            values.PATTERN_NCSA_EXTENDED_LOG_FORMAT,
+            values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN,
+            values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_WITH_IP_LIST,
+            values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN_WITH_IP_LIST,
+        ]
+
+        match = None
+        ip_type = 'unknown'
+        ip_value = ''
+
+        for pattern in patterns:
+            match = re.match(pattern, line)
+
+            if match:
+                content = match.groupdict()
+                
+                ip_value = content.get('ip')
+                ip_type = self.get_ip_type(ip_value)
+
+                if ip_type != 'unknown':
+                    return match, ip_value
+
+                else:
+                    for i in content.get('ip_list', '').split(','):
+                        ip_type = self.get_ip_type(i.strip())
+                        if ip_type != 'unknown':
+                            return match, i.strip()
+        
+        return match, ip_value
     def parse_line(self, line):
         self.stats.increment('lines_parsed')
 

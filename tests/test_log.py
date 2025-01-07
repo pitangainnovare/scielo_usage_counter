@@ -313,6 +313,35 @@ class TestLogParser(unittest.TestCase):
             '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
         ])
 
+    def test_parse_line_with_three_ip_addresses(self):
+        line = '45.65.189.47 45.65.189.47, 198.41.230.129 - [06/Oct/2024:00:00:16 -0300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [
+            '2024-10-06 03:00:16',
+            'SF',
+            '17.5',
+            '45.65.189.47',
+            '9.95271\t-84.1648',
+            '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
+        ])
+
+    def test_parse_line_with_one_middle_ip_address(self):
+        line = '- 45.65.189.47 - [06/Oct/2024:00:00:16 -0300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [
+            '2024-10-06 03:00:16',
+            'SF',
+            '17.5',
+            '45.65.189.47',
+            '9.95271\t-84.1648',
+            '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
+        ])
+
+    def test_parse_line_without_ip_addresses(self):
+        line = '- - - [06/Oct/2024:00:00:16 -0300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [])
+
     def test_parse_line_invalid(self):
         line = '67.205.129.249 - - [21/May/2021:05:05:16 -0300] "GET /scielo.php?download&pid=S0102-86502014000700465&format=EndNote HTTP/1.1" 200 491 "http://www.scielo.br/scielo.php?script=sci_isoref&pid=S0102-86502014000700465&lng=en" "LOCKSS cache"'
         obtained = self.lp.parse_line(line)

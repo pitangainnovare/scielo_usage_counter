@@ -3,7 +3,7 @@ import argparse
 import logging
 import os
 
-from app.controller import create_tables
+from scielo_usage_counter.database.controller import create_tables
 
 
 LOGGING_LEVEL = os.environ.get(

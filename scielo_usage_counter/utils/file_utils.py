@@ -5,9 +5,7 @@ import os
 import gzip
 import shutil
 
-from app.lib.exceptions import (
-    InvalidLogFileMimeError,
-)
+from scielo_usage_counter import exceptions, values
 
 
 def check_dir(output, force_tail=False):
@@ -52,7 +50,7 @@ def open_logfile(file_path):
     elif file_mime in ('application/text', 'text/plain'):
         return open(file_path, 'r')
     else:
-        raise InvalidLogFileMimeError(f'Arquivo de log inválido: {file_path}')
+        raise exceptions.InvalidLogFileMimeError(f'Arquivo de log inválido: {file_path}')
 
 
 def generate_filepath(output_directory, input_filepath, extension='tsv'):
@@ -75,7 +73,7 @@ def create_file_with_header(path, header=[], delimiter='\t'):
 
 def _filename_contains_dates(filename, dates):
     for d in dates:
-        if d in filename:
+        if d in filename or d.replace('-', '') in filename:
             return True
     return False
 
@@ -104,3 +102,10 @@ def translate_date_to_output_path(date, output_directory, posfix='', extension='
 
 def is_valid_path(path):
     return os.path.exists(path)
+
+
+def translate_path(path):
+    for p in values.LOG_PATH_TRANSLATOR.keys():
+        if path.startswith(p):
+            return path.replace(p, values.LOG_PATH_TRANSLATOR[p])    
+    return path

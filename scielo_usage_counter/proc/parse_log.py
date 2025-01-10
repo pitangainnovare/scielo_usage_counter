@@ -4,8 +4,9 @@ import logging
 import os
 
 from scielo_log_validator import validator
-from app import utils, values
-from app.lib import db, file, logparser
+from scielo_usage_counter import log, values
+from scielo_usage_counter.utils import file_utils
+from scielo_usage_counter.database import db 
 
 
 STR_CONNECTION = os.environ.get(
@@ -36,13 +37,15 @@ OUTPUT_DIRECTORY = os.environ.get(
 
 def parse_file(logfile: str, output_directory: str, mmdb: str, robots: str):
     logging.info(f'Validação iniciada para arquivo {logfile}')
-    validations = [validator._validate_path, validator._validate_content]
-    validation_results = validator.validate(logfile, validations, sample_size=0.05)
+    validation_results = validator.pipeline_validate(
+        path=logfile, 
+        sample_size=0.05
+    )
 
     if validation_results.get('is_valid', {}).get('all', False):
-        output_filepath = file.generate_filepath(output_directory, logfile)
+        output_filepath = file_utils.generate_filepath(output_directory, logfile)
 
-        lp = logparser.LogParser(mmdb, robots)
+        lp = log.LogParser(mmdb_path=mmdb, robots_path=robots)
         lp.logfile = logfile
         lp.output = output_filepath
         lp.stats.output = output_filepath + '.summary'
@@ -62,7 +65,7 @@ def parse_files_db(str_connection: str, collection: str, output_directory: str, 
     non_parsed_logs = db.get_non_parsed_logs(str_connection, collection)
 
     for lf in non_parsed_logs:
-        lf_path = utils.translate_path(lf.full_path)
+        lf_path = file_utils.translate_path(lf.full_path)
         lf_status = parse_file(lf_path, output_directory, mmdb, robots)
         db.set_logfile_status(str_connection, lf.id, lf_status)
 

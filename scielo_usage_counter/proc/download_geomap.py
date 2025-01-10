@@ -4,7 +4,7 @@ import logging
 import requests
 import os
 
-from app.lib.file import extract_gzip
+from scielo_usage_counter.utils import file_utils
 
 
 MMDB_DEFAULT_URL_FORMAT = 'https://download.db-ip.com/free/dbip-city-lite-{0}-{1}.mmdb.gz'
@@ -92,4 +92,4 @@ def main():
         exit(1)
 
     logging.info('Extraindo dados de %s' % params.path_output)
-    extract_gzip(params.path_output, params.path_output.replace('mmdb.gz', 'mmdb'))
+    file_utils.extract_gzip(params.path_output, params.path_output.replace('mmdb.gz', 'mmdb'))

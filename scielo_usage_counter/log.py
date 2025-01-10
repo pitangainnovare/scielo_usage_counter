@@ -1,20 +1,14 @@
 import datetime
+import ipaddress
 import re
 import logging
 import time
 import urllib.parse
 
-from app.values import (
-    EXTENSIONS_DOWNLOAD,
-    PATTERN_NCSA_EXTENDED_LOG_FORMAT,
-    PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN,
-    EXTENSIONS_STATIC,
-)
-from app.lib.file import open_logfile
-from app.lib.geo import GeoIp
-from app.lib.robot import robot_reader
-from app.lib.exceptions import DeviceDetectionError
 from device_detector import DeviceDetector
+
+from . import exceptions, geo, values
+from .utils import file_utils, resource_utils
 
 
 class Stats:
@@ -33,6 +27,8 @@ class Stats:
         self.__total_imported_lines = 0
         self.__lines_parsed = 0
         self.__total_time = 0.0
+        self.__output = None
+
 
     @property
     def ignored_lines_static_resources(self):
@@ -154,7 +150,8 @@ class Stats:
     def output(self, path):
         try:
             self.__output = open(path, 'w')
-        except:
+        except Exception as e:
+            logging.error(f"Failed to open file: {e}")
             logging.info(self.dump_to_str())
 
     def increment(self, measure):
@@ -205,10 +202,20 @@ class Stats:
             logging(sep.join(i))
 
     def save(self, sep='\t'):
+        if self.output is None:
+            logging.error('You should define an output path before trying to save.\n\tTip: lp.output = <YOUR PATH GOES HERE>\n\t     lp.stats.output = <YOUR SUMMARY PATH GOES HERE>')
+            return
+
         stats_kv = self.get_stats()
-        for i in stats_kv:
-            self.output.write(sep.join([str(x) for x in i]) + '\n')
-        self.output.close()
+
+        try:
+            for i in stats_kv:
+                self.output.write(sep.join([str(x) for x in i]) + '\n')
+        except Exception as e:
+            logging.error(f"Failed to write stats to file: {e}")
+        finally:
+            if self.output:
+                self.output.close()
 
 
 class Hit:
@@ -297,11 +304,18 @@ class Hit:
 
 
 class LogParser:
-    def __init__(self, mmdb_path, robots_path):
-        self.__geoip = GeoIp()
-        self.__geoip.map = mmdb_path
-        self.__robots = robot_reader(robots_path)
+    def __init__(self, mmdb_path=None, robots_path=None, mmdb_data=None, robots_list=None):
+        self.__geoip = geo.GeoIp()
+        self.__geoip.map = resource_utils.load_mmdb(
+            mmdb_data=mmdb_data,
+            mmdb_path=mmdb_path,
+        )
+        self.__robots = resource_utils.load_robots(
+            robots_list=robots_list, 
+            robots_path=robots_path,
+        )
         self.__stats = Stats()
+        self.__output = None
 
     @property
     def output(self):
@@ -317,7 +331,7 @@ class LogParser:
 
     @logfile.setter
     def logfile(self, file_path):
-        self.__logfile = open_logfile(file_path)
+        self.__logfile = file_utils.open_logfile(file_path)
 
     @property
     def geoip(self):
@@ -328,8 +342,11 @@ class LogParser:
         return self.__robots
 
     @robots.setter
-    def robots(self, robots_path):
-        self.__robots = robot_reader(robots_path)
+    def robots(self, robots_list, robots_path):
+        self.__robots = resource_utils.load_robots(
+            robots_list=robots_list,
+            robots_path=robots_path,
+        )
 
     @property
     def stats(self):
@@ -361,9 +378,8 @@ class LogParser:
         return False
 
     def user_agent_is_bot(self, user_agent):
-        user_agent_lowered = user_agent.lower()
         for regex in self.robots:
-            if regex.search(user_agent_lowered):
+            if regex.search(user_agent):
                 return True
         return False
 
@@ -380,7 +396,7 @@ class LogParser:
 
         ext = file_from_url.rsplit('.')[-1].lower()
 
-        if ext in EXTENSIONS_STATIC or file_from_url in EXTENSIONS_STATIC:
+        if ext in values.EXTENSIONS_STATIC or file_from_url in values.EXTENSIONS_STATIC:
             return True
 
         return False
@@ -389,7 +405,7 @@ class LogParser:
         file_from_url = path.split('/')[-1]
         ext = file_from_url.rsplit('.')[-1].lower()
 
-        if ext in EXTENSIONS_DOWNLOAD:
+        if ext in values.EXTENSIONS_DOWNLOAD:
             return True
         return False
 
@@ -420,10 +436,56 @@ class LogParser:
         return fmt_ua
 
     def format_client_name(self, device):
-        return device.client_short_name() or device.UNKNOWN
+        return device.client_short_name() or device.client_name() or device.UNKNOWN
 
     def format_client_version(self, device):
         return device.client_version() or device.UNKNOWN
+
+    def match_with_best_pattern(self, line):
+        patterns = [
+            values.PATTERN_NCSA_EXTENDED_LOG_FORMAT,
+            values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN,
+            values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_WITH_IP_LIST,
+            values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN_WITH_IP_LIST,
+        ]
+
+        match = None
+        ip_type = 'unknown'
+        ip_value = ''
+
+        for pattern in patterns:
+            match = re.match(pattern, line)
+
+            if match:
+                content = match.groupdict()
+                
+                ip_value = content.get('ip')
+                ip_type = self.get_ip_type(ip_value)
+
+                if ip_type != 'unknown':
+                    return match, ip_value
+
+                else:
+                    for i in content.get('ip_list', '').split(','):
+                        ip_type = self.get_ip_type(i.strip())
+                        if ip_type != 'unknown':
+                            return match, i.strip()
+        
+        return match, ip_value
+
+
+    def get_ip_type(self, ip):
+        try:
+            ipa = ipaddress.ip_address(ip)
+        except ValueError:
+            return 'unknown'
+
+        if ipa.is_global:
+            return 'remote'
+        elif ipa.is_private or ipa.is_loopback or ipa.is_link_local:
+            return 'local'
+
+        return 'unknown'
 
     def parse_line(self, line):
         self.stats.increment('lines_parsed')
@@ -434,11 +496,8 @@ class LogParser:
         except UnicodeDecodeError:
             decoded_line = line.decode('utf-8', errors='ignore').strip() if isinstance(line, bytes) else line.strip()
 
-        match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT, decoded_line)
+        match, ip_value = self.match_with_best_pattern(decoded_line)
 
-        if not match:
-            match = re.match(PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN, decoded_line)
-        
         if match:
             hit = Hit()
 
@@ -468,7 +527,7 @@ class LogParser:
             except ZeroDivisionError:
                 device = DeviceDetector('').parse()
                 self.stats.increment('ignored_lines_invalid_user_agent')
-                logging.error(DeviceDetectionError(f'Não foi possível identificar UserAgent {hit.user_agent} from line {decoded_line}'))
+                logging.error(exceptions.DeviceDetectionError(f'Não foi possível identificar UserAgent {hit.user_agent} from line {decoded_line}'))
                 hit.is_valid = False
 
             hit.client_name = self.format_client_name(device)
@@ -486,7 +545,7 @@ class LogParser:
                 self.stats.increment('ignored_lines_static_resources')
                 hit.is_valid = False
 
-            hit.ip = data.get('ip')
+            hit.ip = ip_value
             geocity = self.geoip.ip_to_geolocation(hit.ip)
             if not geocity:
                 self.stats.increment('ignored_lines_invalid_geolocation')

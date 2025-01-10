@@ -3,16 +3,18 @@ import datetime
 
 from device_detector import DeviceDetector
 
-from app.lib.logparser import (
-    LogParser,
-    Stats,
-)
+from scielo_usage_counter import log
 
 
 class TestLogParser(unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
-        self.lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
+        self.maxDiff = None
+        self.lp = log.LogParser(
+            mmdb_path='tests/fixtures/map.mmdb',
+            robots_path='tests/fixtures/counter-robots.txt'
+        )
 
     def test_action_is_static_file_true(self):
         static_urls = [
@@ -216,7 +218,10 @@ class TestLogParser(unittest.TestCase):
             self.assertFalse(obtained)
 
     def test_parse_success(self):
-        lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
+        lp = log.LogParser(
+            mmdb_path='tests/fixtures/map.mmdb',
+            robots_path='tests/fixtures/counter-robots.txt'
+        )
         lp.logfile = 'tests/fixtures/usage.log'
         lp.output = 'tests/fixtures/usage.log.processed'
         lp.stats.output = 'tests/fixtures/usage.log.processed.summary'
@@ -239,7 +244,7 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.total_ignored_lines, 187)
 
     def test_parse_success_cub(self):
-        lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
+        lp = log.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
         lp.logfile = 'tests/fixtures/usage.cub.log'
         lp.output = 'tests/fixtures/usage.cub.log.processed'
         lp.stats.output = 'tests/fixtures/usage.cub.log.processed.summary'
@@ -262,7 +267,7 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.total_ignored_lines, 46)
 
     def test_parse_success_esp(self):
-        lp = LogParser('tests/fixtures/map.mmdb', 'tests/fixtures/counter-robots.txt')
+        lp = log.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
         lp.logfile = 'tests/fixtures/usage.esp.log'
         lp.output = 'tests/fixtures/usage.esp.log.processed'
         lp.stats.output = 'tests/fixtures/usage.esp.log.processed.summary'
@@ -284,12 +289,35 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.total_imported_lines, 17)
         self.assertEqual(lp.stats.total_ignored_lines, 47)
 
+    def test_parse_success_chl(self):
+        lp = log.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
+        lp.logfile = 'tests/fixtures/usage.cl.log'
+        lp.output = 'tests/fixtures/usage.cl.log.processed'
+        lp.stats.output = 'tests/fixtures/usage.esp.log.processed.summary'
+
+        data = lp.parse()
+        lp.save(data)
+
+        self.assertEqual(lp.stats.ignored_lines_bot, 1)
+        self.assertEqual(lp.stats.ignored_lines_invalid_method, 0)
+        self.assertEqual(lp.stats.ignored_lines_http_errors, 0)
+        self.assertEqual(lp.stats.ignored_lines_http_redirects, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_geolocation, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_local_datetime, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
+        self.assertEqual(lp.stats.ignored_lines_static_resources, 23)
+        self.assertEqual(lp.stats.lines_parsed, 39)
+        self.assertEqual(lp.stats.total_imported_lines, 14)
+        self.assertEqual(lp.stats.total_ignored_lines, 25)
+
     def test_parse_line_valid(self):
         line = '89.155.0.1 - - [21/May/2021:11:30:37 -0300] "GET /scielo.php?script=sci_arttext&pid=S0102-69092018000300512 HTTP/1.1" 200 44995 "https://www.google.com/" "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/137.2.345735309 Mobile/15E148 Safari/604.1"'
         obtained = self.lp.parse_line(line)
         self.assertListEqual(obtained, [
             '2021-05-21 14:30:37',
-            'UNK',
+            'Google Search App',
             '137.2.345735309',
             '89.155.0.1',
             '38.7599\t-9.15765',
@@ -305,6 +333,147 @@ class TestLogParser(unittest.TestCase):
             '65.0.3432.118',
             '117.64.147.191',
             '30.6007\t117.925',
+            '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
+        ])
+
+    def test_parse_line_with_ip_list_comma_addresses(self):
+        line = '45.65.189.47 45.65.189.47, 198.41.230.129 - [06/Oct/2024:00:00:16 -0300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [
+            '2024-10-06 03:00:16',
+            'SF',
+            '17.5',
+            '45.65.189.47',
+            '9.95271\t-84.1648',
+            '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
+        ])
+
+    def test_parse_line_with_ip_list_space_addresses(self):
+        line = '186.130.151.215 186.130.151.215 172.69.138.111 [10/Dec/2024:00:00:12 0300] "GET /scielo.php?pid=S0718-07642017000400014&script=sci_arttext HTTP/1.1" 304 166 "https://www.google.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"'
+        expected = [
+            '2024-12-09 21:00:12',
+            'CH',
+            '131.0.0.0',
+            '186.130.151.215',
+            '-34.6167\t-58.368',
+            '/scielo.php?pid=S0718-07642017000400014&script=sci_arttext'
+        ]
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, expected)
+
+    def test_parse_line_with_ipv6_list_space_addresses(self):
+        line = '2806:108e:21:4720:552:4011:137c:a7fb 2806:108e:21:4720:552:4011:137c:a7fb 162.158.175.126 [10/Dec/2024:00:00:12 0300] "GET /scielo.php?pid=S0718-07642017000400014&script=sci_arttext HTTP/1.1" 200 20073 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"'
+        expected = [
+            '2024-12-09 21:00:12',
+            'CH',
+            '131.0.0.0',
+            '2806:108e:21:4720:552:4011:137c:a7fb',
+            '19.2986\t-99.1837',
+            '/scielo.php?pid=S0718-07642017000400014&script=sci_arttext'
+        ]
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, expected)
+
+    def test_parse_line_with_ip_list_space_addresses_and_date_custom_format(self):
+        line = '186.130.151.215 186.130.151.215 172.69.138.111 [10/Dec/2024:00:00:120300] "GET /scielo.php?pid=S0718-07642017000400014&script=sci_arttext HTTP/1.1" 304 166 "https://www.google.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"'
+        expected = [
+            '2024-12-09 21:00:12',
+            'CH',
+            '131.0.0.0',
+            '186.130.151.215',
+            '-34.6167\t-58.368',
+            '/scielo.php?pid=S0718-07642017000400014&script=sci_arttext'
+        ]
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, expected)
+
+    def test_parse_line_with_ipv6_list_space_addresses_and_date_custom_format(self):
+        line = '2806:108e:21:4720:552:4011:137c:a7fb 2806:108e:21:4720:552:4011:137c:a7fb 162.158.175.126 [10/Dec/2024:00:00:120300] "GET /scielo.php?pid=S0718-07642017000400014&script=sci_arttext HTTP/1.1" 200 20073 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"'
+        expected = [
+            '2024-12-09 21:00:12',
+            'CH',
+            '131.0.0.0',
+            '2806:108e:21:4720:552:4011:137c:a7fb',
+            '19.2986\t-99.1837',
+            '/scielo.php?pid=S0718-07642017000400014&script=sci_arttext'
+        ]
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, expected)    
+
+    def test_parse_line_with_one_middle_ip_address(self):
+        line = '- 45.65.189.47 - [06/Oct/2024:00:00:16 -0300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [
+            '2024-10-06 03:00:16',
+            'SF',
+            '17.5',
+            '45.65.189.47',
+            '9.95271\t-84.1648',
+            '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
+        ])
+
+    def test_parse_line_without_ip_addresses(self):
+        line = '- - - [06/Oct/2024:00:00:16 -0300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [])
+
+    def test_parse_line_custom_timezone_minus(self):
+        line = '45.65.189.47 - - [06/Oct/2024:00:00:16 -0300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [
+            '2024-10-06 03:00:16',
+            'SF',
+            '17.5',
+            '45.65.189.47',
+            '9.95271\t-84.1648',
+            '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
+        ])
+
+    def test_parse_line_custom_timezone_plus(self):
+        line = '45.65.189.47 - - [06/Oct/2024:00:00:16 +0300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [
+            '2024-10-05 21:00:16',
+            'SF',
+            '17.5',
+            '45.65.189.47',
+            '9.95271\t-84.1648',
+            '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
+        ])
+    
+    def test_parse_line_custom_timezone_plus_no_signal(self):
+        line = '45.65.189.47 - - [06/Oct/2024:00:00:16 0300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [
+            '2024-10-05 21:00:16',
+            'SF',
+            '17.5',
+            '45.65.189.47',
+            '9.95271\t-84.1648',
+            '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
+        ])
+
+    def test_parse_line_custom_timezone_plus_no_space(self):
+        line = '45.65.189.47 - - [06/Oct/2024:00:00:160300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [
+            '2024-10-05 21:00:16',
+            'SF',
+            '17.5',
+            '45.65.189.47',
+            '9.95271\t-84.1648',
+            '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
+        ])
+
+    def test_parse_line_custom_timezone_minus_no_space(self):
+        line = '45.65.189.47 - - [06/Oct/2024:00:00:16-0300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(obtained, [
+            '2024-10-06 03:00:16',
+            'SF',
+            '17.5',
+            '45.65.189.47',
+            '9.95271\t-84.1648',
             '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
         ])
 
@@ -328,7 +497,7 @@ class TestLogParser(unittest.TestCase):
 
             self.assertSetEqual(
                 obtained_clients_names,
-                {'CM', 'CH', 'SF', 'UNK'}
+                {'CM', 'CH', 'SF', '"LOCKSS cache"', 'UNK', 'THEN 1 ELSE', 'Google Search App'}
             )
 
             self.assertSetEqual(
@@ -340,7 +509,7 @@ class TestLogParser(unittest.TestCase):
 class TestStats(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.stats = Stats()
+        self.stats = log.Stats()
 
     def test_increment(self):
         for attr, v in [

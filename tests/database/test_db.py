@@ -1,8 +1,7 @@
 import datetime
 import unittest
 
-from app import values
-from app.lib import db
+from scielo_usage_counter.database import db
 
 
 class TestDB(unittest.TestCase):

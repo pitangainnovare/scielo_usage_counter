@@ -235,7 +235,7 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.ignored_lines_http_redirects, 4)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
-        self.assertEqual(lp.stats.ignored_lines_invalid_geolocation, 2)
+        self.assertEqual(lp.stats.ignored_lines_invalid_country_code, 2)
         self.assertEqual(lp.stats.ignored_lines_invalid_local_datetime, 1)
         self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
         self.assertEqual(lp.stats.ignored_lines_static_resources, 185)
@@ -258,7 +258,7 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.ignored_lines_http_redirects, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
-        self.assertEqual(lp.stats.ignored_lines_invalid_geolocation, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_country_code, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_local_datetime, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
         self.assertEqual(lp.stats.ignored_lines_static_resources, 36)
@@ -281,7 +281,7 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.ignored_lines_http_redirects, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
-        self.assertEqual(lp.stats.ignored_lines_invalid_geolocation, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_country_code, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_local_datetime, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
         self.assertEqual(lp.stats.ignored_lines_static_resources, 46)
@@ -304,7 +304,7 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.ignored_lines_http_redirects, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
-        self.assertEqual(lp.stats.ignored_lines_invalid_geolocation, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_country_code, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_local_datetime, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
         self.assertEqual(lp.stats.ignored_lines_static_resources, 23)
@@ -320,7 +320,7 @@ class TestLogParser(unittest.TestCase):
             'Google Search App',
             '137.2.345735309',
             '89.155.0.1',
-            '38.7599\t-9.15765',
+            'PT',
             '/scielo.php?script=sci_arttext&pid=S0102-69092018000300512'
         ])
 
@@ -332,7 +332,7 @@ class TestLogParser(unittest.TestCase):
             'CH',
             '65.0.3432.118',
             '117.64.147.191',
-            '30.6007\t117.925',
+            'CN',
             '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
         ])
 
@@ -344,7 +344,7 @@ class TestLogParser(unittest.TestCase):
             'SF',
             '17.5',
             '45.65.189.47',
-            '9.95271\t-84.1648',
+            'CR',
             '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
         ])
 
@@ -355,7 +355,7 @@ class TestLogParser(unittest.TestCase):
             'CH',
             '131.0.0.0',
             '186.130.151.215',
-            '-34.6167\t-58.368',
+            'AR',
             '/scielo.php?pid=S0718-07642017000400014&script=sci_arttext'
         ]
         obtained = self.lp.parse_line(line)
@@ -368,7 +368,7 @@ class TestLogParser(unittest.TestCase):
             'CH',
             '131.0.0.0',
             '2806:108e:21:4720:552:4011:137c:a7fb',
-            '19.2986\t-99.1837',
+            'MX',
             '/scielo.php?pid=S0718-07642017000400014&script=sci_arttext'
         ]
         obtained = self.lp.parse_line(line)
@@ -381,7 +381,7 @@ class TestLogParser(unittest.TestCase):
             'CH',
             '131.0.0.0',
             '186.130.151.215',
-            '-34.6167\t-58.368',
+            'AR',
             '/scielo.php?pid=S0718-07642017000400014&script=sci_arttext'
         ]
         obtained = self.lp.parse_line(line)
@@ -394,7 +394,7 @@ class TestLogParser(unittest.TestCase):
             'CH',
             '131.0.0.0',
             '2806:108e:21:4720:552:4011:137c:a7fb',
-            '19.2986\t-99.1837',
+            'MX',
             '/scielo.php?pid=S0718-07642017000400014&script=sci_arttext'
         ]
         obtained = self.lp.parse_line(line)
@@ -408,7 +408,7 @@ class TestLogParser(unittest.TestCase):
             'SF',
             '17.5',
             '45.65.189.47',
-            '9.95271\t-84.1648',
+            'CR',
             '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
         ])
 
@@ -425,7 +425,7 @@ class TestLogParser(unittest.TestCase):
             'SF',
             '17.5',
             '45.65.189.47',
-            '9.95271\t-84.1648',
+            'CR',
             '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
         ])
 
@@ -437,7 +437,7 @@ class TestLogParser(unittest.TestCase):
             'SF',
             '17.5',
             '45.65.189.47',
-            '9.95271\t-84.1648',
+            'CR',
             '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
         ])
     
@@ -449,7 +449,7 @@ class TestLogParser(unittest.TestCase):
             'SF',
             '17.5',
             '45.65.189.47',
-            '9.95271\t-84.1648',
+            'CR',
             '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
         ])
 
@@ -461,7 +461,7 @@ class TestLogParser(unittest.TestCase):
             'SF',
             '17.5',
             '45.65.189.47',
-            '9.95271\t-84.1648',
+            'CR',
             '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
         ])
 
@@ -473,7 +473,7 @@ class TestLogParser(unittest.TestCase):
             'SF',
             '17.5',
             '45.65.189.47',
-            '9.95271\t-84.1648',
+            'CR',
             '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
         ])
 
@@ -519,7 +519,7 @@ class TestStats(unittest.TestCase):
             ('ignored_lines_invalid_user_agent', 3),
             ('ignored_lines_invalid_client_name', 1),
             ('ignored_lines_invalid_client_version', 2),
-            ('ignored_lines_invalid_geolocation', 20),
+            ('ignored_lines_invalid_country_code', 20),
             ('ignored_lines_invalid_local_datetime', 1),
             ('ignored_lines_http_redirects', 6),
             ('ignored_lines_http_errors', 3),
@@ -536,7 +536,7 @@ class TestStats(unittest.TestCase):
         self.assertEqual(self.stats.ignored_lines_invalid_user_agent, 3)
         self.assertEqual(self.stats.ignored_lines_invalid_client_name, 1)
         self.assertEqual(self.stats.ignored_lines_invalid_client_version, 2)
-        self.assertEqual(self.stats.ignored_lines_invalid_geolocation, 20)
+        self.assertEqual(self.stats.ignored_lines_invalid_country_code, 20)
         self.assertEqual(self.stats.ignored_lines_invalid_local_datetime, 1)
         self.assertEqual(self.stats.ignored_lines_http_redirects, 6)
         self.assertEqual(self.stats.ignored_lines_http_errors, 3)

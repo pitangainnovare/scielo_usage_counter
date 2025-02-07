@@ -14,6 +14,14 @@ class GeoIp:
             self.__map = geoip2.database.Reader(mmbd)
         except FileNotFoundError:
             return
+        
+    def ip_to_country_code(self, ip):
+        try:
+            return self.map.country(ip).country.iso_code
+        except AddressNotFoundError:
+            return
+        except ValueError:
+            return
 
     def ip_to_geolocation(self, ip):
         try:

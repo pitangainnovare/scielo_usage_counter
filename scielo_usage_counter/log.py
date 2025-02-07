@@ -19,7 +19,7 @@ class Stats:
         self.__ignored_lines_invalid_user_agent = 0
         self.__ignored_lines_invalid_client_name = 0
         self.__ignored_lines_invalid_client_version = 0
-        self.__ignored_lines_invalid_geolocation = 0
+        self.__ignored_lines_invalid_country_code = 0
         self.__ignored_lines_invalid_local_datetime = 0
         self.__ignored_lines_http_redirects = 0
         self.__ignored_lines_http_errors = 0
@@ -79,12 +79,12 @@ class Stats:
         self.__ignored_lines_invalid_client_version = value
 
     @property
-    def ignored_lines_invalid_geolocation(self):
-        return self.__ignored_lines_invalid_geolocation
+    def ignored_lines_invalid_country_code(self):
+        return self.__ignored_lines_invalid_country_code
 
-    @ignored_lines_invalid_geolocation.setter
-    def ignored_lines_invalid_geolocation(self, value):
-        self.__ignored_lines_invalid_geolocation = value
+    @ignored_lines_invalid_country_code.setter
+    def ignored_lines_invalid_country_code(self, value):
+        self.__ignored_lines_invalid_country_code = value
 
     @property
     def ignored_lines_invalid_local_datetime(self):
@@ -167,7 +167,7 @@ class Stats:
             'ignored_lines_invalid_user_agent',
             'ignored_lines_invalid_client_name',
             'ignored_lines_invalid_client_version',
-            'ignored_lines_invalid_geolocation',
+            'ignored_lines_invalid_country_code',
             'ignored_lines_invalid_local_datetime',
             'ignored_lines_http_redirects',
             'ignored_lines_http_errors',
@@ -184,7 +184,7 @@ class Stats:
             self.ignored_lines_invalid_user_agent,
             self.ignored_lines_invalid_client_name,
             self.ignored_lines_invalid_client_version,
-            self.ignored_lines_invalid_geolocation,
+            self.ignored_lines_invalid_country_code,
             self.ignored_lines_invalid_local_datetime,
             self.ignored_lines_http_redirects,
             self.ignored_lines_http_errors,
@@ -285,6 +285,14 @@ class Hit:
     @geolocation.setter
     def geolocation(self, value):
         self.__geolocation = value
+
+    @property
+    def country_code(self):
+        return self.__country_code
+    
+    @country_code.setter
+    def country_code(self, value):
+        self.__country_code = value
 
     @property
     def local_datetime(self):
@@ -546,11 +554,10 @@ class LogParser:
                 hit.is_valid = False
 
             hit.ip = ip_value
-            geocity = self.geoip.ip_to_geolocation(hit.ip)
-            if not geocity:
-                self.stats.increment('ignored_lines_invalid_geolocation')
+            hit.country_code = self.geoip.ip_to_country_code(hit.ip)
+            if not hit.country_code:
+                self.stats.increment('ignored_lines_invalid_country_code')
                 hit.is_valid = False
-            hit.geolocation = self.geoip.geolocation_to_str(geocity)
 
             date = data.get('date')
             timezone = data.get('timezone')
@@ -566,7 +573,7 @@ class LogParser:
                 parsed_data.append(hit.client_name)
                 parsed_data.append(hit.client_version)
                 parsed_data.append(hit.ip)
-                parsed_data.append(hit.geolocation)
+                parsed_data.append(hit.country_code)
                 parsed_data.append(hit.action)
             else:
                 self.stats.increment('total_ignored_lines')
@@ -584,13 +591,12 @@ class LogParser:
 
     def save(self, data, sep='\t'):
         self.output.write(sep.join([
-            'serverTime',
-            'browserName',
-            'browserVersion',
-            'ip',
-            'latitude',
-            'longitude',
-            'actionName']) + '\n')
+            'server_date',
+            'browser_name',
+            'browser_version',
+            'user_ip',
+            'country_code',
+            'action_name']) + '\n')
 
         [self.output.write(sep.join([str(di) for di in d]) + '\n') for d in data if d]
         self.output.close()

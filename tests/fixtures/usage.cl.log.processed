@@ -1,4 +1,4 @@
-server_date	browser_name	browser_version	user_ip	country_code	action_name
+local_datetime	client_name	client_version	ip_address	country_code	url
 2024-12-11 01:51:35	UNK	UNK	4.252.79.160	HK	/scielo.php?script=sci_serial&pid=0102-8650&lng=en&nrm=iso
 2024-12-11 01:51:35	UNK	UNK	54.248.220.32	JP	/scielo.php?script=sci_serial&pid=0102-8650&lng=en&nrm=iso
 2024-12-11 01:51:37	UNK	UNK	176.34.159.224	IE	/scielo.php?script=sci_serial&pid=0102-8650&lng=en&nrm=iso

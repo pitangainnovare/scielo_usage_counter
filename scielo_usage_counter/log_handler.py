@@ -11,7 +11,16 @@ from . import exceptions, geo, values
 from .utils import file_utils, resource_utils
 
 
-class Stats:
+IP_ORIGIN_REMOTE = 'remote'
+IP_ORIGIN_LOCAL = 'local'
+IP_ORIGIN_UNKNOWN = 'unknown'
+
+RESPONSE_STATUS_REDIRECT = ['301', '302', '303', '307', '308']
+RESPONSE_STATUS_SUPPORTED = ['200', '304',]
+HTTP_METHOD_SUPPORTED = ['GET', 'HEAD']
+
+
+class LogStats:
     def __init__(self):
         self.__ignored_lines_static_resources = 0
         self.__ignored_lines_bot = 0
@@ -28,7 +37,6 @@ class Stats:
         self.__lines_parsed = 0
         self.__total_time = 0.0
         self.__output = None
-
 
     @property
     def ignored_lines_static_resources(self):
@@ -218,101 +226,8 @@ class Stats:
                 self.output.close()
 
 
-class Hit:
-    def __init__(self):
-        self.__is_valid = True
-
-    @property
-    def is_valid(self):
-        return self.__is_valid
-
-    @is_valid.setter
-    def is_valid(self, value):
-        self.__is_valid = value
-
-    @property
-    def method(self):
-        return self.__method
-
-    @method.setter
-    def method(self, value):
-        self.__method = value
-
-    @property
-    def status(self):
-        return self.__status
-
-    @status.setter
-    def status(self, value):
-        self.__status = value
-
-    @property
-    def user_agent(self):
-        return self.__user_agent
-
-    @user_agent.setter
-    def user_agent(self, value):
-        self.__user_agent = value
-
-    @property
-    def client_name(self):
-        return self.__client_name
-
-    @client_name.setter
-    def client_name(self, value):
-        self.__client_name = value
-
-    @property
-    def client_version(self):
-        return self.__client_version
-
-    @client_version.setter
-    def client_version(self, value):
-        self.__client_version = value
-
-    @property
-    def ip(self):
-        return self.__ip
-
-    @ip.setter
-    def ip(self, value):
-        self.__ip = value
-
-    @property
-    def geolocation(self):
-        return self.__geolocation
-
-    @geolocation.setter
-    def geolocation(self, value):
-        self.__geolocation = value
-
-    @property
-    def country_code(self):
-        return self.__country_code
-    
-    @country_code.setter
-    def country_code(self, value):
-        self.__country_code = value
-
-    @property
-    def local_datetime(self):
-        return self.__local_datetime
-
-    @local_datetime.setter
-    def local_datetime(self, value):
-        self.__local_datetime = value
-
-    @property
-    def action(self):
-        return self.__action
-
-    @action.setter
-    def action(self, value):
-        self.__action = value
-
-
 class LogParser:
-    def __init__(self, mmdb_path=None, robots_path=None, mmdb_data=None, robots_list=None):
+    def __init__(self, mmdb_path=None, robots_path=None, mmdb_data=None, robots_list=None, output_mode='list'):
         self.__geoip = geo.GeoIp()
         self.__geoip.map = resource_utils.load_mmdb(
             mmdb_data=mmdb_data,
@@ -322,8 +237,9 @@ class LogParser:
             robots_list=robots_list, 
             robots_path=robots_path,
         )
-        self.__stats = Stats()
+        self.__stats = LogStats()
         self.__output = None
+        self.__output_mode = output_mode
 
     @property
     def output(self):
@@ -332,6 +248,17 @@ class LogParser:
     @output.setter
     def output(self, path):
         self.__output = open(path, 'w')
+
+    @property
+    def output_mode(self):
+        return self.__output_mode
+    
+    @output_mode.setter
+    def output_mode(self, mode):
+        if mode in ('dict', 'list'):
+            self.__output_mode = mode
+        else:
+            self.__output_mode = 'list'
 
     @property
     def logfile(self):
@@ -362,23 +289,23 @@ class LogParser:
 
     @stats.setter
     def stats(self):
-        self.__stats = Stats()
+        self.__stats = LogStats()
 
     def has_valid_method(self, method):
-        if method.upper() in ('GET', 'HEAD'):
+        if method.upper() in HTTP_METHOD_SUPPORTED:
             return True
         return False
 
     def has_valid_status(self, status):
-        if status in {'200', '304'}:
+        if status in RESPONSE_STATUS_SUPPORTED:
             return True
         return False
 
     def status_is_redirect(self, status):
-        return status[0] == '3'and status != '304'
+        return status.startswith('3') and status != '304'
 
     def status_is_error(self, status):
-        return status[0] in {'4', '5'}
+        return status.startswith('4') or status.startswith('5')
 
     def has_valid_user_agent(self, user_agent):
         if not self.user_agent_is_bot(user_agent):
@@ -391,12 +318,12 @@ class LogParser:
                 return True
         return False
 
-    def has_valid_path(self, path):
-        if not self.action_is_static_file(path):
+    def has_supported_url(self, path):
+        if not self.url_is_static_file(path):
             return True
         return False
 
-    def action_is_static_file(self, path):
+    def url_is_static_file(self, path):
         try:
             file_from_url = urllib.parse.urlparse(path).path
         except ValueError:
@@ -409,7 +336,7 @@ class LogParser:
 
         return False
 
-    def action_is_download(self, path):
+    def url_is_download(self, path):
         file_from_url = path.split('/')[-1]
         ext = file_from_url.rsplit('.')[-1].lower()
 
@@ -458,7 +385,7 @@ class LogParser:
         ]
 
         match = None
-        ip_type = 'unknown'
+        ip_origin_type = IP_ORIGIN_UNKNOWN
         ip_value = ''
 
         for pattern in patterns:
@@ -468,37 +395,35 @@ class LogParser:
                 content = match.groupdict()
                 
                 ip_value = content.get('ip')
-                ip_type = self.get_ip_type(ip_value)
+                ip_origin_type = self.get_ip_origin_type(ip_value)
 
-                if ip_type != 'unknown':
+                if ip_origin_type != IP_ORIGIN_UNKNOWN:
                     return match, ip_value
 
                 else:
                     for i in content.get('ip_list', '').split(','):
-                        ip_type = self.get_ip_type(i.strip())
-                        if ip_type != 'unknown':
+                        ip_origin_type = self.get_ip_origin_type(i.strip())
+                        if ip_origin_type != IP_ORIGIN_UNKNOWN:
                             return match, i.strip()
         
         return match, ip_value
 
-
-    def get_ip_type(self, ip):
+    def get_ip_origin_type(self, ip):
         try:
             ipa = ipaddress.ip_address(ip)
         except ValueError:
-            return 'unknown'
+            return IP_ORIGIN_UNKNOWN
 
         if ipa.is_global:
-            return 'remote'
+            return IP_ORIGIN_REMOTE
         elif ipa.is_private or ipa.is_loopback or ipa.is_link_local:
-            return 'local'
+            return IP_ORIGIN_LOCAL
 
-        return 'unknown'
+        return IP_ORIGIN_UNKNOWN
 
     def parse_line(self, line):
         self.stats.increment('lines_parsed')
 
-        parsed_data = []
         try:
             decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
         except UnicodeDecodeError:
@@ -507,80 +432,94 @@ class LogParser:
         match, ip_value = self.match_with_best_pattern(decoded_line)
 
         if match:
-            hit = Hit()
+            processed_line = {
+                'http_method': None,
+                'http_response_status': None,
+                'user_agent': None,
+                'client_name': None,
+                'client_version': None,
+                'url': None,
+                'ip_address': None,
+                'country_code': None,
+                'local_datetime': None,
+                'is_valid': True,
+            }
 
             data = match.groupdict()
 
-            hit.method = data.get('method')
-            if not self.has_valid_method(hit.method):
+            processed_line['http_method'] = data.get('method')
+            if not self.has_valid_method(processed_line['http_method']):
                 self.stats.increment('ignored_lines_invalid_method')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
-            hit.status = data.get('status')
-            if not self.has_valid_status(hit.status):
-                if self.status_is_redirect(hit.status):
+            processed_line['http_response_status'] = data.get('status')
+            if not self.has_valid_status(processed_line['http_response_status']):
+                if self.status_is_redirect(processed_line['http_response_status']):
                     self.stats.increment('ignored_lines_http_redirects')
-                elif self.status_is_error(hit.status):
+                elif self.status_is_error(processed_line['http_response_status']):
                     self.stats.increment('ignored_lines_http_errors')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
-            hit.user_agent = self.format_user_agent(data.get('user_agent'))
+            processed_line['user_agent'] = self.format_user_agent(data.get('user_agent'))
 
-            if self.user_agent_is_bot(hit.user_agent):
+            if self.user_agent_is_bot(processed_line['user_agent']):
                 self.stats.increment('ignored_lines_bot')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
             try:
-                device = DeviceDetector(hit.user_agent).parse()
+                device = DeviceDetector(processed_line['user_agent']).parse()
             except ZeroDivisionError:
                 device = DeviceDetector('').parse()
                 self.stats.increment('ignored_lines_invalid_user_agent')
-                logging.error(exceptions.DeviceDetectionError(f'Não foi possível identificar UserAgent {hit.user_agent} from line {decoded_line}'))
-                hit.is_valid = False
+                logging.error(exceptions.DeviceDetectionError(f"Não foi possível identificar UserAgent {processed_line['user_agent']} from line {decoded_line}"))
+                processed_line['is_valid'] = False
 
-            hit.client_name = self.format_client_name(device)
-            if not hit.client_name:
+            processed_line['client_name'] = self.format_client_name(device)
+            if not processed_line['client_name']:
                 self.stats.increment('ignored_lines_invalid_client_name')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
-            hit.client_version = self.format_client_version(device)
-            if not hit.client_version:
+            processed_line['client_version'] = self.format_client_version(device)
+            if not processed_line['client_version']:
                 self.stats.increment('ignored_lines_invalid_client_version')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
-            hit.action = data.get('path')
-            if not self.has_valid_path(hit.action):
+            processed_line['url'] = data.get('path')
+            if not self.has_supported_url(processed_line['url']):
                 self.stats.increment('ignored_lines_static_resources')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
-            hit.ip = ip_value
-            hit.country_code = self.geoip.ip_to_country_code(hit.ip)
-            if not hit.country_code:
+            processed_line['ip_address'] = ip_value
+            processed_line['country_code'] = self.geoip.ip_to_country_code(processed_line['ip_address'])
+            if not processed_line['country_code']:
                 self.stats.increment('ignored_lines_invalid_country_code')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
             date = data.get('date')
             timezone = data.get('timezone')
-            hit.local_datetime = self.format_date(date, timezone)
-            if not hit.local_datetime:
+            processed_line['local_datetime'] = self.format_date(date, timezone)
+            if not processed_line['local_datetime']:
                 self.stats.increment('ignored_lines_invalid_local_datetime')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
-            if hit.is_valid:
+            if processed_line['is_valid']:
                 self.stats.increment('total_imported_lines')
 
-                parsed_data.append(hit.local_datetime)
-                parsed_data.append(hit.client_name)
-                parsed_data.append(hit.client_version)
-                parsed_data.append(hit.ip)
-                parsed_data.append(hit.country_code)
-                parsed_data.append(hit.action)
+                if self.output_mode == 'list':
+                    return [
+                        processed_line['local_datetime'],
+                        processed_line['client_name'],
+                        processed_line['client_version'],
+                        processed_line['ip_address'],
+                        processed_line['country_code'],
+                        processed_line['url'],
+                    ]
+                elif self.output_mode == 'dict':
+                    return processed_line
             else:
                 self.stats.increment('total_ignored_lines')
         else:
             self.stats.increment('total_ignored_lines')
-
-        return parsed_data
 
     def parse(self):
         self.start = time.time()
@@ -591,12 +530,12 @@ class LogParser:
 
     def save(self, data, sep='\t'):
         self.output.write(sep.join([
-            'server_date',
-            'browser_name',
-            'browser_version',
-            'user_ip',
+            'local_datetime',
+            'client_name',
+            'client_version',
+            'ip_address',
             'country_code',
-            'action_name']) + '\n')
+            'url']) + '\n')
 
         [self.output.write(sep.join([str(di) for di in d]) + '\n') for d in data if d]
         self.output.close()

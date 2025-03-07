@@ -1,4 +1,4 @@
-server_date	browser_name	browser_version	user_ip	country_code	action_name
+local_datetime	client_name	client_version	ip_address	country_code	url
 2024-02-12 03:03:47	CH	121.0.0.0	181.199.0.1	EC	/google_metrics/get_h5_m5.php?issn=0212-1611&callback=jsonp1707707025958
 2024-02-12 03:03:47	CM	121.0.0.0	181.209.0.1	AR	/google_metrics/get_h5_m5.php?issn=1134-8046&callback=jsonp1707707025799
 2024-02-12 03:03:47	CM	121.0.0.0	8.242.0.1	BR	/google_metrics/get_h5_m5.php?issn=1132-1296&callback=jsonp1707707023130

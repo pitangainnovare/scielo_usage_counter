@@ -183,3 +183,77 @@ class URLTranslationManager:
                     std_fields[k] = v.strip()
 
         return std_fields
+
+
+class URLTranslatorPreprintsSite:
+    def __init__(self, journals_metadata, articles_metadata):
+        self.journals_metadata = journals_metadata
+        self.articles_metadata = articles_metadata
+        self.name = NAME_PREPRINTS_SITE
+
+    def pipeline_translate(self, url):
+        parsed_url = urlparse(url)
+        query_params = parse_qs(parsed_url.query)
+
+        preprint_id = self.extract_preprint_id(parsed_url, query_params)
+        scielo_issn = self.extract_issn(preprint_id)        
+        media_format = self.extract_media_format(parsed_url, query_params)
+        media_language = self.extract_media_language(preprint_id)
+
+        return {
+            'scielo_issn': scielo_issn,
+            'pid_v2': preprint_id,
+            'pid_v3': None,
+            'media_format': media_format,
+            'media_language': media_language,
+        }
+
+    @classmethod
+    def extract_media_format(cls, url):
+        unquoted_url = urlparse.unquote(url)
+
+        html_patterns = [
+            REGEX_PREPRINTS_SITE_VIEW_ABSTRACT,
+            REGEX_PREPRINTS_SITE_DOCUMENT_ABSTRACT,
+            REGEX_PREPRINTS_SITE_VERSION_ABSTRACT
+        ]
+
+        pdf_patterns = [
+            REGEX_PREPRINTS_SITE_VIEW_PDF,
+            REGEX_PREPRINTS_SITE_DOWNLOAD_PDF,
+            REGEX_PREPRINTS_SITE_DOCUMENT_DOWNLOAD_PDF,
+            REGEX_PREPRINTS_SITE_VERSION_DOWNLOAD_PDF
+        ]
+
+        if any(re.search(pattern, unquoted_url) for pattern in html_patterns):
+            return MEDIA_FORMAT_HTML
+
+        if any(re.search(pattern, unquoted_url) for pattern in pdf_patterns):
+            return MEDIA_FORMAT_PDF
+
+        return MEDIA_FORMAT_UNDEFINED
+
+    def extract_media_language(self, pid_v2):
+        return self.articles_metadata['pid_v2_to_default_lang'].get(pid_v2)
+
+    @classmethod
+    def extract_issn():
+        return DEFAULT_SCIELO_ISSN
+
+    @classmethod
+    def extract_preprint_id(url):
+        unquoted_url = urlparse.unquote(url)
+
+        for pattern in [
+            REGEX_PREPRINTS_SITE_VIEW_ABSTRACT,
+            REGEX_PREPRINTS_SITE_DOCUMENT_ABSTRACT,
+            REGEX_PREPRINTS_SITE_VERSION_ABSTRACT,
+            REGEX_PREPRINTS_SITE_VIEW_PDF,
+            REGEX_PREPRINTS_SITE_DOWNLOAD_PDF,
+            REGEX_PREPRINTS_SITE_DOCUMENT_DOWNLOAD_PDF,
+            REGEX_PREPRINTS_SITE_VERSION_DOWNLOAD_PDF
+        ]:
+            match = re.search(pattern, unquoted_url)
+            if match:
+                return match.group('id')
+

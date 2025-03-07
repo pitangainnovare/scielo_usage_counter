@@ -11,7 +11,16 @@ from . import exceptions, geo, values
 from .utils import file_utils, resource_utils
 
 
-class Stats:
+IP_ORIGIN_REMOTE = 'remote'
+IP_ORIGIN_LOCAL = 'local'
+IP_ORIGIN_UNKNOWN = 'unknown'
+
+RESPONSE_STATUS_REDIRECT = ['301', '302', '303', '307', '308']
+RESPONSE_STATUS_SUPPORTED = ['200', '304',]
+HTTP_METHOD_SUPPORTED = ['GET', 'HEAD']
+
+
+class LogStats:
     def __init__(self):
         self.__ignored_lines_static_resources = 0
         self.__ignored_lines_bot = 0
@@ -28,7 +37,6 @@ class Stats:
         self.__lines_parsed = 0
         self.__total_time = 0.0
         self.__output = None
-
 
     @property
     def ignored_lines_static_resources(self):
@@ -365,20 +373,20 @@ class LogParser:
         self.__stats = Stats()
 
     def has_valid_method(self, method):
-        if method.upper() in ('GET', 'HEAD'):
+        if method.upper() in HTTP_METHOD_SUPPORTED:
             return True
         return False
 
     def has_valid_status(self, status):
-        if status in {'200', '304'}:
+        if status in RESPONSE_STATUS_SUPPORTED:
             return True
         return False
 
     def status_is_redirect(self, status):
-        return status[0] == '3'and status != '304'
+        return status.startswith('3') and status != '304'
 
     def status_is_error(self, status):
-        return status[0] in {'4', '5'}
+        return status.startswith('4') or status.startswith('5')
 
     def has_valid_user_agent(self, user_agent):
         if not self.user_agent_is_bot(user_agent):
@@ -458,7 +466,7 @@ class LogParser:
         ]
 
         match = None
-        ip_type = 'unknown'
+        ip_origin_type = IP_ORIGIN_UNKNOWN
         ip_value = ''
 
         for pattern in patterns:
@@ -468,32 +476,31 @@ class LogParser:
                 content = match.groupdict()
                 
                 ip_value = content.get('ip')
-                ip_type = self.get_ip_type(ip_value)
+                ip_origin_type = self.get_ip_origin_type(ip_value)
 
-                if ip_type != 'unknown':
+                if ip_origin_type != IP_ORIGIN_UNKNOWN:
                     return match, ip_value
 
                 else:
                     for i in content.get('ip_list', '').split(','):
-                        ip_type = self.get_ip_type(i.strip())
-                        if ip_type != 'unknown':
+                        ip_origin_type = self.get_ip_origin_type(i.strip())
+                        if ip_origin_type != IP_ORIGIN_UNKNOWN:
                             return match, i.strip()
         
         return match, ip_value
 
-
-    def get_ip_type(self, ip):
+    def get_ip_origin_type(self, ip):
         try:
             ipa = ipaddress.ip_address(ip)
         except ValueError:
-            return 'unknown'
+            return IP_ORIGIN_UNKNOWN
 
         if ipa.is_global:
-            return 'remote'
+            return IP_ORIGIN_REMOTE
         elif ipa.is_private or ipa.is_loopback or ipa.is_link_local:
-            return 'local'
+            return IP_ORIGIN_LOCAL
 
-        return 'unknown'
+        return IP_ORIGIN_UNKNOWN
 
     def parse_line(self, line):
         self.stats.increment('lines_parsed')

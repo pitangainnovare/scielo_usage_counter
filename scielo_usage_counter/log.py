@@ -227,7 +227,7 @@ class LogStats:
 
 
 class LogParser:
-    def __init__(self, mmdb_path=None, robots_path=None, mmdb_data=None, robots_list=None):
+    def __init__(self, mmdb_path=None, robots_path=None, mmdb_data=None, robots_list=None, output_mode='list'):
         self.__geoip = geo.GeoIp()
         self.__geoip.map = resource_utils.load_mmdb(
             mmdb_data=mmdb_data,
@@ -237,8 +237,9 @@ class LogParser:
             robots_list=robots_list, 
             robots_path=robots_path,
         )
-        self.__stats = Stats()
+        self.__stats = LogStats()
         self.__output = None
+        self.__output_mode = output_mode
 
     @property
     def output(self):
@@ -247,6 +248,17 @@ class LogParser:
     @output.setter
     def output(self, path):
         self.__output = open(path, 'w')
+
+    @property
+    def output_mode(self):
+        return self.__output_mode
+    
+    @output_mode.setter
+    def output_mode(self, mode):
+        if mode in ('dict', 'list'):
+            self.__output_mode = mode
+        else:
+            self.__output_mode = 'list'
 
     @property
     def logfile(self):
@@ -277,7 +289,7 @@ class LogParser:
 
     @stats.setter
     def stats(self):
-        self.__stats = Stats()
+        self.__stats = LogStats()
 
     def has_valid_method(self, method):
         if method.upper() in HTTP_METHOD_SUPPORTED:

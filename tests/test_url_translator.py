@@ -1,0 +1,389 @@
+import unittest
+
+from urllib.parse import urlparse
+
+from scielo_usage_counter.url_translator import (
+    URLTranslationManager,
+    NAME_CLASSIC_SITE,
+    NAME_OPAC_SITE,
+    NAME_PREPRINTS_SITE,
+    NAME_DATAVERSE_SITE,
+    NAME_OPAC_ALPHA_SITE,
+)
+
+
+class TestURLTranslationManager(unittest.TestCase):
+    def setUp(self):
+        self.journals_metadata = [
+            {
+                'acronym': 'wimj',
+                'scielo_issn': '0043-3144',
+                'issns': ['0043-3144',],
+                'title': 'West Indian Medical Journal',
+                'publisher_name': 'The University of the West Indies',
+                'subject_areas': ['Health Sciences',],
+                'wos_subject_areas': ['HEALTH CARE SCIENCES & SERVICES',]
+            }
+        ]
+        self.articles_metadata = [
+            {
+                'pid_v2': 'S0043-31442017000600634',
+                'pid_v3': '',
+                'default_lang': 'en',
+                'text_langs': ['en', 'es'],
+                'scielo_issn': '0043-3144',
+                'publication_year': '2017',
+                'pdfs': [
+                    {'doi': '10.7727/wimj.2014.321', 'lang': 'en', 'path': 'pdf/wimj/v66n6/2309-5830-wimj-66-06-0634.pdf', 'checked': False},
+                    {'doi': '10.7727/wimj.2014.321', 'lang': 'es', 'path': 'pdf/wimj/v66n6/es_2309-5830-wimj-66-06-0588.pdf', 'checked': False}
+                ]
+            },
+        ]
+        self.tm = URLTranslationManager(self.journals_metadata, self.articles_metadata)
+
+    def test_identity_translator_class_is_classic_site(self):
+        for url in [
+            '/scielo.php?pid=S1981-77462017005002103&script=sci_arttext',
+            '/pdf/rem/v63n4/a07v63n4.pdf',
+            '/scielo.php?',
+            '/scielo.php?script=sci_abstract', 
+            '/scielo.php?script=sci_abstract&pid=S0043-31442017000600634',
+            '/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&lng=en&nrm=iso&tlng=es',
+            '/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&tlng=es', 
+            '/scielo.php?script=sci_arttext&pid=S0043-31442017000600634&lng=en&nrm=iso&tlng=en',
+            '/scielo.php?script=sci_arttext&pid=S0043-31442017000600634&tlng=en',
+            '/scieloOrg/php/articleXML.php?pid=S0043-31442017000600634',
+            '/scieloOrg/php/articleXML.php?pid=S0043-31442017000600634&tlng=en',
+            'http://westindies.scielo.org/scieloOrg/php/articleXML.php?pid=S0043-31442017000600634',
+            'http://westindies.scielo.org/scieloOrg/php/articleXML.php?pid=S0043-31442017000600634&tlng=en',
+            'https://westindies.scielo.org/pdf/wimj/v66n6/2309-5830-wimj-66-06-0634.pdf',
+            'https://westindies.scielo.org/scielo.php?',
+            'https://westindies.scielo.org/scielo.php?script=sci_abstract', 
+            'https://westindies.scielo.org/scielo.php?script=sci_abstract&pid=S0043-31442017000600634',
+            'https://westindies.scielo.org/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&lng=en&nrm=iso&tlng=es',
+            'https://westindies.scielo.org/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&tlng=es', 
+            'https://westindies.scielo.org/scielo.php?script=sci_arttext&pid=S0043-31442017000600634&lng=en&nrm=iso&tlng=en',
+            'https://westindies.scielo.org/scielo.php?script=sci_arttext&pid=S0043-31442017000600634&tlng=en',
+            "/popup/questions_es.html",
+            "/popup/whatismyip.php",
+            "/scielo.php?pid=S0325-00752005000400013&script=sci_arttext&tlng=pt",
+            "/scielo.php?pid=S1668-70272019000200185&script=sci_arttext",
+            "/scielo.php?pid=S1668-87082021000100003&script=sci_arttext",
+            "/scielo.php?pid=S1692-715X2011000200011&script=sci_arttext",
+            "/scielo.php?script=sci_arttext&pid=S0034-74502009000200012",
+            "/scielo.php?script=sci_arttext&pid=S0034-98872020000400542",
+            "/scielo.php?script=sci_arttext&pid=S0121-07932016000200008",
+            "/scielo.php?script=sci_arttext&pid=S0718-48082014000100001",
+            "/scielo.php?script=sci_arttext&pid=S0718-48082018000300156",
+            "/scielo.php?script=sci_arttext&pid=S1657-70272014000100004",
+            "/scielo.php?script=sci_arttext&pid=S1851-17242012000100001",
+            "/scielo.php?script=sci_arttext&pid=S1851-56572008000100022&lng=es&tlng=es",
+            "/scielo.php?script=sci_arttext&pid=S2452-45492021000300370",
+            "/scieloOrg/php/articleXML.php?pid=S1850-20672022000200227&lang=en",
+            "/scieloOrg/php/articleXML.php?pid=S1851-00272020000200002&lang=en",
+            "/scieloOrg/php/articleXML.php?pid=S1853-001X2019000100001&lang=en",
+            "google_metrics/get_h5_m5.php?issn=0120-5307&callback=jsonp1733288396148",
+            "google_metrics/get_h5_m5.php?issn=0121-0793&callback=jsonp1733288396020",
+            "google_metrics/get_h5_m5.php?issn=1692-715X&callback=jsonp1733288396676",
+            "google_metrics/get_h5_m5.php?issn=1851-1724&callback=jsonp1706756408454",
+            "google_metrics/get_h5_m5.php?issn=1851-5657&callback=jsonp1706756408224",
+            '/pdf/wimj/v66n6/2309-5830-wimj-66-06-0634.pdf',
+            "/pdf/psdc/v30n2/v30n2a09.pdf",
+            "/pdf/rcre/v25n4/0121-8123-rcre-25-04-00245.pdf",
+            "/pdf/reus/v19n2/0124-7107-reus-19-02-00309.pdf",
+        ]:
+            with self.subTest(url=url):
+                self.tm.identify_translator_class(url)
+                self.assertEqual(self.tm.translator.name, NAME_CLASSIC_SITE)
+
+    def test_identity_translator_class_is_opac_alpha_site(self):
+        for url in [
+            '/article/csc/2025.v30n2/e05402023/pt/',
+            '/j/csc/grid',
+            '/j/csc/i/2025.v30n2/',
+            '/j/ress/',
+            'https://www.scielosp.org/article/csc/2025.v30n2/e05402023/pt/',
+            'https://www.scielosp.org/j/csc/grid',
+            'https://www.scielosp.org/j/csc/i/2025.v30n2/',
+            'https://www.scielosp.org/j/ress/',
+            'https://www.scielosp.org/pdf/csc/2025.v30n2/e05402023/pt',
+            "/article/csp/2022.v38n3/e00095821/",
+            "/article/rcsp/2017.v43n3/470-498/es/"
+            "/article/rcsp/2017.v43n3/470-498/es/",
+            "/article/rcsp/2017.v43n3/470-498/es/",
+            "/article/ress/2021.v30nspe1/e2020663/",
+            "/article/rpmesp/2018.v35n3/542-543/es/",
+            "/article/rpmesp/2023.v40n1/25-33/",
+            "/article/rpmesp/2023.v40n3/307-316/",
+            "/article/rpsp/1999.v6n3/149-156/",
+            "/article/sausoc/2022.v31n1/e200398/",
+            "/article/spm/2020.v62n1/114-117/es/",
+            "/j/csp/i/2013.v29n6/",
+            "article/csc/2010.v15n6/2845-2857/",
+            "article/rcsp/2018.v44n4/220-228/es/",
+            "article/rpmesp/2022.v39n2/178-184/es/",
+            "article/rpmesp/2022.v39n2/178-184/es/",
+            "article/rsap/2017.v19n3/374-378/",
+            "article/rsap/2017.v19n3/393-395/",
+            "article/rsap/2018.v20n5/649-654/",
+            "article/scol/2018.v14n2/161-177/es/",
+            "article/ssm/content/raw/?resource_ssm_path=/media/assets/rcsp/v38n4/spu08412.pdf",
+            "article/ssm/content/raw/?resource_ssm_path=/media/assets/resp/v71n5/recension.pdf",
+            "article/ssm/content/raw/?resource_ssm_path=/media/assets/resp/v82n3/colaboracion1.pdf",
+            "article/ssm/content/raw/?resource_ssm_path=/media/assets/rpsp/v24n1/v24n1a02.pdf",
+            "article/ssm/content/raw/?resource_ssm_path=/media/assets/spm/v42n5/3993.pdf",
+            "article/ssm/content/raw/?resource_ssm_path=/media/assets/spm/v43n4/5903.pdf",
+            "pdf/rcsp/v40n4/spu02414.pdf",
+            "pdf/rpsp/v12n2/11622.pdf",
+            "pdf/rpsp/v9n6/5390.pdf",
+            "pdf/rsap/v14n5/v14n5a09.pdf",
+            "pdf/spm/v53s2/10.pdf",
+            '/pdf/csc/2025.v30n2/e05402023/pt',
+        ]:
+            with self.subTest(url=url):
+                self.tm.identify_translator_class(url)
+                if 'j/' in url:
+                    # In the case of j/, the are a few URLs that are similar to the ones used in the OPAC site
+                    self.assertIn(self.tm.translator.name, [NAME_OPAC_ALPHA_SITE, NAME_OPAC_SITE])
+                elif 'pdf' in url:
+                    # In the case of PDFs, the are a few URLs that are similar to the ones used in the OPAC and Classic sites
+                    self.assertIn(self.tm.translator.name, [NAME_OPAC_ALPHA_SITE, NAME_OPAC_SITE, NAME_CLASSIC_SITE])
+                else:
+                    self.assertEqual(self.tm.translator.name, NAME_OPAC_ALPHA_SITE)
+
+    def test_identity_translator_class_is_opac_site(self):
+        for url in [
+            'https://scielo.br/j/aa/',
+            "/j/neco/a/5ySvRy7VFTxsKLt35Mwsm9g/abstract/?lang=en",
+            "/j/neco/a/5ySvRy7VFTxsKLt35Mwsm9g/abstract/?lang=pt",
+            "/j/neco/a/5ySvRy7VFTxsKLt35Mwsm9g/abstract/?lang=it",
+            "/j/neco/a/5ySvRy7VFTxsKLt35Mwsm9g/abstract/?format=xml",
+            "/j/neco/a/5ySvRy7VFTxsKLt35Mwsm9g/abstract/?format=pdf",
+            "/j/cpa/a/HjpFWnMyMR6GVJ4Cnywnmdm/",
+            "/j/cpa/a/HjpFWnMyMR6GVJ4Cnywnmdm/?lang=en",
+            "/j/cpa/a/HjpFWnMyMR6GVJ4Cnywnmdm/?lang=pt",
+            "/j/cpa/a/HjpFWnMyMR6GVJ4Cnywnmdm/?lang=it",
+            "/j/cpa/a/HjpFWnMyMR6GVJ4Cnywnmdm/?format=xml",
+            "/j/cpa/a/HjpFWnMyMR6GVJ4Cnywnmdm/?format=pdf",
+            "/j/jiems/a/JJRjZV3MjjdgRWk9JmfPTYd/?lang=en",
+            "/j/jiems/a/JJRjZV3MjjdgRWk9JmfPTYd/?lang=pt",
+            "/j/jiems/a/JJRjZV3MjjdgRWk9JmfPTYd/?lang=it",
+            "/j/jiems/a/JJRjZV3MjjdgRWk9JmfPTYd/?format=xml",
+            "/j/jiems/a/JJRjZV3MjjdgRWk9JmfPTYd/?format=pdf",
+            "/j/cr/a/CP849wcWRp6y46zCvsyYsCb/?lang=pt",
+            "/j/cr/a/CP849wcWRp6y46zCvsyYsCb/?lang=en",
+            "/j/cr/a/CP849wcWRp6y46zCvsyYsCb/?lang=it",
+            "/j/cr/a/CP849wcWRp6y46zCvsyYsCb/?format=xml",
+            "/j/cr/a/CP849wcWRp6y46zCvsyYsCb/?format=pdf",
+            "/j/esa/a/TWyHMQBS4H6tyrXPZhcWxps/",
+            "/j/esa/a/TWyHMQBS4H6tyrXPZhcWxps/?lang=en",
+            "/j/esa/a/TWyHMQBS4H6tyrXPZhcWxps/?lang=pt",
+            "/j/esa/a/TWyHMQBS4H6tyrXPZhcWxps/?lang=it",
+            "/j/esa/a/TWyHMQBS4H6tyrXPZhcWxps/?format=xml",
+            "/j/esa/a/TWyHMQBS4H6tyrXPZhcWxps/?format=pdf",
+            "/j/rbz/a/cKnLLBn5NnshCX93Y6qYpHv/abstract/?format=html&lang=en",
+            "/j/rbz/a/cKnLLBn5NnshCX93Y6qYpHv/abstract/?format=html&lang=pt",
+            "/j/rbz/a/cKnLLBn5NnshCX93Y6qYpHv/abstract/?format=html&lang=it",
+            "/j/rbz/a/cKnLLBn5NnshCX93Y6qYpHv/abstract/?format=xml",
+            "/j/rbz/a/cKnLLBn5NnshCX93Y6qYpHv/abstract/?format=pdf",
+            "/j/psoc/a/9bZdr3zfr5YYtyb3m8c5KZS/?format=html",
+            "/j/psoc/a/9bZdr3zfr5YYtyb3m8c5KZS/?format=xml",
+            "/j/psoc/a/9bZdr3zfr5YYtyb3m8c5KZS/?format=pdf",
+            "/j/psoc/a/hbSYnTbyNfzxcWT3FpXrL5G/?format=html&lang=es",
+            "/j/psoc/a/hbSYnTbyNfzxcWT3FpXrL5G/?format=html&lang=en",
+            "/j/psoc/a/hbSYnTbyNfzxcWT3FpXrL5G/?format=html&lang=pt",
+            "/j/psoc/a/hbSYnTbyNfzxcWT3FpXrL5G/?format=html&lang=it",
+            "/j/psoc/a/hbSYnTbyNfzxcWT3FpXrL5G/?format=xml",
+            "/j/psoc/a/hbSYnTbyNfzxcWT3FpXrL5G/?format=pdf",
+            "/j/asagr/a/msfBCRNfx7wtnLTJ7wTgk7L/abstract/?format=html&lang=en&stop=previous",
+            "/j/asagr/a/msfBCRNfx7wtnLTJ7wTgk7L/abstract/?format=html&lang=pt&stop=previous",
+            "/j/asagr/a/msfBCRNfx7wtnLTJ7wTgk7L/abstract/?format=html&lang=it&stop=previous",
+            "/j/asagr/a/msfBCRNfx7wtnLTJ7wTgk7L/abstract/?format=xml",
+            "/j/asagr/a/msfBCRNfx7wtnLTJ7wTgk7L/abstract/?format=pdf",
+            "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?lang=en",
+            "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?lang=pt",
+            "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?lang=it",
+            "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?format=xml",
+            "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?format=pdf"
+        ]:
+            self.tm.identify_translator_class(url)
+            self.assertEqual(self.tm.translator.name, NAME_OPAC_SITE)
+
+    def test_identity_translator_class_is_dataverse_site(self):
+        for url in [
+            '/dataset.xhtml?persistentId=doi:10.48331/scielodata.KKBWDE',
+            '/dataset.xhtml?persistentId=doi:10.48331/scielodata.Q8TJ9N',
+            'https://data.scielo.org/dataset.xhtml?persistentId=doi:10.48331/scielodata.KKBWDE',
+            'https://data.scielo.org/dataset.xhtml?persistentId=doi:10.48331/scielodata.Q8TJ9N',
+            'https://dataverse.scielo.org',
+            "/api/dataverses/scielodata"
+            "/api/dataverses/scielodata",
+            "/dataset.xhtml;jsessionid=a36db12b30413c00ed134d710a70?fileSortField=type&persistentId=doi%3A10.48331%2Fscielodata.0P0QUN",
+            "/dataset.xhtml;jsessionid=a36db12b30413c00ed134d710a70?fileSortField=type&persistentId=doi%3A10.48331%2Fscielodata.0P0QUN",
+            "/dataset.xhtml;jsessionid=a94eb6d7a2c4e0acadd78746dc9c?fileAccess=Public&fileSortField=size&fileTypeGroupFacet=%22Archive%22&persistentId=doi%3A10.48331%2Fscielodata.0P0QUN",
+            "/dataset.xhtml;jsessionid=a94eb6d7a2c4e0acadd78746dc9c?fileAccess=Public&fileSortField=size&fileTypeGroupFacet=%22Archive%22&persistentId=doi%3A10.48331%2Fscielodata.0P0QUN",
+            "/dataset.xhtml;jsessionid=bf8c49e2abe6572528588ba0dd85?fileAccess=Public&fileSortField=size&fileTypeGroupFacet=%22Text%22&persistentId=doi%3A10.48331%2Fscielodata.0P0QUN",
+            "/dataset.xhtml;jsessionid=c151b1d11582b42e52d190a31b2b?fileTypeGroupFacet=%22Archive%22&persistentId=doi%3A10.48331%2Fscielodata.0P0QUN",
+            "/dataset.xhtml;jsessionid=c151b1d11582b42e52d190a31b2b?fileTypeGroupFacet=%22Archive%22&persistentId=doi%3A10.48331%2Fscielodata.0P0QUN",
+            "/dataset.xhtml;jsessionid=f0a936613832b917849d84ab7e0b?fileSortField=name&fileSortOrder=desc&persistentId=doi%3A10.48331%2Fscielodata.0P0QUN",
+            "/dataset.xhtml;jsessionid=f0a936613832b917849d84ab7e0b?fileSortField=name&fileSortOrder=desc&persistentId=doi%3A10.48331%2Fscielodata.0P0QUN",
+            "/dataset.xhtml?persistentId=doi:10.48331/scielodata.A5MQLB",
+            "/dataverse/brrbsmi;jsessionid=a7c5559f001800d9805561750dc3",
+            "/dataverse/brrbsmi;jsessionid=a7c5559f001800d9805561750dc3",
+            "/dataverse/brurbe;jsessionid=eebd9b2f5320007999005dc3d488/?order=asc&page=1&sort=dateSort&types=dataverses%3Adatasets",
+            "/dataverse/brurbe;jsessionid=eebd9b2f5320007999005dc3d488/?order=asc&page=1&sort=dateSort&types=dataverses%3Adatasets",
+            "/dataverse/preprints;jsessionid=f0ef0816c86fe784cd6f3a79ddd1",
+            "/dataverse/preprints;jsessionid=f0ef0816c86fe784cd6f3a79ddd1",
+            "/dataverse/scielodata;jsessionid=ad6338c2c497d4e78333870a66dc/?order=desc&page=1&sort=nameSort&types=files%3Adataverses",
+            "/dataverse/scielodata;jsessionid=ad6338c2c497d4e78333870a66dc/?order=desc&page=1&sort=nameSort&types=files%3Adataverses",
+            "/dataverse/scielodata;jsessionid=c1952523ada61956ecaadc330f8f/?order=asc&page=2&sort=nameSort&types=dataverses%3Adatasets",
+            "/dataverse/scielodata;jsessionid=c1952523ada61956ecaadc330f8f/?order=asc&page=2&sort=nameSort&types=dataverses%3Adatasets",
+            "/dataverse/scielodata;jsessionid=eb568f3c70a14b67c8c6b83483a0/?order=desc&page=2&sort=dateSort&types=dataverses%3Adatasets",
+            "/dataverse/scielodata;jsessionid=eb568f3c70a14b67c8c6b83483a0/?order=desc&page=2&sort=dateSort&types=dataverses%3Adatasets",
+            "/dataverse/scielodata;jsessionid=ee9dc5ad63b25d38840c68e5e202/?order=desc&page=53&sort=dateSort&types=dataverses%3Adatasets",
+            "/dataverse/scielodata;jsessionid=ee9dc5ad63b25d38840c68e5e202/?order=desc&page=53&sort=dateSort&types=dataverses%3Adatasets",
+            "/dataverse/scielodata;jsessionid=ef3c98c0de75e6878155fb57f917/?order=desc&page=1&sort=nameSort&types=dataverses%3Adatasets",
+            "/dataverse/scielodata;jsessionid=ef3c98c0de75e6878155fb57f917/?order=desc&page=1&sort=nameSort&types=dataverses%3Adatasets",
+            "/loginpage.xhtml;jsessionid=cdf021bb2b24a2931341c87e89c5?redirectPage=%2Fdataset.xhtml%3FpersistentId%3Ddoi%3A10.48331%2Fscielodata.0P0QUN",
+            "/loginpage.xhtml;jsessionid=cdf021bb2b24a2931341c87e89c5?redirectPage=%2Fdataset.xhtml%3FpersistentId%3Ddoi%3A10.48331%2Fscielodata.0P0QUN",
+        ]:
+            with self.subTest(url=url):
+                self.tm.identify_translator_class(url)
+                self.assertEqual(self.tm.translator.name, NAME_DATAVERSE_SITE)
+
+    def test_identity_translator_class_is_preprints_site(self):
+        for url in [
+            "index.php/scielo/preprint/view/7353/version/7787",
+            "index.php/scielo/citations/get?citationsId=10.1590%2FSciELOPreprints.7353&citationsShowList=1&citationsProvider=all",
+            "index.php/scielo/preprint/download/8342/15581/16158",
+            "index.php/scielo/preprint/download/5485/10601/11185",
+            "index.php/scielo/preprint/view/660/version/684",
+            "index.php/scielo/preprint/view/660/866",
+            "index.php/scielo/preprint/download/7697/14412/15009",
+            "index.php/scielo/preprint/view/7353/13812",
+            "plugins/generic/hypothesis/pdf.js/viewer/web/viewer.html?file=https%3A%2F%2Fpreprints.scielo.org%2Findex.php%2Fscielo%2Fpreprint%2Fdownload%2F7353%2F13812%2F14379",
+            "plugins/generic/hypothesis/pdf.js/viewer/web/locale/locale.properties",
+            "plugins/generic/hypothesis/pdf.js/viewer/web/locale/es-ES/viewer.properties",
+            "index.php/scielo/preprint/view/7766/14506",
+            "index.php/scielo/preprint/download/7766/14506/15120",
+            "index.php/scielo/preprint/download/7353/13812/14379",
+            "index.php/scielo/preprint/view/136/version/141",
+            "index.php/scielo/preprint/view/136/160",
+            "/index.php/scielo/preprint/view/7007",
+            "index.php/scielo/preprint/view/786/version/844",
+            "index.php/scielo/preprint/view/786/1092",
+            "index.php/scielo/preprint/download/2402/4081",
+            "index.php/scielo/preprint/download/631/812/843",
+            "index.php/scielo/preprint/download/631/812/843",
+            "index.php/scielo/preprint/view/7353/version/7787",
+            "index.php/scielo",
+            "index.php/scielo/preprint/view/2428/version/2569",
+            "index.php/scielo/preprint/download/9505/17685/18317",
+            "/index.php/scielo/preprint/download/8919/16665/17263",
+            "index.php/scielo/preprint/download/8240/15397/15975",
+            "index.php/scielo/preprint/download/9332/17385/17983",
+            "index.php/scielo/preprint/download/8899/16624/17227tail"
+        ]:
+            with self.subTest(url=url):
+                self.tm.identify_translator_class(url)
+                self.assertEqual(self.tm.translator.name, NAME_PREPRINTS_SITE)
+
+    def test_translate_classic_site_url_scielo_php_script_sci_arttext_with_pid_and_tlng(self):
+        url = 'https://westindies.scielo.org/scielo.php?script=sci_arttext&pid=S0043-31442017000600634&tlng=en'
+
+        expected = {}
+        expected['pid_v2'] = 'S0043-31442017000600634'
+        expected['pid_v3'] = None
+        expected['scielo_issn'] = '0043-3144'
+        expected['media_format'] = 'html'
+        expected['media_language'] = 'en'
+
+        obtained = self.tm.translate(url)
+
+        self.assertDictEqual(obtained, expected)
+
+    def test_translate_classic_site_url_scielo_php_script_sci_arttext_with_pid_tlng_and_extra_params(self):
+        url = 'https://westindies.scielo.org/scielo.php?script=sci_arttext&pid=S0043-31442017000600634&lng=en&nrm=iso&tlng=en'
+        expected = {}
+        expected['pid_v2'] = 'S0043-31442017000600634'
+        expected['pid_v3'] = None
+        expected['scielo_issn'] = '0043-3144'
+        expected['media_format'] = 'html'
+        expected['media_language'] = 'en'
+
+        obtained = self.tm.translate(url)
+
+        self.assertDictEqual(obtained, expected)
+
+    def test_translate_classic_site_url_pdf_path(self):
+        url = 'https://westindies.scielo.org/pdf/wimj/v66n6/2309-5830-wimj-66-06-0634.pdf'
+        
+        expected = {}
+        expected['pid_v2'] = 'S0043-31442017000600634'
+        expected['pid_v3'] = None
+        expected['scielo_issn'] = '0043-3144'
+        expected['media_format'] = 'pdf'
+        expected['media_language'] = 'en'
+
+        obtained = self.tm.translate(url)
+
+        self.assertDictEqual(obtained, expected)
+
+    def test_translate_classic_site_url_scieloorg_php_article_xml_with_pid_and_tlng(self):
+        url = 'http://westindies.scielo.org/scieloOrg/php/articleXML.php?pid=S0043-31442017000600634&tlng=en'
+        
+        expected = {}
+        expected['pid_v2'] = 'S0043-31442017000600634'
+        expected['pid_v3'] = None
+        expected['scielo_issn'] = '0043-3144'
+        expected['media_format'] = 'xml'
+        expected['media_language'] = 'en'
+
+        obtained = self.tm.translate(url)
+
+        self.assertDictEqual(obtained, expected)
+
+    def test_translate_classic_site_url_scielo_php_script_sci_abstract_with_pid_and_tlng(self):
+        url = 'https://westindies.scielo.org/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&tlng=es'
+        
+        expected = {}
+        expected['pid_v2'] = 'S0043-31442017000600634'
+        expected['pid_v3'] = None
+        expected['scielo_issn'] = '0043-3144'
+        expected['media_format'] = 'html'
+        expected['media_language'] = 'es'
+
+        obtained = self.tm.translate(url)
+
+        self.assertDictEqual(obtained, expected)
+
+    def test_translate_classic_site_url_scielo_php_script_sci_abstract_with_pid_and_tlng_invalid_value(self):
+        # Invalid value `de` for tlng
+        url = 'https://westindies.scielo.org/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&tlng=de'
+        
+        expected = {}
+        expected['pid_v2'] = 'S0043-31442017000600634'
+        expected['pid_v3'] = None
+        expected['scielo_issn'] = '0043-3144'
+        expected['media_format'] = 'html'
+
+        # The media_language should default to 'en' because the value of tlng is invalid
+        expected['media_language'] = 'en'
+
+        obtained = self.tm.translate(url)
+
+        self.assertDictEqual(obtained, expected)
+
+    def test_translate_classic_site_url_scielo_php_script_sci_abstract_with_pid_tlng_and_extra_params(self):
+        url = 'https://westindies.scielo.org/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&lng=en&nrm=iso&tlng=es'
+        
+        expected = {}
+        expected['pid_v2'] = 'S0043-31442017000600634'
+        expected['pid_v3'] = None
+        expected['scielo_issn'] = '0043-3144'
+        expected['media_format'] = 'html'
+        expected['media_language'] = 'es'
+
+        obtained = self.tm.translate(url)
+
+        self.assertDictEqual(obtained, expected)

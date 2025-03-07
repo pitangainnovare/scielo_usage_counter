@@ -178,9 +178,14 @@ class URLTranslationManager:
             if k in ('scielo_issn', 'pid_v2', 'media_language'):
                 if v:
                     std_fields[k] = v.strip().upper()
+                else:
+                    std_fields[k] = ''
+
             if k in ('pid_v3', 'media_language', 'media_format'):
                 if v:
                     std_fields[k] = v.strip()
+                else:
+                    std_fields[k] = ''            
 
         return std_fields
 

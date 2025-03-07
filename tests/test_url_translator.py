@@ -293,7 +293,7 @@ class TestURLTranslationManager(unittest.TestCase):
 
         expected = {}
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
+        expected['pid_v3'] = ''
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = 'html'
         expected['media_language'] = 'en'
@@ -306,7 +306,7 @@ class TestURLTranslationManager(unittest.TestCase):
         url = 'https://westindies.scielo.org/scielo.php?script=sci_arttext&pid=S0043-31442017000600634&lng=en&nrm=iso&tlng=en'
         expected = {}
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
+        expected['pid_v3'] = ''
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = 'html'
         expected['media_language'] = 'en'
@@ -320,7 +320,7 @@ class TestURLTranslationManager(unittest.TestCase):
         
         expected = {}
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
+        expected['pid_v3'] = ''
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = 'pdf'
         expected['media_language'] = 'en'
@@ -334,7 +334,7 @@ class TestURLTranslationManager(unittest.TestCase):
         
         expected = {}
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
+        expected['pid_v3'] = ''
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = 'xml'
         expected['media_language'] = 'en'
@@ -348,7 +348,7 @@ class TestURLTranslationManager(unittest.TestCase):
         
         expected = {}
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
+        expected['pid_v3'] = ''
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = 'html'
         expected['media_language'] = 'es'
@@ -363,7 +363,7 @@ class TestURLTranslationManager(unittest.TestCase):
         
         expected = {}
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
+        expected['pid_v3'] = ''
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = 'html'
 
@@ -379,7 +379,7 @@ class TestURLTranslationManager(unittest.TestCase):
         
         expected = {}
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
+        expected['pid_v3'] = ''
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = 'html'
         expected['media_language'] = 'es'

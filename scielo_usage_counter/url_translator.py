@@ -148,3 +148,20 @@ class URLTranslationManager:
                 self.journals_metadata['issn_to_publisher_name'][issn] = j.get('publisher_name')
 
         logging.info(f'Loaded {count} journals metadata.')
+
+    def identify_translator_class(self, url):
+        parsed_url = urlparse(url)
+
+        for pattern, url_translator_class  in [
+            (PATTERNS_CLASSIC_SITE, URLTranslatorClassicSite),
+            (PATTERNS_OPAC_SITE, URLTranslatorOPACSite),
+            (PATTERNS_OPAC_ALPHA_SITE, URLTranslatorOPACAlphaSite),
+            (PATTERNS_PREPRINTS_SITE, URLTranslatorPreprintsSite),
+            (PATTERNS_DATAVERSE_SITE, URLTranslatorDataverseSite),
+        ]:
+            if any(re.search(p, parsed_url.path) for p in pattern):
+                self.translator = url_translator_class(self.journals_metadata, self.articles_metadata)
+                return
+        
+        if not self.translator:
+            self.translator = URLTranslatorClassicSite(self.journals_metadata, self.articles_metadata)

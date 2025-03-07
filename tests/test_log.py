@@ -3,7 +3,7 @@ import datetime
 
 from device_detector import DeviceDetector
 
-from scielo_usage_counter import log
+from scielo_usage_counter import log_handler
 
 
 class TestLogParser(unittest.TestCase):
@@ -11,7 +11,7 @@ class TestLogParser(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.maxDiff = None
-        self.lp = log.LogParser(
+        self.lp = log_handler.LogParser(
             mmdb_path='tests/fixtures/map.mmdb',
             robots_path='tests/fixtures/counter-robots.txt'
         )
@@ -30,7 +30,7 @@ class TestLogParser(unittest.TestCase):
         ]
 
         for url in static_urls:
-            obtained = self.lp.action_is_static_file(url)
+            obtained = self.lp.url_is_static_file(url)
             self.assertTrue(obtained)
 
     def test_action_static_file_false(self):
@@ -44,7 +44,7 @@ class TestLogParser(unittest.TestCase):
         ]
 
         for url in not_static_urls:
-            obtained = self.lp.action_is_static_file(url)
+            obtained = self.lp.url_is_static_file(url)
             self.assertFalse(obtained)
 
     def test_action_download_true(self):
@@ -65,7 +65,7 @@ class TestLogParser(unittest.TestCase):
         ]
 
         for url in download_urls:
-            obtained = self.lp.action_is_download(url)
+            obtained = self.lp.url_is_download(url)
             self.assertTrue(obtained)
 
     def test_action_download_false(self):
@@ -76,7 +76,7 @@ class TestLogParser(unittest.TestCase):
         ]
 
         for url in not_download_urls:
-            obtained = self.lp.action_is_download(url)
+            obtained = self.lp.url_is_download(url)
             self.assertFalse(obtained)
 
     def test_user_agent_is_bot_true(self):
@@ -115,7 +115,7 @@ class TestLogParser(unittest.TestCase):
         ]
 
         for vp in invalid_paths:
-            obtained = self.lp.has_valid_path(vp)
+            obtained = self.lp.has_supported_url(vp)
             self.assertFalse(obtained)
 
     def test_has_valid_path_true(self):
@@ -125,7 +125,7 @@ class TestLogParser(unittest.TestCase):
         ]
 
         for vp in valid_paths:
-            obtained = self.lp.has_valid_path(vp)
+            obtained = self.lp.has_supported_url(vp)
             self.assertTrue(obtained)
 
     def test_has_valid_method_true(self):
@@ -218,7 +218,7 @@ class TestLogParser(unittest.TestCase):
             self.assertFalse(obtained)
 
     def test_parse_success(self):
-        lp = log.LogParser(
+        lp = log_handler.LogParser(
             mmdb_path='tests/fixtures/map.mmdb',
             robots_path='tests/fixtures/counter-robots.txt'
         )
@@ -244,7 +244,7 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.total_ignored_lines, 187)
 
     def test_parse_success_cub(self):
-        lp = log.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
+        lp = log_handler.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
         lp.logfile = 'tests/fixtures/usage.cub.log'
         lp.output = 'tests/fixtures/usage.cub.log.processed'
         lp.stats.output = 'tests/fixtures/usage.cub.log.processed.summary'
@@ -267,7 +267,7 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.total_ignored_lines, 46)
 
     def test_parse_success_esp(self):
-        lp = log.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
+        lp = log_handler.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
         lp.logfile = 'tests/fixtures/usage.esp.log'
         lp.output = 'tests/fixtures/usage.esp.log.processed'
         lp.stats.output = 'tests/fixtures/usage.esp.log.processed.summary'
@@ -290,7 +290,7 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.total_ignored_lines, 47)
 
     def test_parse_success_chl(self):
-        lp = log.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
+        lp = log_handler.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
         lp.logfile = 'tests/fixtures/usage.cl.log'
         lp.output = 'tests/fixtures/usage.cl.log.processed'
         lp.stats.output = 'tests/fixtures/usage.esp.log.processed.summary'
@@ -415,7 +415,7 @@ class TestLogParser(unittest.TestCase):
     def test_parse_line_without_ip_addresses(self):
         line = '- - - [06/Oct/2024:00:00:16 -0300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
         obtained = self.lp.parse_line(line)
-        self.assertListEqual(obtained, [])
+        self.assertIsNone(obtained)
 
     def test_parse_line_custom_timezone_minus(self):
         line = '45.65.189.47 - - [06/Oct/2024:00:00:16 -0300] "GET /scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract HTTP/1.1" 200 166 "https://www.scielo.cl/scielo.php?pid=S0718-50732020000300308&script=sci_arttext&tlng=pt" "Mozilla/5 .0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"'
@@ -480,7 +480,7 @@ class TestLogParser(unittest.TestCase):
     def test_parse_line_invalid(self):
         line = '67.205.129.249 - - [21/May/2021:05:05:16 -0300] "GET /scielo.php?download&pid=S0102-86502014000700465&format=EndNote HTTP/1.1" 200 491 "http://www.scielo.br/scielo.php?script=sci_isoref&pid=S0102-86502014000700465&lng=en" "LOCKSS cache"'
         obtained = self.lp.parse_line(line)
-        self.assertListEqual(obtained, [])
+        self.assertIsNone(obtained)
 
     def test_device_detector_client_name_valid(self):
         with open('tests/fixtures/user_agents.txt') as fin:
@@ -509,7 +509,7 @@ class TestLogParser(unittest.TestCase):
 class TestStats(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.stats = log.Stats()
+        self.stats = log_handler.LogStats()
 
     def test_increment(self):
         for attr, v in [

@@ -424,7 +424,6 @@ class LogParser:
     def parse_line(self, line):
         self.stats.increment('lines_parsed')
 
-        parsed_data = []
         try:
             decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
         except UnicodeDecodeError:
@@ -506,18 +505,21 @@ class LogParser:
             if processed_line['is_valid']:
                 self.stats.increment('total_imported_lines')
 
-                parsed_data.append(hit.local_datetime)
-                parsed_data.append(hit.client_name)
-                parsed_data.append(hit.client_version)
-                parsed_data.append(hit.ip)
-                parsed_data.append(hit.country_code)
-                parsed_data.append(hit.action)
+                if self.output_mode == 'list':
+                    return [
+                        processed_line['local_datetime'],
+                        processed_line['client_name'],
+                        processed_line['client_version'],
+                        processed_line['ip_address'],
+                        processed_line['country_code'],
+                        processed_line['url'],
+                    ]
+                elif self.output_mode == 'dict':
+                    return processed_line
             else:
                 self.stats.increment('total_ignored_lines')
         else:
             self.stats.increment('total_ignored_lines')
-
-        return parsed_data
 
     def parse(self):
         self.start = time.time()

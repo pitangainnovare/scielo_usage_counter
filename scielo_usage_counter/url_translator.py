@@ -128,3 +128,23 @@ class URLTranslationManager:
             self.articles_metadata['pid_v3_to_publication_year'][key_pid_v3] = art.get('publication_year')
 
         logging.info(f'Loaded {count} articles metadata.')
+
+    def load_journals(self, data):
+        logging.info('Loading journals metadata...')
+
+        self.journals_metadata = {
+            'acronym_to_scielo_issn': {},
+            'issn_to_title': {},
+            'issn_to_publisher_name': {},
+        }
+
+        count = 0
+        for j in data:
+            count += 1
+            self.journals_metadata['acronym_to_scielo_issn'][j.get('acronym')] = j.get('scielo_issn')
+
+            for issn in j.get('issns'):
+                self.journals_metadata['issn_to_title'][issn] = j.get('title')
+                self.journals_metadata['issn_to_publisher_name'][issn] = j.get('publisher_name')
+
+        logging.info(f'Loaded {count} journals metadata.')

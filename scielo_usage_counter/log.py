@@ -399,12 +399,12 @@ class LogParser:
                 return True
         return False
 
-    def has_valid_path(self, path):
-        if not self.action_is_static_file(path):
+    def has_supported_url(self, path):
+        if not self.url_is_static_file(path):
             return True
         return False
 
-    def action_is_static_file(self, path):
+    def url_is_static_file(self, path):
         try:
             file_from_url = urllib.parse.urlparse(path).path
         except ValueError:
@@ -417,7 +417,7 @@ class LogParser:
 
         return False
 
-    def action_is_download(self, path):
+    def url_is_download(self, path):
         file_from_url = path.split('/')[-1]
         ext = file_from_url.rsplit('.')[-1].lower()
 

@@ -421,66 +421,77 @@ class LogParser:
         match, ip_value = self.match_with_best_pattern(decoded_line)
 
         if match:
-            hit = Hit()
+            processed_line = {
+                'http_method': None,
+                'http_response_status': None,
+                'user_agent': None,
+                'client_name': None,
+                'client_version': None,
+                'url': None,
+                'ip_address': None,
+                'country_code': None,
+                'local_datetime': None,
+                'is_valid': True,
+            }
 
             data = match.groupdict()
 
-            hit.method = data.get('method')
-            if not self.has_valid_method(hit.method):
+            processed_line['http_method'] = data.get('method')
+            if not self.has_valid_method(processed_line['http_method']):
                 self.stats.increment('ignored_lines_invalid_method')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
-            hit.status = data.get('status')
-            if not self.has_valid_status(hit.status):
-                if self.status_is_redirect(hit.status):
+            processed_line['http_response_status'] = data.get('status')
+            if not self.has_valid_status(processed_line['http_response_status']):
+                if self.status_is_redirect(processed_line['http_response_status']):
                     self.stats.increment('ignored_lines_http_redirects')
-                elif self.status_is_error(hit.status):
+                elif self.status_is_error(processed_line['http_response_status']):
                     self.stats.increment('ignored_lines_http_errors')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
-            hit.user_agent = self.format_user_agent(data.get('user_agent'))
+            processed_line['user_agent'] = self.format_user_agent(data.get('user_agent'))
 
-            if self.user_agent_is_bot(hit.user_agent):
+            if self.user_agent_is_bot(processed_line['user_agent']):
                 self.stats.increment('ignored_lines_bot')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
             try:
-                device = DeviceDetector(hit.user_agent).parse()
+                device = DeviceDetector(processed_line['user_agent']).parse()
             except ZeroDivisionError:
                 device = DeviceDetector('').parse()
                 self.stats.increment('ignored_lines_invalid_user_agent')
-                logging.error(exceptions.DeviceDetectionError(f'Não foi possível identificar UserAgent {hit.user_agent} from line {decoded_line}'))
-                hit.is_valid = False
+                logging.error(exceptions.DeviceDetectionError(f"Não foi possível identificar UserAgent {processed_line['user_agent']} from line {decoded_line}"))
+                processed_line['is_valid'] = False
 
-            hit.client_name = self.format_client_name(device)
-            if not hit.client_name:
+            processed_line['client_name'] = self.format_client_name(device)
+            if not processed_line['client_name']:
                 self.stats.increment('ignored_lines_invalid_client_name')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
-            hit.client_version = self.format_client_version(device)
-            if not hit.client_version:
+            processed_line['client_version'] = self.format_client_version(device)
+            if not processed_line['client_version']:
                 self.stats.increment('ignored_lines_invalid_client_version')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
-            hit.action = data.get('path')
-            if not self.has_valid_path(hit.action):
+            processed_line['url'] = data.get('path')
+            if not self.has_supported_url(processed_line['url']):
                 self.stats.increment('ignored_lines_static_resources')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
-            hit.ip = ip_value
-            hit.country_code = self.geoip.ip_to_country_code(hit.ip)
-            if not hit.country_code:
+            processed_line['ip_address'] = ip_value
+            processed_line['country_code'] = self.geoip.ip_to_country_code(processed_line['ip_address'])
+            if not processed_line['country_code']:
                 self.stats.increment('ignored_lines_invalid_country_code')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
             date = data.get('date')
             timezone = data.get('timezone')
-            hit.local_datetime = self.format_date(date, timezone)
-            if not hit.local_datetime:
+            processed_line['local_datetime'] = self.format_date(date, timezone)
+            if not processed_line['local_datetime']:
                 self.stats.increment('ignored_lines_invalid_local_datetime')
-                hit.is_valid = False
+                processed_line['is_valid'] = False
 
-            if hit.is_valid:
+            if processed_line['is_valid']:
                 self.stats.increment('total_imported_lines')
 
                 parsed_data.append(hit.local_datetime)

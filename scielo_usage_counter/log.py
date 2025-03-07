@@ -530,12 +530,12 @@ class LogParser:
 
     def save(self, data, sep='\t'):
         self.output.write(sep.join([
-            'server_date',
-            'browser_name',
-            'browser_version',
-            'user_ip',
+            'local_datetime',
+            'client_name',
+            'client_version',
+            'ip_address',
             'country_code',
-            'action_name']) + '\n')
+            'url']) + '\n')
 
         [self.output.write(sep.join([str(di) for di in d]) + '\n') for d in data if d]
         self.output.close()

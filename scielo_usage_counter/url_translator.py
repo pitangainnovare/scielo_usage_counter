@@ -74,3 +74,8 @@ REGEX_CLASSIC_SITE_ARTICLE_PDF_FULL_PATH = re.compile(r'(.*)(/pdf/.*/.*)', re.IG
 REGEX_CLASSIC_SITE_ARTICLE_XML = re.compile(r'articlexml', re.IGNORECASE)
 
 
+class URLTranslationManager:
+    def __init__(self, journals_metadata, articles_metadata):
+        self.load_journals(journals_metadata)
+        self.load_articles(articles_metadata)
+        self.translator = None

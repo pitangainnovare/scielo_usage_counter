@@ -79,3 +79,52 @@ class URLTranslationManager:
         self.load_journals(journals_metadata)
         self.load_articles(articles_metadata)
         self.translator = None
+
+    def load_articles(self, data):
+        logging.info('Loading articles metadata...')
+
+        self.articles_metadata = {
+            'pid_v3_to_pid_v2': {},
+            'pid_v3_to_default_lang': {},
+            'pid_v3_to_available_langs': {},
+            'pid_v3_to_scielo_issn': {},
+            'pid_v3_to_publication_year': {},
+            'pid_v2_to_pid_v3': {},
+            'pid_v2_to_default_lang': {},
+            'pid_v2_to_available_langs': {},
+            'pid_v2_to_scielo_issn': {},
+            'pid_v2_to_publication_year': {},
+            'pdf_to_pid_v2': {},
+            'doi_to_pid_v2': {},
+            'doi_to_pid_v3': {},            
+        }
+
+        count = 0
+        for art in data:
+            count += 1
+            key_pid_v2 = art.get('pid_v2')
+            key_pid_v3 = art.get('pid_v3')
+
+            self.articles_metadata['pid_v2_to_pid_v3'][key_pid_v2] = key_pid_v3
+            self.articles_metadata['pid_v2_to_default_lang'][key_pid_v2] = art.get('default_lang')
+            self.articles_metadata['pid_v2_to_available_langs'][key_pid_v2] = art.get('text_langs')
+            self.articles_metadata['pid_v2_to_scielo_issn'][key_pid_v2] = art.get('scielo_issn')
+            self.articles_metadata['pid_v2_to_publication_year'][key_pid_v2] = art.get('publication_year')
+
+            for pdf_data in art.get('pdfs'):
+                pdf_key = pdf_data.get('path')
+                if not pdf_key.startswith('/'):
+                    pdf_key = f'/{pdf_key}'
+                self.articles_metadata['pdf_to_pid_v2'][pdf_key] = key_pid_v2
+
+                doi_key = pdf_data.get('doi')
+                self.articles_metadata['doi_to_pid_v2'][doi_key] = key_pid_v2
+                self.articles_metadata['doi_to_pid_v3'][doi_key] = key_pid_v3
+
+            self.articles_metadata['pid_v3_to_pid_v2'][key_pid_v3] = key_pid_v2
+            self.articles_metadata['pid_v3_to_default_lang'][key_pid_v3] = art.get('default_lang')
+            self.articles_metadata['pid_v3_to_available_langs'][key_pid_v3] = art.get('text_langs')
+            self.articles_metadata['pid_v3_to_scielo_issn'][key_pid_v3] = art.get('scielo_issn')
+            self.articles_metadata['pid_v3_to_publication_year'][key_pid_v3] = art.get('publication_year')
+
+        logging.info(f'Loaded {count} articles metadata.')

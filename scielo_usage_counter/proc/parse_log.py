@@ -4,7 +4,7 @@ import logging
 import os
 
 from scielo_log_validator import validator
-from scielo_usage_counter import log, values
+from scielo_usage_counter import log_handler, values
 from scielo_usage_counter.utils import file_utils
 from scielo_usage_counter.database import db 
 
@@ -45,16 +45,16 @@ def parse_file(logfile: str, output_directory: str, mmdb: str, robots: str):
     if validation_results.get('is_valid', {}).get('all', False):
         output_filepath = file_utils.generate_filepath(output_directory, logfile)
 
-        lp = log.LogParser(mmdb_path=mmdb, robots_path=robots)
+        lp = log_handler.LogParser(mmdb_path=mmdb, robots_path=robots)
         lp.logfile = logfile
         lp.output = output_filepath
         lp.stats.output = output_filepath + '.summary'
 
         logging.info(f'Processamento iniciado para arquivo {logfile} com saída em {output_filepath}')
-        data = lp.parse()
+        data = [d for d in lp.parse()]
         lp.save(data)
 
-        logging.info(f'Arquivo {logfile} foi processado em {lp.total_time} segundos')
+        logging.info(f'Arquivo {logfile} foi processado em {lp.total_time} segundos. Há {len(data)} linhas.')
         return values.LOGFILE_STATUS_LOADED
     else:
         logging.warning(f'Arquivo {logfile} foi invalidado')

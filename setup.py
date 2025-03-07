@@ -6,7 +6,6 @@ install_requirements=[
     'mysqlclient',
     'requests',
     'reverse_geocoder',
-    'sqlalchemy',
     'scielo_log_validator',
     'wget',
 ]
@@ -27,8 +26,6 @@ setup(
         [console_scripts]
         dl-geomap=scielo_usage_counter.proc.download_geomap:main
         dl-robots=scielo_usage_counter.proc.download_robots:main
-        init-db=scielo_usage_counter.proc.initialize_database:main
         parse-log=scielo_usage_counter.proc.parse_log:main
-        gen-pretable=scielo_usage_counter.proc.generate_pretable:main
     """
 )

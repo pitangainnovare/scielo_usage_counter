@@ -1,4 +1,4 @@
-server_date	browser_name	browser_version	user_ip	country_code	action_name
+local_datetime	client_name	client_version	ip_address	country_code	url
 2021-05-21 14:30:37	Google Search App	137.2.345735309	89.155.115.203	PT	/scielo.php?script=sci_arttext&pid=S0102-69092018000300512
 2021-05-22 02:58:50	CH	90.0.4430.212	176.88.0.1	TR	
 2021-05-22 02:58:51	CM	90.0.4430.210	177.185.0.0	BR	/scielo.php?script=sci_arttext&pid=S1679-39512005000100007

@@ -165,3 +165,8 @@ class URLTranslationManager:
         
         if not self.translator:
             self.translator = URLTranslatorClassicSite(self.journals_metadata, self.articles_metadata)
+
+    def translate(self, url: str):
+        self.identify_translator_class(url)
+        data = self.translator.pipeline_translate(url)
+        return self.standardize_fields(data)

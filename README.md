@@ -23,7 +23,7 @@ python setup.py install
 
 __Run tests__
 ```
-python setup.py test
+python -m unittest discover
 ```
 
 

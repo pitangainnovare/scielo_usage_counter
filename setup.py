@@ -12,7 +12,7 @@ install_requirements=[
 
 setup(
     name='scielo-usage-counter',
-    version='1.0.0',
+    version='1.1.0',
     description='The SciELO Usage Counter Tool',
     author='SciELO',
     author_email='scielo-dev@googlegroups.com',

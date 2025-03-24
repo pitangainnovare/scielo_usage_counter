@@ -1,15 +1,11 @@
 import unittest
 
-from urllib.parse import urlparse
-
-from scielo_usage_counter.url_translator import (
-    URLTranslationManager,
-    NAME_CLASSIC_SITE,
-    NAME_OPAC_SITE,
-    NAME_PREPRINTS_SITE,
-    NAME_DATAVERSE_SITE,
-    NAME_OPAC_ALPHA_SITE,
-)
+from scielo_usage_counter.url_translator import URLTranslationManager
+from scielo_usage_counter.translator.classic import URLTranslatorClassicSite
+from scielo_usage_counter.translator.dataverse import URLTranslatorDataverseSite
+from scielo_usage_counter.translator.opac import URLTranslatorOPACSite
+from scielo_usage_counter.translator.opac_alpha import URLTranslatorOPACAlphaSite
+from scielo_usage_counter.translator.preprints import URLTranslatorPreprintsSite
 
 
 class TestURLTranslationManager(unittest.TestCase):
@@ -23,7 +19,31 @@ class TestURLTranslationManager(unittest.TestCase):
                 'publisher_name': 'The University of the West Indies',
                 'subject_areas': ['Health Sciences',],
                 'wos_subject_areas': ['HEALTH CARE SCIENCES & SERVICES',]
-            }
+            }, {
+                'acronym': 'psoc',
+                'scielo_issn': '1807-0310',
+                'issns': ['1807-0310',],
+                'title': 'Psicologia & Sociedade',
+                'publisher_name': 'Universidade Federal do Rio Grande do Sul',
+                'subject_areas': ['Psychology',],
+                'wos_subject_areas': ['PSYCHOLOGY, SOCIAL',]
+            }, {
+                'acronym': 'rbz',
+                'scielo_issn': '1516-3598',
+                'issns': ['1516-3598'],
+                'title': 'Revista Brasileira de Zootecnia',
+                'publisher_name': 'Sociedade Brasileira de Zootecnia',
+                'subject_areas': ['Agricultural Sciences'],
+                'wos_subject_areas': ['AGRICULTURE, DAIRY & ANIMAL SCIENCE']
+            }, {
+                'acronym': 'neco',
+                'scielo_issn': '0103-6351',
+                'issns': ['0103-6351'],
+                'title': 'Nova Economia',
+                'publisher_name': 'Universidade Federal de Minas Gerais',
+                'subject_areas': ['Economics'],
+                'wos_subject_areas': ['ECONOMICS']
+            },
         ]
         self.articles_metadata = [
             {
@@ -38,10 +58,58 @@ class TestURLTranslationManager(unittest.TestCase):
                     {'doi': '10.7727/wimj.2014.321', 'lang': 'es', 'path': 'pdf/wimj/v66n6/es_2309-5830-wimj-66-06-0588.pdf', 'checked': False}
                 ]
             },
+            {
+                'pid_v2': '',
+                'pid_v3': '5ySvRy7VFTxsKLt35Mwsm9g',
+                'default_lang': 'en',
+                'text_langs': ['en', 'es'],
+                'scielo_issn': '0043-3144',
+                'publication_year': '2017',
+                'pdfs': [
+                    {'doi': '10.7727/neco.2014.321', 'lang': 'en', 'path': 'pdf/neco/v66n6/2309-5830-neco-66-06-0634.pdf', 'checked': False},
+                    {'doi': '10.7727/neco.2014.321', 'lang': 'es', 'path': 'pdf/neco/v66n6/es_2309-5830-neco-66-06-0588.pdf', 'checked': False}
+                ] 
+            },
+            {
+                'pid_v2': '',
+                'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
+                'default_lang': 'pt',
+                'text_langs': ['pt', 'en'],
+                'scielo_issn': '0103-6351',
+                'publication_year': '2021',
+                'pdfs': [
+                    {'doi': '10.1590/neco.2021.123', 'lang': 'pt', 'path': 'pdf/neco/v29n3/1234-5678-neco-29-03-0123.pdf', 'checked': False},
+                    {'doi': '10.1590/neco.2021.123', 'lang': 'en', 'path': 'pdf/neco/v29n3/en_1234-5678-neco-29-03-0123.pdf', 'checked': False}
+                ]
+            },
+            {
+                'pid_v2': '',
+                'pid_v3': 'cKnLLBn5NnshCX93Y6qYpHv',
+                'default_lang': 'en',
+                'text_langs': ['en', 'es'],
+                'scielo_issn': '1516-3598',
+                'publication_year': '2020',
+                'pdfs': [
+                    {'doi': '10.1590/rbz.2020.456', 'lang': 'en', 'path': 'pdf/rbz/v47n4/5678-1234-rbz-47-04-0456.pdf', 'checked': False},
+                    {'doi': '10.1590/rbz.2020.456', 'lang': 'es', 'path': 'pdf/rbz/v47n4/es_5678-1234-rbz-47-04-0456.pdf', 'checked': False}
+                ]
+            },
+            {
+                'pid_v2': '',
+                'pid_v3': 'hbSYnTbyNfzxcWT3FpXrL5G',
+                'default_lang': 'es',
+                'text_langs': ['es', 'en'],
+                'scielo_issn': '1807-0310',
+                'publication_year': '2019',
+                'pdfs': [
+                    {'doi': '10.1590/psoc.2019.789', 'lang': 'es', 'path': 'pdf/psoc/v37n2/7890-1234-psoc-37-02-0789.pdf', 'checked': False},
+                    {'doi': '10.1590/psoc.2019.789', 'lang': 'en', 'path': 'pdf/psoc/v37n2/en_7890-1234-psoc-37-02-0789.pdf', 'checked': False}
+                ]
+            }
         ]
         self.tm = URLTranslationManager(self.journals_metadata, self.articles_metadata)
 
-    def test_identity_translator_class_is_classic_site(self):
+    def test_identify_translator_class_is_classic_site(self):
         for url in [
             '/scielo.php?pid=S1981-77462017005002103&script=sci_arttext',
             '/pdf/rem/v63n4/a07v63n4.pdf',
@@ -94,9 +162,9 @@ class TestURLTranslationManager(unittest.TestCase):
         ]:
             with self.subTest(url=url):
                 self.tm.identify_translator_class(url)
-                self.assertEqual(self.tm.translator.name, NAME_CLASSIC_SITE)
+                self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
 
-    def test_identity_translator_class_is_opac_alpha_site(self):
+    def test_identify_translator_class_is_opac_alpha_site(self):
         for url in [
             '/article/csc/2025.v30n2/e05402023/pt/',
             '/j/csc/grid',
@@ -139,19 +207,21 @@ class TestURLTranslationManager(unittest.TestCase):
             "pdf/rsap/v14n5/v14n5a09.pdf",
             "pdf/spm/v53s2/10.pdf",
             '/pdf/csc/2025.v30n2/e05402023/pt',
+            'pdf/resp/2001.v75n5/459-466/es',
+            '/pdf/resp/2001.v75n5/459-466/es'
         ]:
             with self.subTest(url=url):
                 self.tm.identify_translator_class(url)
                 if 'j/' in url:
                     # In the case of j/, the are a few URLs that are similar to the ones used in the OPAC site
-                    self.assertIn(self.tm.translator.name, [NAME_OPAC_ALPHA_SITE, NAME_OPAC_SITE])
-                elif 'pdf' in url:
-                    # In the case of PDFs, the are a few URLs that are similar to the ones used in the OPAC and Classic sites
-                    self.assertIn(self.tm.translator.name, [NAME_OPAC_ALPHA_SITE, NAME_OPAC_SITE, NAME_CLASSIC_SITE])
+                    self.assertTrue(
+                        isinstance(self.tm.translator, URLTranslatorOPACAlphaSite) or
+                        isinstance(self.tm.translator, URLTranslatorOPACSite)
+                    )
                 else:
-                    self.assertEqual(self.tm.translator.name, NAME_OPAC_ALPHA_SITE)
+                    self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
 
-    def test_identity_translator_class_is_opac_site(self):
+    def test_identify_translator_class_is_opac_site(self):
         for url in [
             'https://scielo.br/j/aa/',
             "/j/neco/a/5ySvRy7VFTxsKLt35Mwsm9g/abstract/?lang=en",
@@ -159,12 +229,12 @@ class TestURLTranslationManager(unittest.TestCase):
             "/j/neco/a/5ySvRy7VFTxsKLt35Mwsm9g/abstract/?lang=it",
             "/j/neco/a/5ySvRy7VFTxsKLt35Mwsm9g/abstract/?format=xml",
             "/j/neco/a/5ySvRy7VFTxsKLt35Mwsm9g/abstract/?format=pdf",
-            "/j/cpa/a/HjpFWnMyMR6GVJ4Cnywnmdm/",
-            "/j/cpa/a/HjpFWnMyMR6GVJ4Cnywnmdm/?lang=en",
-            "/j/cpa/a/HjpFWnMyMR6GVJ4Cnywnmdm/?lang=pt",
-            "/j/cpa/a/HjpFWnMyMR6GVJ4Cnywnmdm/?lang=it",
-            "/j/cpa/a/HjpFWnMyMR6GVJ4Cnywnmdm/?format=xml",
-            "/j/cpa/a/HjpFWnMyMR6GVJ4Cnywnmdm/?format=pdf",
+            "/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/",
+            "/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/?lang=en",
+            "/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/?lang=pt",
+            "/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/?lang=it",
+            "/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/?format=xml",
+            "/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/?format=pdf",
             "/j/jiems/a/JJRjZV3MjjdgRWk9JmfPTYd/?lang=en",
             "/j/jiems/a/JJRjZV3MjjdgRWk9JmfPTYd/?lang=pt",
             "/j/jiems/a/JJRjZV3MjjdgRWk9JmfPTYd/?lang=it",
@@ -207,9 +277,9 @@ class TestURLTranslationManager(unittest.TestCase):
             "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?format=pdf"
         ]:
             self.tm.identify_translator_class(url)
-            self.assertEqual(self.tm.translator.name, NAME_OPAC_SITE)
+            self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
 
-    def test_identity_translator_class_is_dataverse_site(self):
+    def test_identify_translator_class_is_dataverse_site(self):
         for url in [
             '/dataset.xhtml?persistentId=doi:10.48331/scielodata.KKBWDE',
             '/dataset.xhtml?persistentId=doi:10.48331/scielodata.Q8TJ9N',
@@ -246,13 +316,39 @@ class TestURLTranslationManager(unittest.TestCase):
             "/dataverse/scielodata;jsessionid=ef3c98c0de75e6878155fb57f917/?order=desc&page=1&sort=nameSort&types=dataverses%3Adatasets",
             "/loginpage.xhtml;jsessionid=cdf021bb2b24a2931341c87e89c5?redirectPage=%2Fdataset.xhtml%3FpersistentId%3Ddoi%3A10.48331%2Fscielodata.0P0QUN",
             "/loginpage.xhtml;jsessionid=cdf021bb2b24a2931341c87e89c5?redirectPage=%2Fdataset.xhtml%3FpersistentId%3Ddoi%3A10.48331%2Fscielodata.0P0QUN",
+            "/file.xhtml?persistentId=doi:10.48331/scielodata.JAZSA3/NPTQ0M&version=1.0&toolType=PREVIEW",
+            "/file.xhtml?persistentId=doi:10.48331/scielodata.LCXGHX/6U9IHT&version=2.0",
+            "/api/access/datafile/8196?gbrecs=true",
+            "/api/access/datafile/8440?gbrecs=true",
+            "/api/access/datafile/9911;jsessionid=0f4cb3efd291eae89e65a2faf59e?imageThumb=400&pfdrid_c=true",
+            "/api/datasets/3417/versions/1.0",
+            "/api/datasets/:persistentId?persistentId=doi:10.48331/scielodata.XEOF5P",
+            "/api/datasets/export?exporter=Datacite&persistentId=doi%3A10.48331/scielodata.FYC8LU",
+            "/api/datasets/export?exporter=dcterms&persistentId=doi%3A10.48331/scielodata.1WUQZ5",
+            "/api/datasets/export?exporter=dcterms&persistentId=doi%3A10.48331/scielodata.FYC8LU",
+            "/api/datasets/export?exporter=dcterms&persistentId=doi%3A10.48331/scielodata.NJ7OML",
         ]:
             with self.subTest(url=url):
                 self.tm.identify_translator_class(url)
-                self.assertEqual(self.tm.translator.name, NAME_DATAVERSE_SITE)
+                self.assertIsInstance(self.tm.translator, URLTranslatorDataverseSite)
 
-    def test_identity_translator_class_is_preprints_site(self):
-        for url in [
+    def test_identify_translator_class_is_preprints_site(self):
+        urls = [
+            # REGEX_PREPRINTS_SITE_VIEW_ABSTRACT
+            "preprint/view/12345",
+            # REGEX_PREPRINTS_SITE_DOCUMENT_ABSTRACT
+            "documents/article/view/54321",
+            # REGEX_PREPRINTS_SITE_VERSION_ABSTRACT
+            "preprint/view/12345/version/1",
+            # REGEX_PREPRINTS_SITE_VIEW_PDF
+            "preprint/view/12345/6789",
+            # REGEX_PREPRINTS_SITE_DOWNLOAD_PDF
+            "preprint/download/12345/6789",
+            # REGEX_PREPRINTS_SITE_DOCUMENT_DOWNLOAD_PDF
+            "documents/article/download/54321/9876",
+            # REGEX_PREPRINTS_SITE_VERSION_DOWNLOAD_PDF
+            "preprint/download/12345/version/1/6789",
+            # Additional URLs
             "index.php/scielo/preprint/view/7353/version/7787",
             "index.php/scielo/citations/get?citationsId=10.1590%2FSciELOPreprints.7353&citationsShowList=1&citationsProvider=all",
             "index.php/scielo/preprint/download/8342/15581/16158",
@@ -283,107 +379,23 @@ class TestURLTranslationManager(unittest.TestCase):
             "index.php/scielo/preprint/download/8240/15397/15975",
             "index.php/scielo/preprint/download/9332/17385/17983",
             "index.php/scielo/preprint/download/8899/16624/17227tail"
-        ]:
+            "https://preprints.scielo.org/preprint/view/1234",
+            "https://preprints.scielo.org/preprint/view/1234/version/2",
+            "https://preprints.scielo.org/documents/article/view/5678",
+            "https://preprints.scielo.org/preprint/download/1234/5678",
+            "https://preprints.scielo.org/preprint/download/1234/version/2/5678",
+            "https://preprints.scielo.org/documents/article/download/5678/1234",
+            "/preprint/view/1234",
+            "/preprint/view/1234/version/2",
+            "/documents/article/view/5678",
+            "/preprint/download/1234/5678",
+            "/preprint/download/1234/version/2/5678",
+            "/documents/article/download/5678/1234",
+            "https://preprints.scielo.org/invalid/url",
+            "https://preprints.scielo.org/preprint/unknown/1234",
+        ]
+
+        for url in urls:
             with self.subTest(url=url):
                 self.tm.identify_translator_class(url)
-                self.assertEqual(self.tm.translator.name, NAME_PREPRINTS_SITE)
-
-    def test_translate_classic_site_url_scielo_php_script_sci_arttext_with_pid_and_tlng(self):
-        url = 'https://westindies.scielo.org/scielo.php?script=sci_arttext&pid=S0043-31442017000600634&tlng=en'
-
-        expected = {}
-        expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = ''
-        expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'html'
-        expected['media_language'] = 'en'
-
-        obtained = self.tm.translate(url)
-
-        self.assertDictEqual(obtained, expected)
-
-    def test_translate_classic_site_url_scielo_php_script_sci_arttext_with_pid_tlng_and_extra_params(self):
-        url = 'https://westindies.scielo.org/scielo.php?script=sci_arttext&pid=S0043-31442017000600634&lng=en&nrm=iso&tlng=en'
-        expected = {}
-        expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = ''
-        expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'html'
-        expected['media_language'] = 'en'
-
-        obtained = self.tm.translate(url)
-
-        self.assertDictEqual(obtained, expected)
-
-    def test_translate_classic_site_url_pdf_path(self):
-        url = 'https://westindies.scielo.org/pdf/wimj/v66n6/2309-5830-wimj-66-06-0634.pdf'
-        
-        expected = {}
-        expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = ''
-        expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'pdf'
-        expected['media_language'] = 'en'
-
-        obtained = self.tm.translate(url)
-
-        self.assertDictEqual(obtained, expected)
-
-    def test_translate_classic_site_url_scieloorg_php_article_xml_with_pid_and_tlng(self):
-        url = 'http://westindies.scielo.org/scieloOrg/php/articleXML.php?pid=S0043-31442017000600634&tlng=en'
-        
-        expected = {}
-        expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = ''
-        expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'xml'
-        expected['media_language'] = 'en'
-
-        obtained = self.tm.translate(url)
-
-        self.assertDictEqual(obtained, expected)
-
-    def test_translate_classic_site_url_scielo_php_script_sci_abstract_with_pid_and_tlng(self):
-        url = 'https://westindies.scielo.org/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&tlng=es'
-        
-        expected = {}
-        expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = ''
-        expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'html'
-        expected['media_language'] = 'es'
-
-        obtained = self.tm.translate(url)
-
-        self.assertDictEqual(obtained, expected)
-
-    def test_translate_classic_site_url_scielo_php_script_sci_abstract_with_pid_and_tlng_invalid_value(self):
-        # Invalid value `de` for tlng
-        url = 'https://westindies.scielo.org/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&tlng=de'
-        
-        expected = {}
-        expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = ''
-        expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'html'
-
-        # The media_language should default to 'en' because the value of tlng is invalid
-        expected['media_language'] = 'en'
-
-        obtained = self.tm.translate(url)
-
-        self.assertDictEqual(obtained, expected)
-
-    def test_translate_classic_site_url_scielo_php_script_sci_abstract_with_pid_tlng_and_extra_params(self):
-        url = 'https://westindies.scielo.org/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&lng=en&nrm=iso&tlng=es'
-        
-        expected = {}
-        expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = ''
-        expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'html'
-        expected['media_language'] = 'es'
-
-        obtained = self.tm.translate(url)
-
-        self.assertDictEqual(obtained, expected)
+                self.assertIsInstance(self.tm.translator, URLTranslatorPreprintsSite)

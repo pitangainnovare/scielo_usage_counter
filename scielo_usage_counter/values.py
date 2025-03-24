@@ -130,40 +130,19 @@ EXTENSIONS_DOWNLOAD = set([
     'sig'
 ])
 
-PRETABLE_FILE_HEADER = [
-    'serverTime', 
-    'browserName', 
-    'browserVersion', 
-    'ip', 
-    'latitude', 
-    'longitude', 
-    'actionName'
-]
+# Default ISSN for documents that do not have an ISSN
+DEFAULT_SCIELO_ISSN = '0000-0000'
 
-LOGFILE_STATUS_QUEUE = 0
-LOGFILE_STATUS_PARTIAL = 1
-LOGFILE_STATUS_LOADED = 2
-LOGFILE_STATUS_INVALIDATED = -9
+# Default language for documents that do not have a language
+MEDIA_LANGUAGE_UNDEFINED = 'un'
 
-DATE_STATUS_QUEUE = 0
-DATE_STATUS_PARTIAL = 1
-DATE_STATUS_LOADED = 2
-DATE_STATUS_PRETABLE = 3
-DATE_STATUS_COMPUTED = 4
-DATE_STATUS_COMPLETED = 5
-DATE_STATUS_EXTRACTING_PRETABLE = -3
+# Media formats
+MEDIA_FORMAT_HTML = 'html'
+MEDIA_FORMAT_PDF = 'pdf'
+MEDIA_FORMAT_XML = 'xml'
+MEDIA_FORMAT_UNDEFINED = 'und'
 
-SORT_RESULT_SUCCESS = 0
-
-LOG_PATH_TRANSLATOR = {
-    '/app/usage-logs-ratchet': '/logs-ratchet',
-    '/app/usage-logs-dataverse': '/logs-dataverse',
-    '/app/usage-logs-preprints': '/logs-submission-node01',
-    '/app/usage-logs-venezuela': '/logs-venezuela',
-    '/app/usage-logs-hiperion': '/logs-oldscielobr',
-    '/app/usage-logs-node03': '/logs-node03-oldscielobr',
-    '/app/usage-logs-newbrvarnish02': '/logs-newbrvarnish02',
-    '/app/usage-logs-newbrvarnish03': '/logs-newbrvarnish03',
-    '/app/usage-logs-newbrvarnish05': '/logs-newbrvarnish05',
-    '/app/usage-logs-newbrvarnish06': '/logs-newbrvarnish06',
-}
+# Content types related to the Project COUNTER R5
+R5_CONTENT_TYPE_INVESTIGATION = 'investigation'
+R5_CONTENT_TYPE_REQUEST = 'request'
+R5_CONTENT_TYPE_UNDEFINED = 'und'

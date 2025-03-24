@@ -180,11 +180,3 @@ class URLTranslationManager:
                     std_fields[k] = ''            
 
         return std_fields
-
-class URLTranslatorDataverseSite:
-    def __init__(self, journals_metadata, articles_metadata):
-        self.journals_metadata = journals_metadata
-        self.articles_metadata = articles_metadata
-        self.name = NAME_DATAVERSE_SITE
-
-    # TODO: implement the dataverse methods

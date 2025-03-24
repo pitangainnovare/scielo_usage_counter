@@ -1,69 +1,54 @@
 import logging
 import re
 
-from urllib.parse import urlparse, urlsplit, parse_qs, parse_qsl
+from urllib.parse import urlparse
+
+from  scielo_usage_counter.translator.classic import URLTranslatorClassicSite
+from  scielo_usage_counter.translator.opac import URLTranslatorOPACSite
+from  scielo_usage_counter.translator.opac_alpha import URLTranslatorOPACAlphaSite
+from  scielo_usage_counter.translator.dataverse import URLTranslatorDataverseSite
+from  scielo_usage_counter.translator.preprints import URLTranslatorPreprintsSite
 
 
-NAME_CLASSIC_SITE = 'classic_site'
-NAME_OPAC_ALPHA_SITE = 'opac_alpha_site'
-NAME_OPAC_SITE = 'opac_site'
-NAME_PREPRINTS_SITE = 'preprints_site'
-NAME_DATAVERSE_SITE = 'dataverse_site'
-
+# Patterns to support identify a URL as a Classic Site URL
 PATTERNS_CLASSIC_SITE = [
     re.compile(r'/scielo.php', re.IGNORECASE),
     re.compile(r'/scieloorg/php/', re.IGNORECASE),
     re.compile(r'/popup/', re.IGNORECASE),
     re.compile(r'/google_metrics/', re.IGNORECASE),
-    re.compile(r'/pdf/', re.IGNORECASE),
+    re.compile(r'/pdf/.*\.pdf', re.IGNORECASE),
 ]
 
+#  Patterns to support identify a URL as a Dataverse Site URL
+PATTERNS_DATAVERSE_SITE = [
+    re.compile(r'api/datasets', re.IGNORECASE),
+    re.compile(r'api/access/datafile', re.IGNORECASE),
+    re.compile(r'dataset.xhtml', re.IGNORECASE),
+    re.compile(r'dataverse', re.IGNORECASE),
+    re.compile(r'file.xhtml', re.IGNORECASE),
+    re.compile(r'logingpage.xhtml', re.IGNORECASE),
+]
+
+# Patterns to support identify a URL as a OPAC Alpha Site URL
+PATTERNS_OPAC_ALPHA_SITE = [
+    re.compile(r'/?j/[^/]+/', re.IGNORECASE),
+    re.compile(r'/?article/[\w]+/[^/]+/[^/]+', re.IGNORECASE),
+    re.compile(r'/?pdf/[^/]+/[^/]+/', re.IGNORECASE),
+]
+
+# Patterns to support identify a URL as a OPAC Site URL
 PATTERNS_OPAC_SITE = [
     re.compile(r'/?j/[^/]+/', re.IGNORECASE),
 ]
 
+# Patterns to support identify a URL as a Preprints Site URL
 PATTERNS_PREPRINTS_SITE = [
-    re.compile(r'/?index.php/documents/article/(download|view)/', re.IGNORECASE),
+    re.compile(r'/?preprint/view/', re.IGNORECASE),
+    re.compile(r'/?preprint/download/', re.IGNORECASE),
+    re.compile(r'/?(index.php)?/?documents/article/(download|view)/', re.IGNORECASE),
     re.compile(r'/?index.php/scielo/preprint/', re.IGNORECASE),
     re.compile(r'/?plugins/generic/(hypothesis|pdfJsViewer)/', re.IGNORECASE),
 ]
-
-PATTERNS_OPAC_ALPHA_SITE = [
-    re.compile(r'/?j/[^/]+/', re.IGNORECASE),
-    re.compile(r'/?article/[^/]+/[^/]+/[^/]+', re.IGNORECASE),
-    re.compile(r'/?pdf/[^/]+/[^/]+/', re.IGNORECASE),
-]
-
-PATTERNS_DATAVERSE_SITE = [
-    re.compile(r'dataset.xhtml', re.IGNORECASE),
-    re.compile(r'dataverse', re.IGNORECASE),
-    re.compile(r'logingpage.xhtml', re.IGNORECASE),
-]
-
-DEFAULT_SCIELO_ISSN = '0000-0000'
-
-MEDIA_LANGUAGE_UNDEFINED = 'un'
-
-MEDIA_FORMAT_HTML = 'html'
-MEDIA_FORMAT_PDF = 'pdf'
-MEDIA_FORMAT_XML = 'xml'
-MEDIA_FORMAT_UNDEFINED = 'und'
-
-
-# Patterns related to OPAC Alpha site
-REGEX_OPAC_ALPHA_JOURNAL_ARTICLE_HTML_DETAILS = re.compile(r'.*/article/(\w*)/?([\d|\w|\.|\-]*)/?([\d|\w|\-]*)/?(\w*|)', re.IGNORECASE)
-REGEX_OPAC_ALPHA_JOURNAL_ARTICLE_PDF_DETAILS = re.compile(r'.*/pdf/(\w*)/([\d|\w|\.|\-]*)/?([\d|\w|\-]*)/?(\w*|)', re.IGNORECASE)
-REGEX_OPAC_ALPHA_JOURNAL_ARTICLE_MEDIA_ASSETS_DETAILS = re.compile(r'.*/media/assets/(\w*)/?([\d|\w|\.|\-]*)/?([\d|\w|\-|\.|\_]*)', re.IGNORECASE)
-
-# Patterns related to OPAC Site
-REGEX_OPAC_SITE_JOURNAL_ARTICLE = re.compile(r'.*/j/(\w*)/a/(\w*)', re.IGNORECASE)  # grupo 1 = acrônimo, grupo 2 = PID
-REGEX_OPAC_SITE_RAW_DETAIL = re.compile(r'.*/documentstore/([\w|-]*)/(\w*)/([\w|\.]*)', re.IGNORECASE)
-
-# Patterns related to Classic Site
-REGEX_CLASSIC_SITE_ARTICLE_PDF = re.compile(r'.*\.pdf$', re.IGNORECASE)
-REGEX_CLASSIC_SITE_ARTICLE_PDF_PATH = re.compile(r'.*(/pdf/.*/.*)', re.IGNORECASE)
-REGEX_CLASSIC_SITE_ARTICLE_PDF_FULL_PATH = re.compile(r'(.*)(/pdf/.*/.*)', re.IGNORECASE)
-REGEX_CLASSIC_SITE_ARTICLE_XML = re.compile(r'articlexml', re.IGNORECASE)
 
 
 class URLTranslationManager:
@@ -88,7 +73,7 @@ class URLTranslationManager:
             'pid_v2_to_publication_year': {},
             'pdf_to_pid_v2': {},
             'doi_to_pid_v2': {},
-            'doi_to_pid_v3': {},            
+            'doi_to_pid_v3': {},
         }
 
         count = 0
@@ -97,27 +82,37 @@ class URLTranslationManager:
             key_pid_v2 = art.get('pid_v2')
             key_pid_v3 = art.get('pid_v3')
 
-            self.articles_metadata['pid_v2_to_pid_v3'][key_pid_v2] = key_pid_v3
-            self.articles_metadata['pid_v2_to_default_lang'][key_pid_v2] = art.get('default_lang')
-            self.articles_metadata['pid_v2_to_available_langs'][key_pid_v2] = art.get('text_langs')
-            self.articles_metadata['pid_v2_to_scielo_issn'][key_pid_v2] = art.get('scielo_issn')
-            self.articles_metadata['pid_v2_to_publication_year'][key_pid_v2] = art.get('publication_year')
+            if key_pid_v2:
+                self.articles_metadata['pid_v2_to_pid_v3'][key_pid_v2] = key_pid_v3
+                self.articles_metadata['pid_v2_to_default_lang'][key_pid_v2] = art.get('default_lang')
+                self.articles_metadata['pid_v2_to_available_langs'][key_pid_v2] = art.get('text_langs')
+                self.articles_metadata['pid_v2_to_scielo_issn'][key_pid_v2] = art.get('scielo_issn')
+                self.articles_metadata['pid_v2_to_publication_year'][key_pid_v2] = art.get('publication_year')
 
             for pdf_data in art.get('pdfs'):
                 pdf_key = pdf_data.get('path')
                 if not pdf_key.startswith('/'):
                     pdf_key = f'/{pdf_key}'
-                self.articles_metadata['pdf_to_pid_v2'][pdf_key] = key_pid_v2
+
+                if key_pid_v2:
+                    self.articles_metadata['pdf_to_pid_v2'][pdf_key] = key_pid_v2
 
                 doi_key = pdf_data.get('doi')
-                self.articles_metadata['doi_to_pid_v2'][doi_key] = key_pid_v2
-                self.articles_metadata['doi_to_pid_v3'][doi_key] = key_pid_v3
+   
+                if key_pid_v2:
+                    self.articles_metadata['doi_to_pid_v2'][doi_key] = key_pid_v2
 
-            self.articles_metadata['pid_v3_to_pid_v2'][key_pid_v3] = key_pid_v2
-            self.articles_metadata['pid_v3_to_default_lang'][key_pid_v3] = art.get('default_lang')
-            self.articles_metadata['pid_v3_to_available_langs'][key_pid_v3] = art.get('text_langs')
-            self.articles_metadata['pid_v3_to_scielo_issn'][key_pid_v3] = art.get('scielo_issn')
-            self.articles_metadata['pid_v3_to_publication_year'][key_pid_v3] = art.get('publication_year')
+                if key_pid_v3:
+                    self.articles_metadata['doi_to_pid_v3'][doi_key] = key_pid_v3
+
+            if key_pid_v3 and key_pid_v2:
+                self.articles_metadata['pid_v3_to_pid_v2'][key_pid_v3] = key_pid_v2
+    
+            if key_pid_v3:
+                self.articles_metadata['pid_v3_to_default_lang'][key_pid_v3] = art.get('default_lang')
+                self.articles_metadata['pid_v3_to_available_langs'][key_pid_v3] = art.get('text_langs')
+                self.articles_metadata['pid_v3_to_scielo_issn'][key_pid_v3] = art.get('scielo_issn')
+                self.articles_metadata['pid_v3_to_publication_year'][key_pid_v3] = art.get('publication_year')
 
         logging.info(f'Loaded {count} articles metadata.')
 
@@ -147,15 +142,17 @@ class URLTranslationManager:
         for pattern, url_translator_class  in [
             (PATTERNS_CLASSIC_SITE, URLTranslatorClassicSite),
             (PATTERNS_OPAC_SITE, URLTranslatorOPACSite),
-            (PATTERNS_OPAC_ALPHA_SITE, URLTranslatorOPACAlphaSite),
             (PATTERNS_PREPRINTS_SITE, URLTranslatorPreprintsSite),
+            (PATTERNS_OPAC_ALPHA_SITE, URLTranslatorOPACAlphaSite),
             (PATTERNS_DATAVERSE_SITE, URLTranslatorDataverseSite),
         ]:
             if any(re.search(p, parsed_url.path) for p in pattern):
+                logging.info(f'Identified URL as a {url_translator_class.__name__} URL.')
                 self.translator = url_translator_class(self.journals_metadata, self.articles_metadata)
                 return
         
         if not self.translator:
+            logging.info('Could not identify URL translator class for {url}')
             self.translator = URLTranslatorClassicSite(self.journals_metadata, self.articles_metadata)
 
     def translate(self, url: str):
@@ -167,16 +164,16 @@ class URLTranslationManager:
         std_fields = {}
         
         for k, v in fields.items():
-            if k in ('scielo_issn', 'pid_v2', 'media_language'):
+            if k in ('scielo_issn', 'pid_v2', 'id'):
                 if v:
                     std_fields[k] = v.strip().upper()
-                else:
-                    std_fields[k] = ''
+                    continue
 
             if k in ('pid_v3', 'media_language', 'media_format'):
                 if v:
                     std_fields[k] = v.strip()
-                else:
-                    std_fields[k] = ''            
+                    continue
+            
+            std_fields[k] = v
 
         return std_fields

@@ -56,11 +56,7 @@ class URLTranslatorOPACSite:
             'resource_ssm_path': ''
         }
 
-        url_evaluated = url
-        if not url_evaluated.startswith('http'):
-            url_evaluated = ''.join(['http://', url_evaluated]).replace('//', '/')
-
-        url_parsed = urlparse(url_evaluated)
+        url_parsed = urlparse(url)
         params = dict(parse_qsl(url_parsed.query))
         for k, v in params.items():
             if k == 'lang':

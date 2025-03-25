@@ -72,6 +72,7 @@ class URLTranslationManager:
             'pid_v2_to_scielo_issn': {},
             'pid_v2_to_publication_year': {},
             'pdf_to_pid_v2': {},
+            'pdf_to_pid_v3': {},
             'doi_to_pid_v2': {},
             'doi_to_pid_v3': {},
         }
@@ -104,6 +105,7 @@ class URLTranslationManager:
 
                 if key_pid_v3:
                     self.articles_metadata['doi_to_pid_v3'][doi_key] = key_pid_v3
+                    self.articles_metadata['pdf_to_pid_v3'][pdf_key] = key_pid_v3
 
             if key_pid_v3 and key_pid_v2:
                 self.articles_metadata['pid_v3_to_pid_v2'][key_pid_v3] = key_pid_v2

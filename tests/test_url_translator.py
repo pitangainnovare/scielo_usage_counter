@@ -166,6 +166,7 @@ class TestURLTranslationManager(unittest.TestCase):
 
     def test_identify_translator_class_is_opac_alpha_site(self):
         for url in [
+            '/article/csc/2025.v30n2/e05402023/pt/?abstract_lang=pt',
             '/article/csc/2025.v30n2/e05402023/pt/',
             '/j/csc/grid',
             '/j/csc/i/2025.v30n2/',

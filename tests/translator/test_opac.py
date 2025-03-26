@@ -3,8 +3,12 @@ import unittest
 from scielo_usage_counter.url_translator import URLTranslationManager
 from scielo_usage_counter.translator.opac import URLTranslatorOPACSite
 from scielo_usage_counter.values import (
-    R5_CONTENT_TYPE_INVESTIGATION,
-    R5_CONTENT_TYPE_REQUEST,
+    MEDIA_FORMAT_HTML,
+    MEDIA_FORMAT_PDF,
+    MEDIA_FORMAT_XML,
+    CONTENT_TYPE_FULL_TEXT,
+    CONTENT_TYPE_ABSTRACT,
+    CONTENT_TYPE_CITATION_EXPORT,
 )
 
 
@@ -12,14 +16,6 @@ class TestTranslatorOPAC(unittest.TestCase):
     def setUp(self):
         self.journals_metadata = [
             {
-                'acronym': 'wimj',
-                'scielo_issn': '0043-3144',
-                'issns': ['0043-3144',],
-                'title': 'West Indian Medical Journal',
-                'publisher_name': 'The University of the West Indies',
-                'subject_areas': ['Health Sciences',],
-                'wos_subject_areas': ['HEALTH CARE SCIENCES & SERVICES',]
-            }, {
                 'acronym': 'psoc',
                 'scielo_issn': '1807-0310',
                 'issns': ['1807-0310',],
@@ -47,23 +43,11 @@ class TestTranslatorOPAC(unittest.TestCase):
         ]
         self.articles_metadata = [
             {
-                'pid_v2': 'S0043-31442017000600634',
-                'pid_v3': '',
-                'default_lang': 'en',
-                'text_langs': ['en', 'es'],
-                'scielo_issn': '0043-3144',
-                'publication_year': '2017',
-                'pdfs': [
-                    {'doi': '10.7727/wimj.2014.321', 'lang': 'en', 'path': 'pdf/wimj/v66n6/2309-5830-wimj-66-06-0634.pdf', 'checked': False},
-                    {'doi': '10.7727/wimj.2014.321', 'lang': 'es', 'path': 'pdf/wimj/v66n6/es_2309-5830-wimj-66-06-0588.pdf', 'checked': False}
-                ]
-            },
-            {
                 'pid_v2': '',
                 'pid_v3': '5ySvRy7VFTxsKLt35Mwsm9g',
                 'default_lang': 'en',
                 'text_langs': ['en', 'es'],
-                'scielo_issn': '0043-3144',
+                'scielo_issn': '0103-6351',
                 'publication_year': '2017',
                 'pdfs': [
                     {'doi': '10.7727/neco.2014.321', 'lang': 'en', 'path': 'pdf/neco/v66n6/2309-5830-neco-66-06-0634.pdf', 'checked': False},
@@ -118,7 +102,7 @@ class TestTranslatorOPAC(unittest.TestCase):
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
             'media_format': 'html',
             'media_language': 'en',
-            'content_type': R5_CONTENT_TYPE_INVESTIGATION,
+            'content_type': CONTENT_TYPE_ABSTRACT,
         }
 
         obtained = self.tm.translate(url)
@@ -132,9 +116,9 @@ class TestTranslatorOPAC(unittest.TestCase):
             'scielo_issn': '0103-6351',
             'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
-            'media_format': 'html',
+            'media_format': MEDIA_FORMAT_HTML,
             'media_language': 'pt',
-            'content_type': R5_CONTENT_TYPE_REQUEST,
+            'content_type': CONTENT_TYPE_FULL_TEXT,
         }
 
         obtained = self.tm.translate(url)
@@ -148,9 +132,9 @@ class TestTranslatorOPAC(unittest.TestCase):
             'scielo_issn': '0103-6351',
             'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
-            'media_format': 'html',
+            'media_format': MEDIA_FORMAT_HTML,
             'media_language': 'pt',
-            'content_type': R5_CONTENT_TYPE_REQUEST,
+            'content_type': CONTENT_TYPE_FULL_TEXT,
         }
 
         obtained = self.tm.translate(url)
@@ -164,9 +148,9 @@ class TestTranslatorOPAC(unittest.TestCase):
             'scielo_issn': '0103-6351',
             'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
-            'media_format': 'pdf',
+            'media_format': MEDIA_FORMAT_PDF,
             'media_language': 'pt',
-            'content_type': R5_CONTENT_TYPE_REQUEST,
+            'content_type': CONTENT_TYPE_FULL_TEXT,
         }
 
         obtained = self.tm.translate(url)
@@ -180,67 +164,67 @@ class TestTranslatorOPAC(unittest.TestCase):
             'scielo_issn': '1516-3598',
             'pid_v2': None,
             'pid_v3': 'cKnLLBn5NnshCX93Y6qYpHv',
-            'media_format': 'xml',
+            'media_format': MEDIA_FORMAT_XML,
             'media_language': 'en',
-            'content_type': R5_CONTENT_TYPE_REQUEST,
+            'content_type': CONTENT_TYPE_FULL_TEXT,
         }
 
         obtained = self.tm.translate(url)
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
         self.assertDictEqual(obtained, expected)
 
-    def test_translate_opac_site_url_journal_article_abstract_content_type_is_investigation(self):
+    def test_translate_opac_site_url_journal_article_abstract_content_type_is_abstract(self):
         url = '/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/abstract/'
         
         expected = {
             'scielo_issn': '0103-6351',
             'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
-            'media_format': 'html',
+            'media_format': MEDIA_FORMAT_HTML,
             'media_language': 'pt',
-            'content_type': R5_CONTENT_TYPE_INVESTIGATION,
+            'content_type': CONTENT_TYPE_ABSTRACT,
         }
 
         obtained = self.tm.translate(url)
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
-        self.assertEqual(obtained['content_type'], R5_CONTENT_TYPE_INVESTIGATION)
+        self.assertEqual(obtained['content_type'], CONTENT_TYPE_ABSTRACT)
         self.assertDictEqual(obtained, expected)
 
-    def test_translate_opac_site_url_journal_article_content_type_is_request(self):
+    def test_translate_opac_site_url_journal_article_content_type_is_full_text(self):
         url = '/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/'
         
         expected = {
             'scielo_issn': '0103-6351',
             'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
-            'media_format': 'html',
+            'media_format': MEDIA_FORMAT_HTML,
             'media_language': 'pt',
-            'content_type': R5_CONTENT_TYPE_REQUEST,
+            'content_type': CONTENT_TYPE_FULL_TEXT,
         }
 
         obtained = self.tm.translate(url)
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
-        self.assertEqual(obtained['content_type'], R5_CONTENT_TYPE_REQUEST)
+        self.assertEqual(obtained['content_type'], CONTENT_TYPE_FULL_TEXT)
         self.assertDictEqual(obtained, expected)
 
-    def test_translate_opac_site_url_journal_article_pdf_content_type_is_request(self):
+    def test_translate_opac_site_url_journal_article_pdf_content_type_is_full_text(self):
         url = '/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/?format=pdf'
         
         expected = {
             'scielo_issn': '0103-6351',
             'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
-            'media_format': 'pdf',
+            'media_format': MEDIA_FORMAT_PDF,
             'media_language': 'pt',
-            'content_type': R5_CONTENT_TYPE_REQUEST,
+            'content_type': CONTENT_TYPE_FULL_TEXT,
         }
 
         obtained = self.tm.translate(url)
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
-        self.assertEqual(obtained['content_type'], R5_CONTENT_TYPE_REQUEST)
+        self.assertEqual(obtained['content_type'], CONTENT_TYPE_FULL_TEXT)
         self.assertDictEqual(obtained, expected)
 
-    def test_translate_opac_site_url_journal_article_xml_content_type_is_request(self):
+    def test_translate_opac_site_url_journal_article_xml_content_type_is_fulltext(self):
         url = '/j/rbz/a/cKnLLBn5NnshCX93Y6qYpHv/?format=xml'
         
         expected = {
@@ -249,10 +233,11 @@ class TestTranslatorOPAC(unittest.TestCase):
             'pid_v3': 'cKnLLBn5NnshCX93Y6qYpHv',
             'media_format': 'xml',
             'media_language': 'en',
-            'content_type': R5_CONTENT_TYPE_REQUEST,
+            'content_type': CONTENT_TYPE_FULL_TEXT,
         }
 
         obtained = self.tm.translate(url)
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
-        self.assertEqual(obtained['content_type'], R5_CONTENT_TYPE_REQUEST)
+        self.assertEqual(obtained['content_type'], CONTENT_TYPE_FULL_TEXT)
+        self.assertDictEqual(obtained, expected)
         self.assertDictEqual(obtained, expected)

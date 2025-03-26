@@ -7,25 +7,24 @@ from scielo_usage_counter.values import (
     MEDIA_FORMAT_HTML,
     MEDIA_FORMAT_PDF,
     MEDIA_FORMAT_XML,
-    R5_CONTENT_TYPE_INVESTIGATION,
-    R5_CONTENT_TYPE_REQUEST,
-    R5_CONTENT_TYPE_UNDEFINED,
+    CONTENT_TYPE_ABSTRACT,
+    CONTENT_TYPE_CITATION_EXPORT,
+    CONTENT_TYPE_FULL_TEXT,
+    CONTENT_TYPE_UNDEFINED,
 )
 
 
-NAME_OPAC_SITE = 'opac_site'
-
-# Patterns to support parameter extraction and determine whether a URL is an Investigation or a Request
-REGEX_OPAC_SITE_JOURNAL_ARTICLE_ABSTRACT = re.compile(r'.*/j/(?P<journal_acronym>\w*)/a/(?P<pid_v3>\w*)/abstract', re.IGNORECASE)   # Investigation
-REGEX_OPAC_SITE_JOURNAL_ARTICLE = re.compile(r'.*/j/(?P<journal_acronym>\w*)/a/(?P<pid_v3>\w*)', re.IGNORECASE) # Request
-REGEX_OPAC_SITE_RAW_DETAIL = re.compile(r'.*/documentstore/([\w|-]*)/(\w*)/(?P<path>[\w|\.]*)', re.IGNORECASE)  # Request
+# Patterns to support parameter extraction
+REGEX_OPAC_SITE_JOURNAL_ARTICLE_ABSTRACT = re.compile(r'.*/j/(?P<journal_acronym>\w*)/a/(?P<pid_v3>\w*)/abstract', re.IGNORECASE)
+REGEX_OPAC_SITE_JOURNAL_ARTICLE = re.compile(r'.*/j/(?P<journal_acronym>\w*)/a/(?P<pid_v3>\w*)', re.IGNORECASE)
+REGEX_OPAC_SITE_RAW_DETAIL = re.compile(r'.*/documentstore/(?P<journal_issn>[\w|-]*)/(?P<pid_v3>\w*)/(?P<file>[\w|\.]*)', re.IGNORECASE)
+REGEX_OPAC_SITE_CITATION_EXPORT = re.compile(r'.*/citation/export/(?P<pid_v3>\w*)/', re.IGNORECASE)
 
 
 class URLTranslatorOPACSite:
     def __init__(self, journals_metadata, articles_metadata):
         self.journals_metadata = journals_metadata
         self.articles_metadata = articles_metadata
-        self.name = NAME_OPAC_SITE
 
     def pipeline_translate(self, url):
         self.url_params = self.extract_url_params(url)
@@ -52,7 +51,6 @@ class URLTranslatorOPACSite:
             'journal_acronym': '',
             'media_format': '',
             'media_language': '',
-            'fragment': '',
             'resource_ssm_path': ''
         }
 
@@ -66,34 +64,41 @@ class URLTranslatorOPACSite:
             else:
                 url_params[k] = v
 
-        url_params['fragment'] = url_parsed.fragment
         url_params['journal_acronym'], url_params['pid_v3'] = self._get_acronym_and_pid_from_url(url)
 
-        if 'resource_ssm_path' in url_params:
+        if 'resource_ssm_path' in url_parsed.query:
             match = re.search(REGEX_OPAC_SITE_RAW_DETAIL, url_params['resource_ssm_path'])
             if match and len(match.groups()) == 3:
-                url_params['scielo_issn'] = match.group(1).upper()
-                url_params['pid_v3'] = match.group(2)
-                url_params['file'] = match.group(3)
+                url_params['scielo_issn'] = match.groupdict().get('journal_issn')
+                url_params['pid_v3'] = match.groupdict().get('pid_v3')
+                url_params['file'] = match.groupdict().get('file')
                 if url_params['file'].endswith('.pdf'):
                     url_params['media_format'] = MEDIA_FORMAT_PDF
-
+        
         return url_params
     
     def _get_acronym_and_pid_from_url(self, url):
         journal_acronym = ''
         pid_v3 = ''
 
-        match = re.search(REGEX_OPAC_SITE_JOURNAL_ARTICLE, url)
-        if match:
-            journal_acronym = match.groupdict().get('journal_acronym')
-            pid_v3 = match.groupdict().get('pid_v3')
+        for p in [
+            REGEX_OPAC_SITE_JOURNAL_ARTICLE,
+            REGEX_OPAC_SITE_CITATION_EXPORT,
+        ]:
+            match = re.search(p, url)
+            if match:
+                journal_acronym = match.groupdict().get('journal_acronym')
+                pid_v3 = match.groupdict().get('pid_v3')
+                break
 
         return journal_acronym, pid_v3
 
     def extract_media_format(self, url):
         if not hasattr(self, 'url_params'):
             self.extract_url_params(url)
+
+        if re.search(REGEX_OPAC_SITE_CITATION_EXPORT, url):
+            self.url_params['media_format'] = MEDIA_FORMAT_HTML
 
         return self.url_params.get('media_format') or MEDIA_FORMAT_HTML
 
@@ -107,6 +112,8 @@ class URLTranslatorOPACSite:
         return self.url_params.get('pid_v3')
     
     def extract_issn(self):
+        if not self.url_params.get('journal_acronym'):
+            return self.articles_metadata['pid_v3_to_scielo_issn'].get(self.url_params.get('pid_v3'))
         return self.journals_metadata['acronym_to_scielo_issn'].get(self.url_params.get('journal_acronym'))
     
     def extract_content_type(self, url):
@@ -114,31 +121,23 @@ class URLTranslatorOPACSite:
             self.extract_media_format(url)
 
         if re.search(REGEX_OPAC_SITE_JOURNAL_ARTICLE_ABSTRACT, url):
-            return R5_CONTENT_TYPE_INVESTIGATION
+            return CONTENT_TYPE_ABSTRACT
         
-        if re.search(REGEX_OPAC_SITE_JOURNAL_ARTICLE, url):
-            return self._identify_content_type_by_fragment(self.url_params.get('fragment', ''))
+        if re.search(REGEX_OPAC_SITE_CITATION_EXPORT, url):
+            return CONTENT_TYPE_CITATION_EXPORT
         
         if self.url_params['media_format'] in (
             MEDIA_FORMAT_XML,
             MEDIA_FORMAT_PDF,
         ):
-            return R5_CONTENT_TYPE_REQUEST
+            return CONTENT_TYPE_FULL_TEXT
         
         match = re.search(REGEX_OPAC_SITE_RAW_DETAIL, url)
         if match and match.groupdict().get('path', '').endswith('.pdf'):
-            return R5_CONTENT_TYPE_REQUEST
+            return CONTENT_TYPE_FULL_TEXT
+        
+        if re.search(REGEX_OPAC_SITE_JOURNAL_ARTICLE, url):
+            return CONTENT_TYPE_FULL_TEXT
 
-        return R5_CONTENT_TYPE_UNDEFINED
+        return CONTENT_TYPE_UNDEFINED
     
-    def _identify_content_type_by_fragment(self, fragment):
-        # The OPAC site currently does not have a way to identify modal pages
-        if fragment in set([
-            'modaltutors',
-            'modaltablesfigures',
-            'modaldownloads',
-            'modalarticles',
-            'modalversionstranslations',
-        ]):
-            return R5_CONTENT_TYPE_INVESTIGATION
-        return R5_CONTENT_TYPE_REQUEST

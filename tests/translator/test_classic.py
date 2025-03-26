@@ -2,6 +2,18 @@ import unittest
 
 from scielo_usage_counter.url_translator import URLTranslationManager
 from scielo_usage_counter.translator.classic import URLTranslatorClassicSite
+from scielo_usage_counter.values import (
+    MEDIA_FORMAT_HTML,
+    MEDIA_FORMAT_PDF,
+    MEDIA_FORMAT_XML,
+    CONTENT_TYPE_FULL_TEXT,
+    CONTENT_TYPE_ABSTRACT,
+    CONTENT_TYPE_CITATION_EXPORT,
+    CONTENT_TYPE_HOW_TO_CITE,
+    CONTENT_TYPE_REFERENCES_LIST,
+    CONTENT_TYPE_TRANSLATE_DOCUMENT,
+    CONTENT_TYPE_UNDEFINED,
+)
 
 
 class TestTranslatorClassic(unittest.TestCase):
@@ -15,31 +27,13 @@ class TestTranslatorClassic(unittest.TestCase):
                 'publisher_name': 'The University of the West Indies',
                 'subject_areas': ['Health Sciences',],
                 'wos_subject_areas': ['HEALTH CARE SCIENCES & SERVICES',]
-            }, {
-                'acronym': 'psoc',
-                'scielo_issn': '1807-0310',
-                'issns': ['1807-0310',],
-                'title': 'Psicologia & Sociedade',
-                'publisher_name': 'Universidade Federal do Rio Grande do Sul',
-                'subject_areas': ['Psychology',],
-                'wos_subject_areas': ['PSYCHOLOGY, SOCIAL',]
-            }, {
-                'acronym': 'rbz',
-                'scielo_issn': '1516-3598',
-                'issns': ['1516-3598'],
-                'title': 'Revista Brasileira de Zootecnia',
-                'publisher_name': 'Sociedade Brasileira de Zootecnia',
-                'subject_areas': ['Agricultural Sciences'],
-                'wos_subject_areas': ['AGRICULTURE, DAIRY & ANIMAL SCIENCE']
-            }, {
-                'acronym': 'neco',
-                'scielo_issn': '0103-6351',
-                'issns': ['0103-6351'],
-                'title': 'Nova Economia',
-                'publisher_name': 'Universidade Federal de Minas Gerais',
-                'subject_areas': ['Economics'],
-                'wos_subject_areas': ['ECONOMICS']
             },
+            {
+                'acronym': 'amc',
+                'scielo_issn': '0001-6002',
+                'issns': ['0001-6002',],
+                'title': 'Acta Médica Costarricense',                
+            }
         ]
         self.articles_metadata = [
             {
@@ -55,51 +49,14 @@ class TestTranslatorClassic(unittest.TestCase):
                 ]
             },
             {
-                'pid_v2': '',
-                'pid_v3': '5ySvRy7VFTxsKLt35Mwsm9g',
+                'pid_v2': 'S0001-60022024000100008',
+                'pid_v3': None,
                 'default_lang': 'en',
                 'text_langs': ['en', 'es'],
-                'scielo_issn': '0043-3144',
-                'publication_year': '2017',
+                'scielo_issn': '0001-6002',
+                'publication_year': '2024',
                 'pdfs': [
-                    {'doi': '10.7727/neco.2014.321', 'lang': 'en', 'path': 'pdf/neco/v66n6/2309-5830-neco-66-06-0634.pdf', 'checked': False},
-                    {'doi': '10.7727/neco.2014.321', 'lang': 'es', 'path': 'pdf/neco/v66n6/es_2309-5830-neco-66-06-0588.pdf', 'checked': False}
-                ] 
-            },
-            {
-                'pid_v2': '',
-                'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
-                'default_lang': 'pt',
-                'text_langs': ['pt', 'en'],
-                'scielo_issn': '0103-6351',
-                'publication_year': '2021',
-                'pdfs': [
-                    {'doi': '10.1590/neco.2021.123', 'lang': 'pt', 'path': 'pdf/neco/v29n3/1234-5678-neco-29-03-0123.pdf', 'checked': False},
-                    {'doi': '10.1590/neco.2021.123', 'lang': 'en', 'path': 'pdf/neco/v29n3/en_1234-5678-neco-29-03-0123.pdf', 'checked': False}
-                ]
-            },
-            {
-                'pid_v2': '',
-                'pid_v3': 'cKnLLBn5NnshCX93Y6qYpHv',
-                'default_lang': 'en',
-                'text_langs': ['en', 'es'],
-                'scielo_issn': '1516-3598',
-                'publication_year': '2020',
-                'pdfs': [
-                    {'doi': '10.1590/rbz.2020.456', 'lang': 'en', 'path': 'pdf/rbz/v47n4/5678-1234-rbz-47-04-0456.pdf', 'checked': False},
-                    {'doi': '10.1590/rbz.2020.456', 'lang': 'es', 'path': 'pdf/rbz/v47n4/es_5678-1234-rbz-47-04-0456.pdf', 'checked': False}
-                ]
-            },
-            {
-                'pid_v2': '',
-                'pid_v3': 'hbSYnTbyNfzxcWT3FpXrL5G',
-                'default_lang': 'es',
-                'text_langs': ['es', 'en'],
-                'scielo_issn': '1807-0310',
-                'publication_year': '2019',
-                'pdfs': [
-                    {'doi': '10.1590/psoc.2019.789', 'lang': 'es', 'path': 'pdf/psoc/v37n2/7890-1234-psoc-37-02-0789.pdf', 'checked': False},
-                    {'doi': '10.1590/psoc.2019.789', 'lang': 'en', 'path': 'pdf/psoc/v37n2/en_7890-1234-psoc-37-02-0789.pdf', 'checked': False}
+                    {'lang': 'ee', 'path': '/pdf/amc/v66n1/0001-6002-amc-66-01-8.pdf', 'checked': False},
                 ]
             }
         ]
@@ -112,9 +69,9 @@ class TestTranslatorClassic(unittest.TestCase):
         expected['pid_v2'] = 'S0043-31442017000600634'
         expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'html'
+        expected['media_format'] = MEDIA_FORMAT_HTML
         expected['media_language'] = 'en'
-        expected['content_type'] = 'request'
+        expected['content_type'] = CONTENT_TYPE_FULL_TEXT
 
         obtained = self.tm.translate(url)
 
@@ -127,9 +84,9 @@ class TestTranslatorClassic(unittest.TestCase):
         expected['pid_v2'] = 'S0043-31442017000600634'
         expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'html'
+        expected['media_format'] = MEDIA_FORMAT_HTML
         expected['media_language'] = 'en'
-        expected['content_type'] = 'request'
+        expected['content_type'] = CONTENT_TYPE_FULL_TEXT
 
         obtained = self.tm.translate(url)
         self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
@@ -143,9 +100,9 @@ class TestTranslatorClassic(unittest.TestCase):
         expected['pid_v2'] = 'S0043-31442017000600634'
         expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'pdf'
+        expected['media_format'] = MEDIA_FORMAT_PDF
         expected['media_language'] = 'en'
-        expected['content_type'] = 'request'
+        expected['content_type'] = CONTENT_TYPE_FULL_TEXT
 
         obtained = self.tm.translate(url)
         self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
@@ -159,9 +116,9 @@ class TestTranslatorClassic(unittest.TestCase):
         expected['pid_v2'] = 'S0043-31442017000600634'
         expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'xml'
+        expected['media_format'] = MEDIA_FORMAT_XML
         expected['media_language'] = 'en'
-        expected['content_type'] = 'request'
+        expected['content_type'] = CONTENT_TYPE_FULL_TEXT
 
         obtained = self.tm.translate(url)
         self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
@@ -175,9 +132,9 @@ class TestTranslatorClassic(unittest.TestCase):
         expected['pid_v2'] = 'S0043-31442017000600634'
         expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'html'
+        expected['media_format'] = MEDIA_FORMAT_HTML
         expected['media_language'] = 'es'
-        expected['content_type'] = 'investigation'
+        expected['content_type'] = CONTENT_TYPE_ABSTRACT
 
         obtained = self.tm.translate(url)
         self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
@@ -192,8 +149,8 @@ class TestTranslatorClassic(unittest.TestCase):
         expected['pid_v2'] = 'S0043-31442017000600634'
         expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'html'
-        expected['content_type'] = 'investigation'
+        expected['media_format'] = MEDIA_FORMAT_HTML
+        expected['content_type'] = CONTENT_TYPE_ABSTRACT
 
         # The media_language should default to 'en' because the value of tlng is invalid
         expected['media_language'] = 'en'
@@ -210,9 +167,9 @@ class TestTranslatorClassic(unittest.TestCase):
         expected['pid_v2'] = 'S0043-31442017000600634'
         expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
-        expected['media_format'] = 'html'
+        expected['media_format'] = MEDIA_FORMAT_HTML
         expected['media_language'] = 'es'
-        expected['content_type'] = 'investigation'
+        expected['content_type'] = CONTENT_TYPE_ABSTRACT
 
         obtained = self.tm.translate(url)
         self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
@@ -234,9 +191,9 @@ class TestTranslatorClassic(unittest.TestCase):
                     'scielo_issn': '0043-3144',
                     'pid_v2': 'S0043-31442017000600634',
                     'pid_v3': None,
-                    'media_format': 'html',
+                    'media_format': MEDIA_FORMAT_HTML,
                     'media_language': 'en',
-                    'content_type': 'investigation',
+                    'content_type': CONTENT_TYPE_ABSTRACT,
                 }
                 self.assertDictEqual(obtained, expected)
 
@@ -256,9 +213,9 @@ class TestTranslatorClassic(unittest.TestCase):
                     'scielo_issn': '0043-3144',
                     'pid_v2': 'S0043-31442017000600634',
                     'pid_v3': None,
-                    'media_format': 'html' if 'sci_arttext' in url else 'pdf' if 'pdf' in url else 'xml',
+                    'media_format': MEDIA_FORMAT_HTML if 'sci_arttext' in url else MEDIA_FORMAT_PDF if 'pdf' in url else MEDIA_FORMAT_XML,
                     'media_language': 'en',
-                    'content_type': 'request',
+                    'content_type': CONTENT_TYPE_FULL_TEXT,
                 }
                 self.assertDictEqual(obtained, expected)
 
@@ -275,8 +232,8 @@ class TestTranslatorClassic(unittest.TestCase):
                     'scielo_issn': None,
                     'pid_v2': '',
                     'pid_v3': None,
-                    'media_format': 'html',
+                    'media_format': MEDIA_FORMAT_HTML,
                     'media_language': 'un',
-                    'content_type': 'und',
+                    'content_type': CONTENT_TYPE_UNDEFINED,
                 }
                 self.assertDictEqual(obtained, expected)

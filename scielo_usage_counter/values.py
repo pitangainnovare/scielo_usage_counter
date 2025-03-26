@@ -142,7 +142,12 @@ MEDIA_FORMAT_PDF = 'pdf'
 MEDIA_FORMAT_XML = 'xml'
 MEDIA_FORMAT_UNDEFINED = 'und'
 
-# Content types related to the Project COUNTER R5
-R5_CONTENT_TYPE_INVESTIGATION = 'investigation'
-R5_CONTENT_TYPE_REQUEST = 'request'
-R5_CONTENT_TYPE_UNDEFINED = 'und'
+# Content types
+CONTENT_TYPE_FULL_TEXT = 'full_text'
+CONTENT_TYPE_ABSTRACT = 'abstract'
+CONTENT_TYPE_HOW_TO_CITE = 'how_to_cite'
+CONTENT_TYPE_CITATION_EXPORT = 'citation_export'
+CONTENT_TYPE_REFERENCES_LIST = 'references_list'
+CONTENT_TYPE_RELATED_DOCUMENTS = 'related_documents'
+CONTENT_TYPE_TRANSLATE_DOCUMENT = 'translate_document'
+CONTENT_TYPE_UNDEFINED = 'undefined'

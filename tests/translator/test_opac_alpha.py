@@ -80,7 +80,9 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 'pid_v3': 'resp:2005:v83n1:109-121',
                 'default_lang': 'es',
                 'text_langs': ['es', 'en'],
-                'pdfs': [],
+                'pdfs': [
+                    {'path': 'resp_83_01_0109.pdf', 'lang': 'es', 'checked': False},
+                ],
             },
             {
                 'pid_v2': '',
@@ -236,8 +238,15 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
 
     def test_translate_opac_alpha_url_pdf_journal_acronym_vol_issue_file_path(self):
+        # This URLs is very similar to the classic URL format
+        # In this case, we have to use the OPACAlphaSite translator
+        self.tm.translator = URLTranslatorOPACAlphaSite(self.tm.journals_metadata, self.tm.articles_metadata)
+        self.tm.is_translator_forced = True
+
         url = '/pdf/resp/v83n1/109-121/resp_83_01_0109.pdf'
+
         result = self.tm.translate(url)
+
         self.assertDictEqual(
             result,
             {

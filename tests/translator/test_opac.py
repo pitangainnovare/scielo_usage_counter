@@ -240,4 +240,17 @@ class TestTranslatorOPAC(unittest.TestCase):
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
         self.assertEqual(obtained['content_type'], CONTENT_TYPE_FULL_TEXT)
         self.assertDictEqual(obtained, expected)
+
+    def test_translate_opac_site_url_citation_export_content_type_is_citation_export(self):
+        url = '/citation/export/5ySvRy7VFTxsKLt35Mwsm9g/?format=bib'
+        expected = {
+            'scielo_issn': '0103-6351',
+            'pid_v2': None,
+            'pid_v3': '5ySvRy7VFTxsKLt35Mwsm9g',
+            'media_format': MEDIA_FORMAT_HTML,
+            'media_language': 'en',
+            'content_type': CONTENT_TYPE_CITATION_EXPORT,
+        }
+        obtained = self.tm.translate(url)
+        self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
         self.assertDictEqual(obtained, expected)

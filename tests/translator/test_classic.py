@@ -176,7 +176,7 @@ class TestTranslatorClassic(unittest.TestCase):
         
         self.assertDictEqual(obtained, expected)
 
-    def test_translate_classic_site_content_type_is_investigation(self):
+    def test_translate_classic_site_content_type_is_abstract(self):
         for url in [
             '/scielo.php?script=sci_abstract&pid=S0043-31442017000600634',
             '/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&tlng=en',
@@ -197,7 +197,7 @@ class TestTranslatorClassic(unittest.TestCase):
                 }
                 self.assertDictEqual(obtained, expected)
 
-    def test_translate_classic_site_content_type_is_request(self):
+    def test_translate_classic_site_content_type_is_full_text(self):
         for url in [
             '/scielo.php?script=sci_arttext&pid=S0043-31442017000600634',
             '/scielo.php?script=sci_arttext&pid=S0043-31442017000600634&tlng=en',

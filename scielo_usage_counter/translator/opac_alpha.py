@@ -12,9 +12,9 @@ from scielo_usage_counter.values import (
 
 
 # Patterns to support parameter extraction and determine whether a URL is an Investigation or a Request
-REGEX_OPAC_ALPHA_ARTICLE_ACRONYM_YEAR_VOL_ISSUE_PAGES_LANGUAGE = re.compile(r'article/(?P<journal_acronym>\w*)/(?P<year>\d{0,4})\.(?P<vol_issue>[\d|\w]+)/(?P<pages>[\d-]+|e[\w\d]+)/?(?P<language>\w{2})?', re.IGNORECASE) # Request or Investigation
-REGEX_OPAC_ALPHA_PDF_ACRONYM_YEAR_VOL_ISSUE_PAGES_LANGUAGE = re.compile(r'pdf/(?P<journal_acronym>\w*)/(?P<year>\d{0,4})\.(?P<vol_issue>[\d|\w]+)/(?P<pages>[\d-]+|e[\w\d]+)/?(?P<language>\w{2})?', re.IGNORECASE) # Request
-REGEX_OPAC_ALPHA_PDF_PATH = r'.*/?pdf/(?P<journal_acronym>\w*)/(.*)'    # Request
+REGEX_OPAC_ALPHA_ARTICLE_ACRONYM_YEAR_VOL_ISSUE_PAGES_LANGUAGE = re.compile(r'article/(?P<journal_acronym>\w*)/(?P<year>\d{0,4})\.(?P<vol_issue>[\d|\w]+)/(?P<pages>[\d-]+|e[\w\d]+)/?(?P<media_language>\w{2})?', re.IGNORECASE) # Request or Investigation
+REGEX_OPAC_ALPHA_PDF_ACRONYM_YEAR_VOL_ISSUE_PAGES_LANGUAGE = re.compile(r'pdf/(?P<journal_acronym>\w*)/(?P<year>\d{0,4})\.(?P<vol_issue>[\d|\w]+)/(?P<pages>[\d-]+|e[\w\d]+)/?(?P<media_language>\w{2})?', re.IGNORECASE) # Request
+REGEX_OPAC_ALPHA_PDF_PATH = r'.*/?pdf/(?P<journal_acronym>\w*)/(?P<vol_issue>[\d|\w]*)/(?P<pages>[\d-]+|e[\w\d]+)/(?P<file>[\d|\w|-]*\.pdf)'    # Request
 REGEX_OPAC_ALPHA_MEDIA_ASSETS_ACRONYM = re.compile(r'.*/media/assets/(?P<journal_acronym>\w*)/(?P<vol_issue>[\d|\w]*)/(?P<file>[\d|\w|-]*\.pdf)', re.IGNORECASE)   # Request
 
 

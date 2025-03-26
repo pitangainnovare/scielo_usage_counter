@@ -23,73 +23,48 @@ python setup.py install
 
 __Run tests__
 ```
-python setup.py test
+python -m unittest discover
 ```
 
 
 ## Usage
 _Get the official COUNTER list of robots_
 ```bash
-usage: dl-robots [-h] [-u URL] [-o OUTPUT]
+usage: dl-robots [-h] [-u URL] --path_output PATH_OUTPUT
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
-  -u URL, --url URL     URL da lista de robots
-  -o OUTPUT, --output OUTPUT
+  -u URL, --url URL     URL da lista de robôs
+  --path_output PATH_OUTPUT
                         Arquivo de saída
 ```
 
 _Get the Maxming GeoIP Map_
 ```bash
-usage: dl-geomap [-h] [--year YEAR] [--month MONTH] [--url URL] [-o OUTPUT]
+usage: dl-geomap [-h] [--year YEAR] [--month MONTH] [--url URL] --path_output PATH_OUTPUT
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --year YEAR           Ano do mapa de geolocalização (yyyy)
   --month MONTH         Mês do mapa de geolocalização (mm)
   --url URL             URL do mapa em formato mmdb.gz
-  -o OUTPUT, --output OUTPUT
-                        Arquivo do mapa de geolocalizações
+  --path_output PATH_OUTPUT
+                        Caminho do arquivo de mapa de geolocalizações
 ```
 
 _Parse log file_
 ```
-usage: parse-log [-h] -m MMDB -r ROBOTS [-o OUTPUT_DIRECTORY] {file,database} ...
+usage: parse-log [-h] -m MMDB -r ROBOTS [-o OUTPUT_DIRECTORY] [-f LOGFILE]
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -m MMDB, --mmdb MMDB  Arquivo de mapa de geolocalizações
   -r ROBOTS, --robots ROBOTS
                         Arquivo de robôs
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         Diretório de saída
-
-mode:
-  {file,database}
-    file                Modo de caminho de arquivo
-    database            Modo de banco de dados
-```
-
-_Generate pre-table_
-```bash
-usage: gen-pretable [-h] -f INPUT_FILE [-o OUTPUT_DIRECTORY]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -f INPUT_FILE, --input_file INPUT_FILE
-                        Arquivo de log pré-processado
-  -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
-                        Diretório de saída
-```
-
-_Initialize database_
-```bash
-usage: init-db [-h] [-s STR_CONNECTION]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -s STR_CONNECTION, --str_connection STR_CONNECTION
-                        String de conexão com banco de dados (mysql://user:pass@host:port/database)
+  -f LOGFILE, --logfile LOGFILE
+                        Caminho de arquivo de log de acesso
 ```
 
 _Batch script parse logs_
@@ -105,13 +80,7 @@ For example:
    scripts/batch_parse.sh -d /logs/apache -m /data/map.mmdb -r /data/counter-robots.txt
 ```
 
-_Batch script generate pretable_
-```bash
-SciELO Usage COUNTER - Batch script Generate Pretable
-Please, inform the directory of logs (parameter -d). For example: 
 
-   scripts/batch_generate_pretable.sh -d /logs_preprocessed
-```
 ## Libraries
 
 __User agent - Robots__

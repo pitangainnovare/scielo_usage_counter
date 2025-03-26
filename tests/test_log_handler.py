@@ -505,6 +505,29 @@ class TestLogParser(unittest.TestCase):
                 {'87.0.4280.101', '0', '90.0.4430.212', '137.2.345735309', '88.0.4324.190', '90.0.4430.210', 'UNK'}
             )
 
+    def test_parse_success_dataverse(self):
+        lp = log_handler.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
+        lp.logfile = 'tests/fixtures/usage.dat.log'
+        lp.output = 'tests/fixtures/usage.dat.log.processed'
+        lp.stats.output = 'tests/fixtures/usage.dat.processed.summary'
+
+        data = lp.parse()
+        lp.save(data)
+
+        self.assertEqual(lp.stats.ignored_lines_static_resources, 1172)
+        self.assertEqual(lp.stats.ignored_lines_bot, 19284)
+        self.assertEqual(lp.stats.ignored_lines_invalid_method, 290)
+        self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_country_code, 12035)
+        self.assertEqual(lp.stats.ignored_lines_invalid_local_datetime, 0)
+        self.assertEqual(lp.stats.ignored_lines_http_redirects, 50)
+        self.assertEqual(lp.stats.ignored_lines_http_errors, 670)
+        self.assertEqual(lp.stats.total_ignored_lines, 32518)
+        self.assertEqual(lp.stats.total_imported_lines, 3954)
+        self.assertEqual(lp.stats.lines_parsed, 36472)
+
 
 class TestStats(unittest.TestCase):
     @classmethod

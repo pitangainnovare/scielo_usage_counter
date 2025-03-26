@@ -52,10 +52,14 @@ PATTERNS_PREPRINTS_SITE = [
 
 
 class URLTranslationManager:
-    def __init__(self, journals_metadata, articles_metadata):
+    def __init__(self, journals_metadata, articles_metadata, translator=None):
         self.load_journals(journals_metadata)
         self.load_articles(articles_metadata)
-        self.translator = None
+        self.translator = translator
+        
+        self.is_translator_forced = bool(translator)
+        if self.is_translator_forced:
+            logging.info(f'Using {translator.__name__} as the URL translator class.')
 
     def load_articles(self, data):
         logging.info('Loading articles metadata...')
@@ -158,7 +162,9 @@ class URLTranslationManager:
             self.translator = URLTranslatorClassicSite(self.journals_metadata, self.articles_metadata)
 
     def translate(self, url: str):
-        self.identify_translator_class(url)
+        if not self.is_translator_forced:
+            self.identify_translator_class(url)
+
         data = self.translator.pipeline_translate(url)
         return self.standardize_fields(data)
 

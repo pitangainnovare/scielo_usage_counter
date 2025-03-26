@@ -58,6 +58,9 @@ class URLTranslatorClassicSite:
         url_qsl = parse_qsl(url_split.query)
         url_params = dict([(x[0].strip(), x[1].strip()) for x in url_qsl])
 
+        if 'download' in url_split.query:
+            url_params['download'] = 'true'
+
         # Perform additional processing to handle malformed URLs
         if len(url_qsl) == 1 and len(url_qsl[0]) == 2 and 'pid' in url_qsl[0]:
             url_qsl = parse_qsl('='.join(url_qsl[0]))
@@ -65,7 +68,7 @@ class URLTranslatorClassicSite:
 
         # Remove unnecessary spaces in the most important keys and values
         for k, v in url_params.items():
-            if k in {'issn', 'script', 'pid', 'tlng'}:
+            if k in {'issn', 'script', 'pid', 'tlng', 'download'}:
                 sanitized_value = v.split(' ')[0]
 
                 # Remove the final period that occurs in some situations

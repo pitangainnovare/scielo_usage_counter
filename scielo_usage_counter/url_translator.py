@@ -40,6 +40,7 @@ PATTERNS_OPAC_ALPHA_SITE = [
 PATTERNS_OPAC_SITE = [
     re.compile(r'/?j/[^/]+/', re.IGNORECASE),
     re.compile(r'/citation/export/', re.IGNORECASE),
+    re.compile(r'/article/ssm/content/raw/.*', re.IGNORECASE),
 ]
 
 # Patterns to support identify a URL as a Preprints Site URL

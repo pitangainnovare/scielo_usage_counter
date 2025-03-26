@@ -40,6 +40,12 @@ class TestTranslatorOPAC(unittest.TestCase):
                 'subject_areas': ['Economics'],
                 'wos_subject_areas': ['ECONOMICS']
             },
+            {
+                'acronym': 'smj',
+                'issns': ['1806-9460'],
+                'scielo_issn': '1806-9460',
+                'title': 'Revista de Economia e Sociologia Rural',
+            }
         ]
         self.articles_metadata = [
             {
@@ -89,6 +95,14 @@ class TestTranslatorOPAC(unittest.TestCase):
                     {'doi': '10.1590/psoc.2019.789', 'lang': 'es', 'path': 'pdf/psoc/v37n2/7890-1234-psoc-37-02-0789.pdf', 'checked': False},
                     {'doi': '10.1590/psoc.2019.789', 'lang': 'en', 'path': 'pdf/psoc/v37n2/en_7890-1234-psoc-37-02-0789.pdf', 'checked': False}
                 ]
+            },
+            {
+                'pid_v2': '',
+                'pid_v3': 'YdZ7HCqnBkgxhJRPCmKrxkz',
+                'default_lang': 'pt',
+                'text_langs': ['pt', 'en'],
+                'scielo_issn': '1806-9460',
+                'pdfs': [],
             }
         ]
         self.tm = URLTranslationManager(self.journals_metadata, self.articles_metadata)
@@ -242,15 +256,38 @@ class TestTranslatorOPAC(unittest.TestCase):
         self.assertDictEqual(obtained, expected)
 
     def test_translate_opac_site_url_citation_export_content_type_is_citation_export(self):
-        url = '/citation/export/5ySvRy7VFTxsKLt35Mwsm9g/?format=bib'
+        urls = [
+            '/citation/export/5ySvRy7VFTxsKLt35Mwsm9g/?format=bib',
+            'citation/export/5ySvRy7VFTxsKLt35Mwsm9g/?format=bib',
+            '/citation/export/5ySvRy7VFTxsKLt35Mwsm9g/?format=ris',
+            'citation/export/5ySvRy7VFTxsKLt35Mwsm9g/?format=ris',
+        ]
+        for url in urls:
+            with self.subTest(url=url):
+                expected = {
+                    'scielo_issn': '0103-6351',
+                    'pid_v2': None,
+                    'pid_v3': '5ySvRy7VFTxsKLt35Mwsm9g',
+                    'media_format': MEDIA_FORMAT_HTML,
+                    'media_language': 'en',
+                    'content_type': CONTENT_TYPE_CITATION_EXPORT,
+                }
+                obtained = self.tm.translate(url)
+                self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
+                self.assertDictEqual(obtained, expected)
+                
+    def test_translate_opac_site_url_documentstore(self):
+        url = '/article/ssm/content/raw/?resource_ssm_path=/documentstore/1806-9460/YdZ7HCqnBkgxhJRPCmKrxkz/b7e997318152c89988a6aad8b0c541d510f468f6.pdf'
+        
         expected = {
-            'scielo_issn': '0103-6351',
+            'scielo_issn': '1806-9460',
             'pid_v2': None,
-            'pid_v3': '5ySvRy7VFTxsKLt35Mwsm9g',
-            'media_format': MEDIA_FORMAT_HTML,
-            'media_language': 'en',
-            'content_type': CONTENT_TYPE_CITATION_EXPORT,
+            'pid_v3': 'YdZ7HCqnBkgxhJRPCmKrxkz',
+            'media_format': MEDIA_FORMAT_PDF,
+            'media_language': 'pt',
+            'content_type': CONTENT_TYPE_FULL_TEXT,
         }
+
         obtained = self.tm.translate(url)
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
         self.assertDictEqual(obtained, expected)

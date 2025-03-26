@@ -237,3 +237,65 @@ class TestTranslatorClassic(unittest.TestCase):
                     'content_type': CONTENT_TYPE_UNDEFINED,
                 }
                 self.assertDictEqual(obtained, expected)
+
+    def test_translate_classic_site_content_type_is_how_to_cite(self):
+        url = 'scielo.php?script=sci_isoref&pid=S0001-60022024000100008&lng=en&tlng=es'
+
+        obtained = self.tm.translate(url)
+        self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
+
+        expected = {
+            'scielo_issn': '0001-6002',
+            'pid_v2': 'S0001-60022024000100008',
+            'pid_v3': None,
+            'media_format': MEDIA_FORMAT_HTML,
+            'media_language': 'es',
+            'content_type': CONTENT_TYPE_HOW_TO_CITE,
+        }
+        self.assertDictEqual(obtained, expected)
+
+    def test_translate_classic_site_content_type_is_citation_export(self):
+        url = '/scielo.php?download&format=EndNote&pid=S0001-60022024000100008'
+
+        obtained = self.tm.translate(url)
+        self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
+
+        expected = {
+            'scielo_issn': '0001-6002',
+            'pid_v2': 'S0001-60022024000100008',
+            'pid_v3': None,
+            'media_format': MEDIA_FORMAT_HTML,
+            'media_language': 'en',
+            'content_type': CONTENT_TYPE_CITATION_EXPORT,
+        }
+        self.assertDictEqual(obtained, expected)
+
+    def test_translate_classic_site_content_type_is_references_list(self):
+        url = '/scieloOrg/php/reference.php?pid=S0001-60022024000100008&caller=www.scielo.sa.cr&lang=en'
+        obtained = self.tm.translate(url)
+        self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
+
+        expected = {
+            'scielo_issn': '0001-6002',
+            'pid_v2': 'S0001-60022024000100008',
+            'pid_v3': None,
+            'media_format': MEDIA_FORMAT_HTML,
+            'media_language': 'en',
+            'content_type': CONTENT_TYPE_REFERENCES_LIST,
+        }
+        self.assertDictEqual(obtained, expected)
+
+    def test_translate_classic_site_content_type_is_translate(self):
+        url = '/scieloOrg/php/translate.php?pid=S0001-60022024000100008&caller=www.scielo.sa.cr&lang=en&tlang=es&script=sci_arttext'
+        obtained = self.tm.translate(url)
+        self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
+
+        expected = {
+            'scielo_issn': '0001-6002',
+            'pid_v2': 'S0001-60022024000100008',
+            'pid_v3': None,
+            'media_format': MEDIA_FORMAT_HTML,
+            'media_language': 'en',
+            'content_type': CONTENT_TYPE_TRANSLATE_DOCUMENT,
+        }
+        self.assertDictEqual(obtained, expected)

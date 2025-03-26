@@ -275,7 +275,8 @@ class TestURLTranslationManager(unittest.TestCase):
             "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?lang=pt",
             "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?lang=it",
             "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?format=xml",
-            "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?format=pdf"
+            "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?format=pdf",
+            "/citation/export/5ySvRy7VFTxsKLt35Mwsm9g/?format=bib",
         ]:
             self.tm.identify_translator_class(url)
             self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)

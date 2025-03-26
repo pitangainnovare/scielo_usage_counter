@@ -39,6 +39,7 @@ PATTERNS_OPAC_ALPHA_SITE = [
 # Patterns to support identify a URL as a OPAC Site URL
 PATTERNS_OPAC_SITE = [
     re.compile(r'/?j/[^/]+/', re.IGNORECASE),
+    re.compile(r'/citation/export/', re.IGNORECASE),
 ]
 
 # Patterns to support identify a URL as a Preprints Site URL

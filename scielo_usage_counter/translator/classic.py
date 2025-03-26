@@ -18,15 +18,15 @@ from scielo_usage_counter.values import (
 )
 
 
-# Patterns to support parameter extraction and determine whether a URL is an Investigation or a Request
-REGEX_CLASSIC_SITE_SCIELO_PHP = re.compile(r'/scielo.php', re.IGNORECASE)   # Investigation or Request URL - Depends on the parameters script and download
-REGEX_CLASSIC_SITE_ARTICLE_PLUS_PHP = re.compile(r'/articleplus.php', re.IGNORECASE)    # Request URL
-REGEX_CLASSIC_SITE_PDF_READCUBE_EPDF_PHP = re.compile(r'/pdf/readcube/epdf.php', re.IGNORECASE)  # Request URL
-REGEX_CLASSIC_SITE_SCIELO_ORG_PHP = re.compile(r'/scieloorg/php/', re.IGNORECASE)   # Investigation or Request URL - Depends on the full path
-REGEX_CLASSIC_SITE_ARTICLE_PDF = re.compile(r'.*\.pdf$', re.IGNORECASE) # Request URL
-REGEX_CLASSIC_SITE_ARTICLE_PDF_PATH = re.compile(r'.*(/pdf/.*/.*)', re.IGNORECASE)  # Request URL
-REGEX_CLASSIC_SITE_ARTICLE_PDF_FULL_PATH = re.compile(r'(.*)(/pdf/.*/.*)', re.IGNORECASE)   # Request URL
-REGEX_CLASSIC_SITE_ARTICLE_XML = re.compile(r'articlexml', re.IGNORECASE)   # Request URL
+# Patterns to support parameter extraction
+REGEX_CLASSIC_SITE_SCIELO_PHP = re.compile(r'/?scielo.php', re.IGNORECASE)
+REGEX_CLASSIC_SITE_ARTICLE_PLUS_PHP = re.compile(r'/?articleplus.php', re.IGNORECASE)
+REGEX_CLASSIC_SITE_PDF_READCUBE_EPDF_PHP = re.compile(r'/?pdf/readcube/epdf.php', re.IGNORECASE)
+REGEX_CLASSIC_SITE_SCIELO_ORG_PHP = re.compile(r'/?scieloorg/php/', re.IGNORECASE)
+REGEX_CLASSIC_SITE_ARTICLE_PDF = re.compile(r'.*\.pdf$', re.IGNORECASE)
+REGEX_CLASSIC_SITE_ARTICLE_PDF_PATH = re.compile(r'.*(/pdf/.*/.*)', re.IGNORECASE)
+REGEX_CLASSIC_SITE_ARTICLE_PDF_FULL_PATH = re.compile(r'(.*)(/pdf/.*/.*)', re.IGNORECASE)
+REGEX_CLASSIC_SITE_ARTICLE_XML = re.compile(r'.*articlexml', re.IGNORECASE)
 
 
 class URLTranslatorClassicSite:

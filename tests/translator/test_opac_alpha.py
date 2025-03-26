@@ -253,6 +253,10 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
 
     def test_translate_opac_alpha_url_resource_ssm_path(self):
         url = '/article/ssm/content/raw/?resource_ssm_path=/media/assets/resp/v92/1135-5727-resp-92-e201806033.pdf'
+
+        # This URL is very similar to the OPAC URL format, so, we have to force the OPACAlphaSite translator
+        self.tm.translator = URLTranslatorOPACAlphaSite(self.tm.journals_metadata, self.tm.articles_metadata)
+        self.tm.is_translator_forced = True
         result = self.tm.translate(url)
         self.assertDictEqual(
             result,

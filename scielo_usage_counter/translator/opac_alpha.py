@@ -117,20 +117,27 @@ class URLTranslatorOPACAlphaSite:
     def extract_pid_v3(self):
         return self._extract_artifitial_pid()
     
-    def _extract_artifitial_pid(self):        
-        artificial_pid = ':'.join([
-            self.url_params.get('journal_acronym') or '',
-            self.url_params.get('year') or '',
-            self.url_params.get('vol_issue') or '',
-        ])
-
-        if self.url_params.get('pages'):
-            return ':'.join([artificial_pid, self.url_params.get('pages', '')])
-
+    def _extract_artifitial_pid(self):    
+        # If the URL is a PDF, it is necessary to extract the pid_v3 from the article metadata
         if self.url_params.get('file'):
             key = self.url_params.get('file', '').lstrip('/')
             key = f'/{key}' if key else ''
-            return self.articles_metadata.get('pdf_to_pid_v3').get(key)
+            return self.articles_metadata['pdf_to_pid_v3'].get(key)
+
+        # If the URL is a HTML, we need to construct an artificial
+        #  PID using available URL parameters
+        components = [
+            self.url_params.get('journal_acronym', ''),
+            self.url_params.get('year', ''),
+            self.url_params.get('vol_issue', ''),
+            self.url_params.get('pages', ''),
+        ]
+
+        # Filter out any empty components and join them with ':'
+        artificial_pid = ':'.join(filter(None, components))
+
+        return artificial_pid if artificial_pid else None
+
     
     def extract_issn(self):
         return self.journals_metadata['acronym_to_scielo_issn'].get(self.url_params.get('journal_acronym'))

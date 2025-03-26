@@ -2,107 +2,17 @@ import unittest
 
 from scielo_usage_counter.url_translator import URLTranslationManager
 from scielo_usage_counter.translator.dataverse import URLTranslatorDataverseSite
+from scielo_usage_counter.values import (
+    MEDIA_FORMAT_UNDEFINED,
+    CONTENT_TYPE_ABSTRACT,
+    CONTENT_TYPE_FULL_TEXT,
+)
 
 
 class TestTranslatorDataverse(unittest.TestCase):
     def setUp(self):
-        self.journals_metadata = [
-            {
-                'acronym': 'wimj',
-                'scielo_issn': '0043-3144',
-                'issns': ['0043-3144',],
-                'title': 'West Indian Medical Journal',
-                'publisher_name': 'The University of the West Indies',
-                'subject_areas': ['Health Sciences',],
-                'wos_subject_areas': ['HEALTH CARE SCIENCES & SERVICES',]
-            }, {
-                'acronym': 'psoc',
-                'scielo_issn': '1807-0310',
-                'issns': ['1807-0310',],
-                'title': 'Psicologia & Sociedade',
-                'publisher_name': 'Universidade Federal do Rio Grande do Sul',
-                'subject_areas': ['Psychology',],
-                'wos_subject_areas': ['PSYCHOLOGY, SOCIAL',]
-            }, {
-                'acronym': 'rbz',
-                'scielo_issn': '1516-3598',
-                'issns': ['1516-3598'],
-                'title': 'Revista Brasileira de Zootecnia',
-                'publisher_name': 'Sociedade Brasileira de Zootecnia',
-                'subject_areas': ['Agricultural Sciences'],
-                'wos_subject_areas': ['AGRICULTURE, DAIRY & ANIMAL SCIENCE']
-            }, {
-                'acronym': 'neco',
-                'scielo_issn': '0103-6351',
-                'issns': ['0103-6351'],
-                'title': 'Nova Economia',
-                'publisher_name': 'Universidade Federal de Minas Gerais',
-                'subject_areas': ['Economics'],
-                'wos_subject_areas': ['ECONOMICS']
-            },
-        ]
-        self.articles_metadata = [
-            {
-                'pid_v2': 'S0043-31442017000600634',
-                'pid_v3': '',
-                'default_lang': 'en',
-                'text_langs': ['en', 'es'],
-                'scielo_issn': '0043-3144',
-                'publication_year': '2017',
-                'pdfs': [
-                    {'doi': '10.7727/wimj.2014.321', 'lang': 'en', 'path': 'pdf/wimj/v66n6/2309-5830-wimj-66-06-0634.pdf', 'checked': False},
-                    {'doi': '10.7727/wimj.2014.321', 'lang': 'es', 'path': 'pdf/wimj/v66n6/es_2309-5830-wimj-66-06-0588.pdf', 'checked': False}
-                ]
-            },
-            {
-                'pid_v2': '',
-                'pid_v3': '5ySvRy7VFTxsKLt35Mwsm9g',
-                'default_lang': 'en',
-                'text_langs': ['en', 'es'],
-                'scielo_issn': '0043-3144',
-                'publication_year': '2017',
-                'pdfs': [
-                    {'doi': '10.7727/neco.2014.321', 'lang': 'en', 'path': 'pdf/neco/v66n6/2309-5830-neco-66-06-0634.pdf', 'checked': False},
-                    {'doi': '10.7727/neco.2014.321', 'lang': 'es', 'path': 'pdf/neco/v66n6/es_2309-5830-neco-66-06-0588.pdf', 'checked': False}
-                ] 
-            },
-            {
-                'pid_v2': '',
-                'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
-                'default_lang': 'pt',
-                'text_langs': ['pt', 'en'],
-                'scielo_issn': '0103-6351',
-                'publication_year': '2021',
-                'pdfs': [
-                    {'doi': '10.1590/neco.2021.123', 'lang': 'pt', 'path': 'pdf/neco/v29n3/1234-5678-neco-29-03-0123.pdf', 'checked': False},
-                    {'doi': '10.1590/neco.2021.123', 'lang': 'en', 'path': 'pdf/neco/v29n3/en_1234-5678-neco-29-03-0123.pdf', 'checked': False}
-                ]
-            },
-            {
-                'pid_v2': '',
-                'pid_v3': 'cKnLLBn5NnshCX93Y6qYpHv',
-                'default_lang': 'en',
-                'text_langs': ['en', 'es'],
-                'scielo_issn': '1516-3598',
-                'publication_year': '2020',
-                'pdfs': [
-                    {'doi': '10.1590/rbz.2020.456', 'lang': 'en', 'path': 'pdf/rbz/v47n4/5678-1234-rbz-47-04-0456.pdf', 'checked': False},
-                    {'doi': '10.1590/rbz.2020.456', 'lang': 'es', 'path': 'pdf/rbz/v47n4/es_5678-1234-rbz-47-04-0456.pdf', 'checked': False}
-                ]
-            },
-            {
-                'pid_v2': '',
-                'pid_v3': 'hbSYnTbyNfzxcWT3FpXrL5G',
-                'default_lang': 'es',
-                'text_langs': ['es', 'en'],
-                'scielo_issn': '1807-0310',
-                'publication_year': '2019',
-                'pdfs': [
-                    {'doi': '10.1590/psoc.2019.789', 'lang': 'es', 'path': 'pdf/psoc/v37n2/7890-1234-psoc-37-02-0789.pdf', 'checked': False},
-                    {'doi': '10.1590/psoc.2019.789', 'lang': 'en', 'path': 'pdf/psoc/v37n2/en_7890-1234-psoc-37-02-0789.pdf', 'checked': False}
-                ]
-            }
-        ]
+        self.journals_metadata = []
+        self.articles_metadata = []
         self.tm = URLTranslationManager(self.journals_metadata, self.articles_metadata)
 
     def test_translate_dataverse_site_urls_doi_identifiers(self):
@@ -257,8 +167,8 @@ class TestTranslatorDataverse(unittest.TestCase):
                     'pid_v2': None,
                     'pid_v3': None,
                     'id': identifier,
-                    'content_type': 'investigation',
-                    'media_format': 'und',
+                    'content_type': CONTENT_TYPE_ABSTRACT,
+                    'media_format': MEDIA_FORMAT_UNDEFINED,
                     'media_language': 'un',
                 }
                 self.assertDictEqual(obtained, expected)
@@ -275,14 +185,14 @@ class TestTranslatorDataverse(unittest.TestCase):
                     'pid_v2': None,
                     'pid_v3': None,
                     'id': identifier,
-                    'content_type': 'request',
-                    'media_format': 'und',
+                    'content_type': CONTENT_TYPE_FULL_TEXT,
+                    'media_format': MEDIA_FORMAT_UNDEFINED,
                     'media_language': 'un',
                 }
                 self.assertDictEqual(obtained, expected)
                 self.assertIsInstance(self.tm.translator, URLTranslatorDataverseSite)
 
-    def test_translate_dataverse_site_content_type_is_request(self):
+    def test_translate_dataverse_site_content_type_is_full_text(self):
         for url, identifier in [
             ('/api/access/datafile/12530;jsessionid=10f3dcfc6fc3781167757d5156bc?imageThumb=true&pfdrid_c=true', '12530'),
             ('/file.xhtml?persistentId=doi:10.48331/scielodata.SYBBUJ/WYQQ54', 'DOI:10.48331/SCIELODATA.SYBBUJ/WYQQ54'),
@@ -294,8 +204,8 @@ class TestTranslatorDataverse(unittest.TestCase):
                     'pid_v2': None,
                     'pid_v3': None,
                     'id': identifier,
-                    'content_type': 'request',
-                    'media_format': 'und',
+                    'content_type': CONTENT_TYPE_FULL_TEXT,
+                    'media_format': MEDIA_FORMAT_UNDEFINED,
                     'media_language': 'un',
                 }
                 self.assertDictEqual(obtained, expected)

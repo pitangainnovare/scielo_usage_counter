@@ -6,16 +6,17 @@ from scielo_usage_counter.values import (
     MEDIA_FORMAT_HTML,
     MEDIA_FORMAT_PDF,
     MEDIA_LANGUAGE_UNDEFINED,
-    R5_CONTENT_TYPE_INVESTIGATION,
-    R5_CONTENT_TYPE_REQUEST,
+    CONTENT_TYPE_FULL_TEXT,
+    CONTENT_TYPE_ABSTRACT,
+    CONTENT_TYPE_UNDEFINED,
 )   
 
 
-# Patterns to support parameter extraction and determine whether a URL is an Investigation or a Request
-REGEX_OPAC_ALPHA_ARTICLE_ACRONYM_YEAR_VOL_ISSUE_PAGES_LANGUAGE = re.compile(r'article/(?P<journal_acronym>\w*)/(?P<year>\d{0,4})\.(?P<vol_issue>[\d|\w]+)/(?P<pages>[\d-]+|e[\w\d]+)/?(?P<media_language>\w{2})?', re.IGNORECASE) # Request or Investigation
-REGEX_OPAC_ALPHA_PDF_ACRONYM_YEAR_VOL_ISSUE_PAGES_LANGUAGE = re.compile(r'pdf/(?P<journal_acronym>\w*)/(?P<year>\d{0,4})\.(?P<vol_issue>[\d|\w]+)/(?P<pages>[\d-]+|e[\w\d]+)/?(?P<media_language>\w{2})?', re.IGNORECASE) # Request
-REGEX_OPAC_ALPHA_PDF_PATH = r'.*/?pdf/(?P<journal_acronym>\w*)/(?P<vol_issue>[\d|\w]*)/(?P<pages>[\d-]+|e[\w\d]+)/(?P<file>[\d|\w|-]*\.pdf)'    # Request
-REGEX_OPAC_ALPHA_MEDIA_ASSETS_ACRONYM = re.compile(r'.*/media/assets/(?P<journal_acronym>\w*)/(?P<vol_issue>[\d|\w]*)/(?P<file>[\d|\w|-]*\.pdf)', re.IGNORECASE)   # Request
+# Patterns to support parameter extraction
+REGEX_OPAC_ALPHA_ARTICLE_ACRONYM_YEAR_VOL_ISSUE_PAGES_LANGUAGE = re.compile(r'article/(?P<journal_acronym>\w*)/(?P<year>\d{0,4})\.(?P<vol_issue>[\d|\w]+)/(?P<pages>[\d-]+|e[\w\d]+)/?(?P<media_language>\w{2})?', re.IGNORECASE)
+REGEX_OPAC_ALPHA_PDF_ACRONYM_YEAR_VOL_ISSUE_PAGES_LANGUAGE = re.compile(r'pdf/(?P<journal_acronym>\w*)/(?P<year>\d{0,4})\.(?P<vol_issue>[\d|\w]+)/(?P<pages>[\d-]+|e[\w\d]+)/?(?P<media_language>\w{2})?', re.IGNORECASE)
+REGEX_OPAC_ALPHA_PDF_PATH = r'.*/?pdf/(?P<journal_acronym>\w*)/(?P<vol_issue>[\d|\w]*)/(?P<pages>[\d-]+|e[\w\d]+)/(?P<file>[\d|\w|-]*\.pdf)'
+REGEX_OPAC_ALPHA_MEDIA_ASSETS_ACRONYM = re.compile(r'.*/media/assets/(?P<journal_acronym>\w*)/(?P<vol_issue>[\d|\w]*)/(?P<file>[\d|\w|-]*\.pdf)', re.IGNORECASE)
 
 
 class URLTranslatorOPACAlphaSite:
@@ -31,7 +32,7 @@ class URLTranslatorOPACAlphaSite:
         media_language = self.extract_media_language(pid_v3)
         scielo_issn = self.extract_issn()
 
-        content_type = self.extract_content_type()
+        content_type = self.extract_content_type(url)
 
         return {
             'scielo_issn': scielo_issn,
@@ -70,6 +71,8 @@ class URLTranslatorOPACAlphaSite:
 
     def _get_url_params_from_query_key(self, url_params, query):
         resource_path = dict(parse_qsl(query)).get('resource_ssm_path', '')
+        url_params['resource_ssm_path'] = resource_path
+
         match = re.search(REGEX_OPAC_ALPHA_MEDIA_ASSETS_ACRONYM, resource_path)
         if match:
             url_params['journal_acronym'] = match.groupdict().get('journal_acronym')
@@ -142,7 +145,21 @@ class URLTranslatorOPACAlphaSite:
     def extract_issn(self):
         return self.journals_metadata['acronym_to_scielo_issn'].get(self.url_params.get('journal_acronym'))
 
-    def extract_content_type(self):
+    def extract_content_type(self, url):
         if 'abstract_lang' in self.url_params:
-            return R5_CONTENT_TYPE_INVESTIGATION
-        return R5_CONTENT_TYPE_REQUEST
+            return CONTENT_TYPE_ABSTRACT
+        
+        for p in [
+            REGEX_OPAC_ALPHA_ARTICLE_ACRONYM_YEAR_VOL_ISSUE_PAGES_LANGUAGE,
+            REGEX_OPAC_ALPHA_PDF_ACRONYM_YEAR_VOL_ISSUE_PAGES_LANGUAGE,
+            REGEX_OPAC_ALPHA_PDF_PATH,
+        ]:
+            if re.search(p, url):
+                return CONTENT_TYPE_FULL_TEXT
+            
+        if 'resource_ssm_path' in self.url_params:
+            match = re.search(REGEX_OPAC_ALPHA_MEDIA_ASSETS_ACRONYM, self.url_params['resource_ssm_path'])
+            if match:
+                return CONTENT_TYPE_FULL_TEXT
+
+        return CONTENT_TYPE_UNDEFINED

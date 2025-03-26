@@ -89,18 +89,18 @@ class URLTranslatorOPACAlphaSite:
 
             if match:
                 url_params['media_format'] = media_format
-                url_params['journal_acronym'] = match.groupdict().get('journal_acronym')
-                url_params['year'] = match.groupdict().get('year')
-                url_params['vol_issue'] = match.groupdict().get('vol_issue')
-                url_params['pages'] = match.groupdict().get('pages')
-                url_params['media_language'] = match.groupdict().get('language')
+
+                for key in ['journal_acronym', 'year', 'vol_issue', 'pages', 'media_language', 'file']:
+                    if key in match.groupdict():
+                        url_params[key] = match.groupdict().get(key)
+                
                 return
 
         path_match_assets = re.match(REGEX_OPAC_ALPHA_MEDIA_ASSETS_ACRONYM, url_path)
         if path_match_assets:
-            url_params['journal_acronym'] = path_match_assets.group(1)
-            url_params['year_vol_issue'] = path_match_assets.group(2)
-            url_params['file'] = path_match_assets.group(3)
+            for key in ['journal_acronym', 'vol_issue', 'file']:
+                if key in path_match_assets.groupdict():
+                    url_params[key] = path_match_assets.groupdict().get(key)
 
             if url_path.endswith('.pdf'):
                 url_params['media_format'] = MEDIA_FORMAT_PDF

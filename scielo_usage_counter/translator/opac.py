@@ -17,8 +17,8 @@ from scielo_usage_counter.values import (
 # Patterns to support parameter extraction
 REGEX_OPAC_SITE_JOURNAL_ARTICLE_ABSTRACT = re.compile(r'.*/j/(?P<journal_acronym>\w*)/a/(?P<pid_v3>\w*)/abstract', re.IGNORECASE)
 REGEX_OPAC_SITE_JOURNAL_ARTICLE = re.compile(r'.*/j/(?P<journal_acronym>\w*)/a/(?P<pid_v3>\w*)', re.IGNORECASE)
-REGEX_OPAC_SITE_RAW_DETAIL = re.compile(r'.*/documentstore/(?P<journal_issn>[\w|-]*)/(?P<pid_v3>\w*)/(?P<file>[\w|\.]*)', re.IGNORECASE)
-REGEX_OPAC_SITE_CITATION_EXPORT = re.compile(r'.*/citation/export/(?P<pid_v3>\w*)/', re.IGNORECASE)
+REGEX_OPAC_SITE_DOCUMENT_STORE = re.compile(r'documentstore/(?P<journal_issn>[\w|-]*)/(?P<pid_v3>\w*)/(?P<file>[\w|\.]*)', re.IGNORECASE)
+REGEX_OPAC_SITE_CITATION_EXPORT = re.compile(r'.*/?citation/export/(?P<pid_v3>\w*)/', re.IGNORECASE)
 
 
 class URLTranslatorOPACSite:
@@ -67,7 +67,7 @@ class URLTranslatorOPACSite:
         url_params['journal_acronym'], url_params['pid_v3'] = self._get_acronym_and_pid_from_url(url)
 
         if 'resource_ssm_path' in url_parsed.query:
-            match = re.search(REGEX_OPAC_SITE_RAW_DETAIL, url_params['resource_ssm_path'])
+            match = re.search(REGEX_OPAC_SITE_DOCUMENT_STORE, url_params['resource_ssm_path'])
             if match and len(match.groups()) == 3:
                 url_params['scielo_issn'] = match.groupdict().get('journal_issn')
                 url_params['pid_v3'] = match.groupdict().get('pid_v3')
@@ -132,8 +132,8 @@ class URLTranslatorOPACSite:
         ):
             return CONTENT_TYPE_FULL_TEXT
         
-        match = re.search(REGEX_OPAC_SITE_RAW_DETAIL, url)
-        if match and match.groupdict().get('path', '').endswith('.pdf'):
+        match = re.search(REGEX_OPAC_SITE_DOCUMENT_STORE, url)
+        if match and match.groupdict().get('file', '').endswith('.pdf'):
             return CONTENT_TYPE_FULL_TEXT
         
         if re.search(REGEX_OPAC_SITE_JOURNAL_ARTICLE, url):

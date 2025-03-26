@@ -277,9 +277,11 @@ class TestURLTranslationManager(unittest.TestCase):
             "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?format=xml",
             "/j/inter/a/kJHmpQkLTrnPCbftkSNncpr/abstract/?format=pdf",
             "/citation/export/5ySvRy7VFTxsKLt35Mwsm9g/?format=bib",
+            "/article/ssm/content/raw/?resource_ssm_path=/documentstore/1806-9460/YdZ7HCqnBkgxhJRPCmKrxkz/b7e997318152c89988a6aad8b0c541d510f468f6.pdf",
         ]:
-            self.tm.identify_translator_class(url)
-            self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
+            with self.subTest(url=url):
+                self.tm.identify_translator_class(url)
+                self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
 
     def test_identify_translator_class_is_dataverse_site(self):
         for url in [

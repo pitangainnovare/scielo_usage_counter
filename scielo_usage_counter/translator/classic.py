@@ -175,33 +175,37 @@ class URLTranslatorClassicSite:
         if re.search(REGEX_CLASSIC_SITE_SCIELO_PHP, url):
             if 'script' in self.url_params:
                 if self.url_params['script'] == 'sci_abstract':
-                    return R5_CONTENT_TYPE_INVESTIGATION
+                    return CONTENT_TYPE_ABSTRACT
                 
                 if self.url_params['script'] in ('sci_arttext', 'sci_arttext_plus', 'sci_pdf'):
-                    return R5_CONTENT_TYPE_REQUEST
+                    return CONTENT_TYPE_FULL_TEXT
+                
+                if self.url_params['script'] == 'sci_isoref':
+                    return CONTENT_TYPE_HOW_TO_CITE
                 
             elif 'download' in self.url_params:
-                return R5_CONTENT_TYPE_INVESTIGATION
+                return CONTENT_TYPE_CITATION_EXPORT
             
         if re.search(REGEX_CLASSIC_SITE_ARTICLE_PLUS_PHP, url):
-            return R5_CONTENT_TYPE_REQUEST
+            return CONTENT_TYPE_FULL_TEXT
         
         if re.search(REGEX_CLASSIC_SITE_ARTICLE_PDF, url):
-            return R5_CONTENT_TYPE_REQUEST
+            return CONTENT_TYPE_FULL_TEXT
         
         if re.search(REGEX_CLASSIC_SITE_PDF_READCUBE_EPDF_PHP, url):
-            return R5_CONTENT_TYPE_REQUEST
+            return CONTENT_TYPE_FULL_TEXT
         
         if re.search(REGEX_CLASSIC_SITE_SCIELO_ORG_PHP, url):
             if 'articlexml' in url.lower():
-                return R5_CONTENT_TYPE_REQUEST
+                return CONTENT_TYPE_FULL_TEXT
             
-            keywords = [
-                'citedscielo',
-                'reference',
-                'related',
-                'translate',
-            ]
-            if any(keyword in url.lower() for keyword in keywords):
-                return R5_CONTENT_TYPE_INVESTIGATION
-        return R5_CONTENT_TYPE_UNDEFINED            
+            if 'reference' in url.lower():
+                return CONTENT_TYPE_REFERENCES_LIST
+
+            if 'related' in url.lower():
+                return CONTENT_TYPE_RELATED_DOCUMENTS
+            
+            if 'translate' in url.lower():
+                return CONTENT_TYPE_TRANSLATE_DOCUMENT
+
+        return CONTENT_TYPE_UNDEFINED

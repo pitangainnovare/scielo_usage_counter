@@ -7,21 +7,26 @@ from scielo_usage_counter.values import (
     MEDIA_FORMAT_HTML,
     MEDIA_FORMAT_PDF,
     MEDIA_FORMAT_XML,
-    R5_CONTENT_TYPE_INVESTIGATION,
-    R5_CONTENT_TYPE_REQUEST,
-    R5_CONTENT_TYPE_UNDEFINED,
+    CONTENT_TYPE_FULL_TEXT,
+    CONTENT_TYPE_ABSTRACT,
+    CONTENT_TYPE_HOW_TO_CITE,
+    CONTENT_TYPE_CITATION_EXPORT,
+    CONTENT_TYPE_REFERENCES_LIST,
+    CONTENT_TYPE_RELATED_DOCUMENTS,
+    CONTENT_TYPE_TRANSLATE_DOCUMENT,
+    CONTENT_TYPE_UNDEFINED,
 )
 
 
-# Patterns to support parameter extraction and determine whether a URL is an Investigation or a Request
-REGEX_CLASSIC_SITE_SCIELO_PHP = re.compile(r'/scielo.php', re.IGNORECASE)   # Investigation or Request URL - Depends on the parameters script and download
-REGEX_CLASSIC_SITE_ARTICLE_PLUS_PHP = re.compile(r'/articleplus.php', re.IGNORECASE)    # Request URL
-REGEX_CLASSIC_SITE_PDF_READCUBE_EPDF_PHP = re.compile(r'/pdf/readcube/epdf.php', re.IGNORECASE)  # Request URL
-REGEX_CLASSIC_SITE_SCIELO_ORG_PHP = re.compile(r'/scieloorg/php/', re.IGNORECASE)   # Investigation or Request URL - Depends on the full path
-REGEX_CLASSIC_SITE_ARTICLE_PDF = re.compile(r'.*\.pdf$', re.IGNORECASE) # Request URL
-REGEX_CLASSIC_SITE_ARTICLE_PDF_PATH = re.compile(r'.*(/pdf/.*/.*)', re.IGNORECASE)  # Request URL
-REGEX_CLASSIC_SITE_ARTICLE_PDF_FULL_PATH = re.compile(r'(.*)(/pdf/.*/.*)', re.IGNORECASE)   # Request URL
-REGEX_CLASSIC_SITE_ARTICLE_XML = re.compile(r'articlexml', re.IGNORECASE)   # Request URL
+# Patterns to support parameter extraction
+REGEX_CLASSIC_SITE_SCIELO_PHP = re.compile(r'/?scielo.php', re.IGNORECASE)
+REGEX_CLASSIC_SITE_ARTICLE_PLUS_PHP = re.compile(r'/?articleplus.php', re.IGNORECASE)
+REGEX_CLASSIC_SITE_PDF_READCUBE_EPDF_PHP = re.compile(r'/?pdf/readcube/epdf.php', re.IGNORECASE)
+REGEX_CLASSIC_SITE_SCIELO_ORG_PHP = re.compile(r'/?scieloorg/php/', re.IGNORECASE)
+REGEX_CLASSIC_SITE_ARTICLE_PDF = re.compile(r'.*\.pdf$', re.IGNORECASE)
+REGEX_CLASSIC_SITE_ARTICLE_PDF_PATH = re.compile(r'.*(/pdf/.*/.*)', re.IGNORECASE)
+REGEX_CLASSIC_SITE_ARTICLE_PDF_FULL_PATH = re.compile(r'(.*)(/pdf/.*/.*)', re.IGNORECASE)
+REGEX_CLASSIC_SITE_ARTICLE_XML = re.compile(r'.*articlexml', re.IGNORECASE)
 
 
 class URLTranslatorClassicSite:
@@ -53,6 +58,9 @@ class URLTranslatorClassicSite:
         url_qsl = parse_qsl(url_split.query)
         url_params = dict([(x[0].strip(), x[1].strip()) for x in url_qsl])
 
+        if 'download' in url_split.query:
+            url_params['download'] = 'true'
+
         # Perform additional processing to handle malformed URLs
         if len(url_qsl) == 1 and len(url_qsl[0]) == 2 and 'pid' in url_qsl[0]:
             url_qsl = parse_qsl('='.join(url_qsl[0]))
@@ -60,7 +68,7 @@ class URLTranslatorClassicSite:
 
         # Remove unnecessary spaces in the most important keys and values
         for k, v in url_params.items():
-            if k in {'issn', 'script', 'pid', 'tlng'}:
+            if k in {'issn', 'script', 'pid', 'tlng', 'download'}:
                 sanitized_value = v.split(' ')[0]
 
                 # Remove the final period that occurs in some situations
@@ -170,33 +178,37 @@ class URLTranslatorClassicSite:
         if re.search(REGEX_CLASSIC_SITE_SCIELO_PHP, url):
             if 'script' in self.url_params:
                 if self.url_params['script'] == 'sci_abstract':
-                    return R5_CONTENT_TYPE_INVESTIGATION
+                    return CONTENT_TYPE_ABSTRACT
                 
                 if self.url_params['script'] in ('sci_arttext', 'sci_arttext_plus', 'sci_pdf'):
-                    return R5_CONTENT_TYPE_REQUEST
+                    return CONTENT_TYPE_FULL_TEXT
+                
+                if self.url_params['script'] == 'sci_isoref':
+                    return CONTENT_TYPE_HOW_TO_CITE
                 
             elif 'download' in self.url_params:
-                return R5_CONTENT_TYPE_INVESTIGATION
+                return CONTENT_TYPE_CITATION_EXPORT
             
         if re.search(REGEX_CLASSIC_SITE_ARTICLE_PLUS_PHP, url):
-            return R5_CONTENT_TYPE_REQUEST
+            return CONTENT_TYPE_FULL_TEXT
         
         if re.search(REGEX_CLASSIC_SITE_ARTICLE_PDF, url):
-            return R5_CONTENT_TYPE_REQUEST
+            return CONTENT_TYPE_FULL_TEXT
         
         if re.search(REGEX_CLASSIC_SITE_PDF_READCUBE_EPDF_PHP, url):
-            return R5_CONTENT_TYPE_REQUEST
+            return CONTENT_TYPE_FULL_TEXT
         
         if re.search(REGEX_CLASSIC_SITE_SCIELO_ORG_PHP, url):
             if 'articlexml' in url.lower():
-                return R5_CONTENT_TYPE_REQUEST
+                return CONTENT_TYPE_FULL_TEXT
             
-            keywords = [
-                'citedscielo',
-                'reference',
-                'related',
-                'translate',
-            ]
-            if any(keyword in url.lower() for keyword in keywords):
-                return R5_CONTENT_TYPE_INVESTIGATION
-        return R5_CONTENT_TYPE_UNDEFINED            
+            if 'reference' in url.lower():
+                return CONTENT_TYPE_REFERENCES_LIST
+
+            if 'related' in url.lower():
+                return CONTENT_TYPE_RELATED_DOCUMENTS
+            
+            if 'translate' in url.lower():
+                return CONTENT_TYPE_TRANSLATE_DOCUMENT
+
+        return CONTENT_TYPE_UNDEFINED

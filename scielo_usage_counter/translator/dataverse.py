@@ -5,26 +5,25 @@ from urllib.parse import parse_qsl, urlsplit
 from scielo_usage_counter.values import (
     MEDIA_FORMAT_UNDEFINED,
     MEDIA_LANGUAGE_UNDEFINED,
-    R5_CONTENT_TYPE_INVESTIGATION,
-    R5_CONTENT_TYPE_REQUEST,
+    CONTENT_TYPE_FULL_TEXT,
+    CONTENT_TYPE_ABSTRACT,
+    CONTENT_TYPE_UNDEFINED,
+    CONTENT_TYPE_CITATION_EXPORT,
 )
 
 
-NAME_DATAVERSE_SITE = 'dataverse_site'
-
-# Patterns to support parameter extraction and determine whether a URL is an Investigation or a Request
-REGEX_DATAVERSE_SITE_API_ACCESS_DATAFILE = re.compile(r'.*/api/access/datafile/(?P<id>\d+)', re.IGNORECASE) # Request URL
-REGEX_DATAVERSE_SITE_API_DATASETS_EXPORT = re.compile(r'.*/api/datasets/export', re.IGNORECASE) # Investigation URL
-REGEX_DATAVERSE_SITE_API_DATASETS = re.compile(r'.*/api/datasets/(?P<id>\d)?', re.IGNORECASE)   # Investigation URL
-REGEX_DATAVERSE_SITE_DATASET = re.compile(r'.*/dataset.xhtml', re.IGNORECASE)   # Investigation URL
-REGEX_DATAVERSE_SITE_FILE = re.compile(r'.*/file.xhtml', re.IGNORECASE) # Request URL
+# Patterns to support parameter extraction
+REGEX_DATAVERSE_SITE_API_ACCESS_DATAFILE = re.compile(r'.*/api/access/datafile/(?P<id>\d+)', re.IGNORECASE)
+REGEX_DATAVERSE_SITE_API_DATASETS_EXPORT = re.compile(r'.*/api/datasets/export', re.IGNORECASE)
+REGEX_DATAVERSE_SITE_API_DATASETS = re.compile(r'.*/api/datasets/(?P<id>\d)?', re.IGNORECASE)
+REGEX_DATAVERSE_SITE_DATASET = re.compile(r'.*/dataset.xhtml', re.IGNORECASE)
+REGEX_DATAVERSE_SITE_FILE = re.compile(r'.*/file.xhtml', re.IGNORECASE)
 
 
 class URLTranslatorDataverseSite:
     def __init__(self, journals_metadata, articles_metadata):
         self.journals_metadata = journals_metadata
         self.articles_metadata = articles_metadata
-        self.name = NAME_DATAVERSE_SITE
 
     def pipeline_translate(self, url):
         self.url_params = self.extract_url_params(url)
@@ -60,20 +59,24 @@ class URLTranslatorDataverseSite:
         return MEDIA_LANGUAGE_UNDEFINED
 
     def extract_content_type(self, url):
-        for r in [
-            REGEX_DATAVERSE_SITE_API_DATASETS_EXPORT,
+        for p in [
             REGEX_DATAVERSE_SITE_API_DATASETS,
-            REGEX_DATAVERSE_SITE_DATASET
+            REGEX_DATAVERSE_SITE_DATASET,
         ]:
-            if re.search(r, url):
-                return R5_CONTENT_TYPE_INVESTIGATION
+            if re.search(p, url):
+                return CONTENT_TYPE_ABSTRACT
 
-        for r in [
-            REGEX_DATAVERSE_SITE_API_ACCESS_DATAFILE,
-            REGEX_DATAVERSE_SITE_FILE
+        for p in [
+            REGEX_DATAVERSE_SITE_FILE,
+            REGEX_DATAVERSE_SITE_API_ACCESS_DATAFILE
         ]:
-            if re.search(r, url):
-                return R5_CONTENT_TYPE_REQUEST
+            if re.search(p, url):
+                return CONTENT_TYPE_FULL_TEXT        
+
+        if re.search(REGEX_DATAVERSE_SITE_API_DATASETS_EXPORT, url):
+            return CONTENT_TYPE_CITATION_EXPORT
+             
+        return CONTENT_TYPE_UNDEFINED
 
     def extract_identifier(self, url):
         if not hasattr(self, 'url_params'):

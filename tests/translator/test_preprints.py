@@ -4,9 +4,8 @@ from scielo_usage_counter.url_translator import URLTranslationManager
 from scielo_usage_counter.translator.preprints import URLTranslatorPreprintsSite
 
 from scielo_usage_counter.values import (
-    R5_CONTENT_TYPE_INVESTIGATION,
-    R5_CONTENT_TYPE_REQUEST,
-    R5_CONTENT_TYPE_UNDEFINED,
+    CONTENT_TYPE_FULL_TEXT,
+    CONTENT_TYPE_ABSTRACT,
 )
 
 
@@ -37,7 +36,7 @@ class TestTranslatorPreprints(unittest.TestCase):
                 self.assertIsInstance(self.tm.translator, URLTranslatorPreprintsSite)
                 self.assertEqual(result['id'], expected_id)
 
-    def test_translate_content_type_investigation(self):
+    def test_translate_content_type_is_abstract(self):
         urls = [
             "https://preprints.scielo.org/preprint/view/1234",
             "https://preprints.scielo.org/preprint/view/1234/version/2",
@@ -50,9 +49,9 @@ class TestTranslatorPreprints(unittest.TestCase):
             with self.subTest(url=url):
                 result = self.tm.translate(url)
                 self.assertIsInstance(self.tm.translator, URLTranslatorPreprintsSite)
-                self.assertEqual(result['content_type'], R5_CONTENT_TYPE_INVESTIGATION)
+                self.assertEqual(result['content_type'], CONTENT_TYPE_ABSTRACT)
 
-    def test_translate_content_type_request(self):
+    def test_translate_content_type_full_text(self):
         urls = [
             "https://preprints.scielo.org/preprint/download/1234/5678",
             "https://preprints.scielo.org/preprint/download/1234/version/2/5678",
@@ -65,4 +64,4 @@ class TestTranslatorPreprints(unittest.TestCase):
             with self.subTest(url=url):
                 result = self.tm.translate(url)
                 self.assertIsInstance(self.tm.translator, URLTranslatorPreprintsSite)
-                self.assertEqual(result['content_type'], R5_CONTENT_TYPE_REQUEST)
+                self.assertEqual(result['content_type'], CONTENT_TYPE_FULL_TEXT)

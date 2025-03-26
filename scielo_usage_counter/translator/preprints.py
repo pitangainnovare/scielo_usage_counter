@@ -7,20 +7,20 @@ from scielo_usage_counter.values import (
     MEDIA_FORMAT_HTML,
     MEDIA_FORMAT_PDF,
     MEDIA_FORMAT_UNDEFINED,
-    R5_CONTENT_TYPE_INVESTIGATION,
-    R5_CONTENT_TYPE_REQUEST,
-    R5_CONTENT_TYPE_UNDEFINED,
+    CONTENT_TYPE_ABSTRACT,
+    CONTENT_TYPE_FULL_TEXT,
+    CONTENT_TYPE_UNDEFINED,
 )
 
 
-# Patterns to support parameter extraction and determine whether a URL is an Investigation or a Request
-REGEX_PREPRINTS_SITE_VIEW_ABSTRACT = re.compile(r'preprint/view/(?P<id>\d+)$', re.IGNORECASE)   # Investigation URL
-REGEX_PREPRINTS_SITE_DOCUMENT_ABSTRACT = re.compile(r'documents/article/view/(?P<id>\d+)$', re.IGNORECASE)  # Investigation URL
-REGEX_PREPRINTS_SITE_VERSION_ABSTRACT = re.compile(r'preprint/view/(?P<id>\d+)/version/(\d+)$', re.IGNORECASE)  # Investigation URL
-REGEX_PREPRINTS_SITE_VIEW_PDF = re.compile(r'preprint/view/(?P<id>\d+)/(\d+)', re.IGNORECASE)   # Request URL
-REGEX_PREPRINTS_SITE_DOWNLOAD_PDF = re.compile(r'preprint/download/(?P<id>\d+)/(\d+)', re.IGNORECASE)   # Request URL
-REGEX_PREPRINTS_SITE_DOCUMENT_DOWNLOAD_PDF = re.compile(r'documents/article/download/(?P<id>\d+)/(\d+)', re.IGNORECASE)   # Request URL
-REGEX_PREPRINTS_SITE_VERSION_DOWNLOAD_PDF = re.compile(r'preprint/download/(?P<id>\d+)/version/(\d+)/(\d+)', re.IGNORECASE)   # Request URL
+# Patterns to support parameter extraction
+REGEX_PREPRINTS_SITE_VIEW_ABSTRACT = re.compile(r'preprint/view/(?P<id>\d+)$', re.IGNORECASE)
+REGEX_PREPRINTS_SITE_DOCUMENT_ABSTRACT = re.compile(r'documents/article/view/(?P<id>\d+)$', re.IGNORECASE)
+REGEX_PREPRINTS_SITE_VERSION_ABSTRACT = re.compile(r'preprint/view/(?P<id>\d+)/version/(\d+)$', re.IGNORECASE)
+REGEX_PREPRINTS_SITE_VIEW_PDF = re.compile(r'preprint/view/(?P<id>\d+)/(\d+)', re.IGNORECASE)
+REGEX_PREPRINTS_SITE_DOWNLOAD_PDF = re.compile(r'preprint/download/(?P<id>\d+)/(\d+)', re.IGNORECASE)
+REGEX_PREPRINTS_SITE_DOCUMENT_DOWNLOAD_PDF = re.compile(r'documents/article/download/(?P<id>\d+)/(\d+)', re.IGNORECASE)
+REGEX_PREPRINTS_SITE_VERSION_DOWNLOAD_PDF = re.compile(r'preprint/download/(?P<id>\d+)/version/(\d+)/(\d+)', re.IGNORECASE)
 
 
 class URLTranslatorPreprintsSite:
@@ -102,7 +102,7 @@ class URLTranslatorPreprintsSite:
             REGEX_PREPRINTS_SITE_VERSION_ABSTRACT
         ]:
             if re.search(r, url):
-                return R5_CONTENT_TYPE_INVESTIGATION
+                return CONTENT_TYPE_ABSTRACT
         
         for r in [
             REGEX_PREPRINTS_SITE_VIEW_PDF,
@@ -111,6 +111,6 @@ class URLTranslatorPreprintsSite:
             REGEX_PREPRINTS_SITE_VERSION_DOWNLOAD_PDF
         ]:
             if re.search(r, url):
-                return R5_CONTENT_TYPE_REQUEST
+                return CONTENT_TYPE_FULL_TEXT
             
-        return R5_CONTENT_TYPE_UNDEFINED
+        return CONTENT_TYPE_UNDEFINED

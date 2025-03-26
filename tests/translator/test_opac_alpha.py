@@ -6,8 +6,8 @@ from scielo_usage_counter.translator.opac_alpha import URLTranslatorOPACAlphaSit
 from scielo_usage_counter.values import (
     MEDIA_FORMAT_HTML,
     MEDIA_FORMAT_PDF,
-    R5_CONTENT_TYPE_INVESTIGATION,
-    R5_CONTENT_TYPE_REQUEST,
+    CONTENT_TYPE_ABSTRACT,
+    CONTENT_TYPE_FULL_TEXT,
 )
 
 
@@ -24,14 +24,6 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 'scielo_issn': '1807-0310',
                 'issns': ['1807-0310',],
                 'title': 'Psicologia & Sociedade',
-            }, {
-                'acronym': 'psoc',
-                'scielo_issn': '1807-0310',
-                'issns': ['1807-0310',],
-                'title': 'Psicologia & Sociedade',
-                'publisher_name': 'Universidade Federal do Rio Grande do Sul',
-                'subject_areas': ['Psychology',],
-                'wos_subject_areas': ['PSYCHOLOGY, SOCIAL',]
             }, {
                 'acronym': 'gs',
                 'title': 'Gaceta Sanitaria',
@@ -111,7 +103,7 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                         'pid_v3': 'resp:2009:v83n1:109-121',
                         'media_format': MEDIA_FORMAT_HTML,
                         'media_language': 'es',
-                        'content_type': R5_CONTENT_TYPE_REQUEST,
+                        'content_type': CONTENT_TYPE_FULL_TEXT,
                     }
                 )
                 self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
@@ -131,7 +123,7 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                         'pid_v3': 'resp:2001:v75n5:459-466',
                         'media_format': MEDIA_FORMAT_PDF,
                         'media_language': 'es',
-                        'content_type': R5_CONTENT_TYPE_REQUEST,
+                        'content_type': CONTENT_TYPE_FULL_TEXT,
                     }
                 )
                 self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
@@ -154,7 +146,7 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                         'pid_v3': 'gs:2010:v24n3:233-240',
                         'media_format': MEDIA_FORMAT_HTML,
                         'media_language': 'es',
-                        'content_type': R5_CONTENT_TYPE_REQUEST,
+                        'content_type': CONTENT_TYPE_FULL_TEXT,
                     }
                 )
                 self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
@@ -170,7 +162,7 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 'pid_v3': 'resp:2024:v98:e202409053',
                 'media_format': MEDIA_FORMAT_HTML,
                 'media_language': 'es',
-                'content_type': R5_CONTENT_TYPE_REQUEST,
+                'content_type': CONTENT_TYPE_FULL_TEXT,
             }
         )
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
@@ -186,7 +178,7 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 'pid_v3': 'resp:2024:v98:e202409053',
                 'media_format': MEDIA_FORMAT_PDF,
                 'media_language': 'es',
-                'content_type': R5_CONTENT_TYPE_REQUEST,
+                'content_type': CONTENT_TYPE_FULL_TEXT,
             })
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
 
@@ -201,7 +193,7 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 'pid_v3': 'gs:2010:v24n3:233-240',
                 'media_format': MEDIA_FORMAT_HTML,
                 'media_language': 'es',
-                'content_type': R5_CONTENT_TYPE_INVESTIGATION,
+                'content_type': CONTENT_TYPE_ABSTRACT,
             }
         )
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
@@ -217,7 +209,7 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 'pid_v3': 'csc:2025:v30n2:e05402023',
                 'media_format': MEDIA_FORMAT_HTML,
                 'media_language': 'pt',
-                'content_type': R5_CONTENT_TYPE_INVESTIGATION,
+                'content_type': CONTENT_TYPE_ABSTRACT,
             }
         )
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
@@ -233,7 +225,7 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 'pid_v3': 'resp:2005:v79n5:591-597',
                 'media_format': MEDIA_FORMAT_PDF,
                 'media_language': 'es',
-                'content_type': R5_CONTENT_TYPE_REQUEST,
+                'content_type': CONTENT_TYPE_FULL_TEXT,
             })
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
 
@@ -255,7 +247,7 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 'pid_v3': 'resp:2005:v83n1:109-121',
                 'media_format': MEDIA_FORMAT_PDF,
                 'media_language': 'es',
-                'content_type': R5_CONTENT_TYPE_REQUEST,
+                'content_type': CONTENT_TYPE_FULL_TEXT,
             })
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
 
@@ -270,11 +262,11 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 'pid_v3': 'resp:v92:e201806033',
                 'media_format': MEDIA_FORMAT_PDF,
                 'media_language': 'es',
-                'content_type': R5_CONTENT_TYPE_REQUEST,
+                'content_type': CONTENT_TYPE_FULL_TEXT,
             })
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
 
-    def test_translate_opac_alpha_content_type_request(self):
+    def test_translate_opac_alpha_content_type_is_full_text(self):
         for u in [
             '/article/resp/2009.v83n1/109-121/es/' 
             '/article/csc/2025.v30n2/e05402023/pt',
@@ -283,15 +275,15 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
         ]:
             with self.subTest(u):
                 result = self.tm.translate(u)
-                self.assertEqual(R5_CONTENT_TYPE_REQUEST, result['content_type'])
+                self.assertEqual(CONTENT_TYPE_FULL_TEXT, result['content_type'])
                 self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
 
-    def test_translate_opac_alpha_content_type_investigation(self):
+    def test_translate_opac_alpha_content_type_is_abstract(self):
         for u in [
             '/article/resp/2009.v83n1/109-121/es/?abstract_lang=es',
             '/article/resp/2009.v83n1/109-121/pt/?abstract_lang=pt',
         ]:
             with self.subTest(u):
                 result = self.tm.translate(u)
-                self.assertEqual(R5_CONTENT_TYPE_INVESTIGATION, result['content_type'])
+                self.assertEqual(CONTENT_TYPE_ABSTRACT, result['content_type'])
                 self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)

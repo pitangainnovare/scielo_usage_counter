@@ -155,12 +155,12 @@ class URLTranslationManager:
             (PATTERNS_DATAVERSE_SITE, URLTranslatorDataverseSite),
         ]:
             if any(re.search(p, parsed_url.path) for p in pattern):
-                logging.info(f'Identified URL as a {url_translator_class.__name__} URL.')
+                logging.debug(f'Identified URL as a {url_translator_class.__name__} URL.')
                 self.translator = url_translator_class(self.journals_metadata, self.articles_metadata)
                 return
         
         if not self.translator:
-            logging.info('Could not identify URL translator class for {url}')
+            logging.debug(f'Could not identify URL translator class for {url}')
             self.translator = URLTranslatorClassicSite(self.journals_metadata, self.articles_metadata)
 
     def translate(self, url: str):

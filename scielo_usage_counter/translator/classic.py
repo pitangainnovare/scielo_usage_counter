@@ -160,7 +160,7 @@ class URLTranslatorClassicSite:
         if not pdf_path.endswith('.pdf'):
             pdf_path += '.pdf'
 
-        return self.articles_metadata['pdf_to_pid_v2'].get(pdf_path, [])
+        return self.articles_metadata['pdf_to_pid_v2'].get(pdf_path)
     
     def extract_issn(self, pid_v2):
         scielo_issn = self.articles_metadata['pid_v2_to_scielo_issn'].get(pid_v2)

@@ -62,6 +62,7 @@ class URLTranslationManager:
         self.is_translator_forced = bool(translator)
         if self.is_translator_forced:
             logging.info(f'Using {translator.__name__} as the URL translator class.')
+            self.translator = translator(self.journals_metadata, self.articles_metadata)
 
     def load_articles(self, data):
         logging.info('Loading articles metadata...')

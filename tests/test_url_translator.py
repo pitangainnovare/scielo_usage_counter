@@ -1,5 +1,11 @@
 import unittest
 
+from scielo_usage_counter.values import (
+    MEDIA_FORMAT_HTML,
+    MEDIA_LANGUAGE_UNDEFINED,
+    CONTENT_TYPE_FULL_TEXT,
+)
+
 from scielo_usage_counter.url_translator import URLTranslationManager
 from scielo_usage_counter.translator.classic import URLTranslatorClassicSite
 from scielo_usage_counter.translator.dataverse import URLTranslatorDataverseSite
@@ -403,3 +409,24 @@ class TestURLTranslationManager(unittest.TestCase):
             with self.subTest(url=url):
                 self.tm.identify_translator_class(url)
                 self.assertIsInstance(self.tm.translator, URLTranslatorPreprintsSite)
+
+    def test_initialization_with_forced_translator(self):
+        forced_translator = URLTranslatorClassicSite
+        tm_forced = URLTranslationManager(
+            self.journals_metadata,
+            self.articles_metadata,
+            translator=forced_translator
+        )
+        self.assertTrue(tm_forced.is_translator_forced)
+        self.assertIsInstance(tm_forced.translator, forced_translator)
+
+        obtained = tm_forced.translate('/scielo.php?pid=S1981-77462017005002103&script=sci_arttext')
+        expected = {
+            'scielo_issn': '1981-7746', 
+            'pid_v2': 'S1981-77462017005002103', 
+            'pid_v3': None, 
+            'media_format': MEDIA_FORMAT_HTML, 
+            'media_language': MEDIA_LANGUAGE_UNDEFINED, 
+            'content_type': CONTENT_TYPE_FULL_TEXT
+        }
+        self.assertDictEqual(obtained, expected)

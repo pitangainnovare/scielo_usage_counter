@@ -43,7 +43,7 @@ class TestTranslatorClassic(unittest.TestCase):
                 'text_langs': ['en', 'es'],
                 'scielo_issn': '0043-3144',
                 'publication_year': '2017',
-                'pdfs': [
+                'files': [
                     {'doi': '10.7727/wimj.2014.321', 'lang': 'en', 'path': 'pdf/wimj/v66n6/2309-5830-wimj-66-06-0634.pdf', 'checked': False},
                     {'doi': '10.7727/wimj.2014.321', 'lang': 'es', 'path': 'pdf/wimj/v66n6/es_2309-5830-wimj-66-06-0588.pdf', 'checked': False}
                 ]
@@ -55,7 +55,7 @@ class TestTranslatorClassic(unittest.TestCase):
                 'text_langs': ['en', 'es'],
                 'scielo_issn': '0001-6002',
                 'publication_year': '2024',
-                'pdfs': [
+                'files': [
                     {'lang': 'ee', 'path': '/pdf/amc/v66n1/0001-6002-amc-66-01-8.pdf', 'checked': False},
                 ]
             }

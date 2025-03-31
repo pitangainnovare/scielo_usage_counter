@@ -42,7 +42,7 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 'pid_v3': 'gs:2010:v24n3:233-240',
                 'default_lang': 'es',
                 'text_langs': ['es', 'en'],
-                'pdfs': [
+                'files': [
                     {'doi': '10.1016/j.gaceta.2010.01.010', 'lang': 'es', 'path': 'pdf/gs/2010.v24n3/233-240/es', 'checked': False},
                 ]
             },
@@ -51,28 +51,28 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 'pid_v3': 'resp:2024:v98:e202409053',
                 'default_lang': 'es',
                 'text_langs': ['es', 'en'],
-                'pdfs': [],
+                'files': [],
             },
             {
                 'pid_v2': '',
                 'pid_v3': 'resp:2005:v79n5:591-597',
                 'default_lang': 'es',
                 'text_langs': ['es', 'en'],
-                'pdfs': [],
+                'files': [],
             },
             {
                 'pid_v2': '',
                 'pid_v3': 'csc:2025:v30n2:e05402023',
                 'default_lang': 'pt',
                 'text_langs': ['pt',],
-                'pdfs': [],
+                'files': [],
             },
             {
                 'pid_v2': '',
                 'pid_v3': 'resp:2005:v83n1:109-121',
                 'default_lang': 'es',
                 'text_langs': ['es', 'en'],
-                'pdfs': [
+                'files': [
                     {'path': 'resp_83_01_0109.pdf', 'lang': 'es', 'checked': False},
                 ],
             },
@@ -81,7 +81,7 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 'pid_v3': 'resp:v92:e201806033',
                 'default_lang': 'es',
                 'text_langs': ['es', 'en'],
-                'pdfs': [
+                'files': [
                     {'path': '1135-5727-resp-92-e201806033.pdf', 'lang': 'es', 'checked': False},
                 ],
             }

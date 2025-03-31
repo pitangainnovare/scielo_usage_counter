@@ -82,6 +82,9 @@ class URLTranslationManager:
             'pdf_to_pid_v3': {},
             'doi_to_pid_v2': {},
             'doi_to_pid_v3': {},
+            'pid_generic_to_publication_date': {},
+            'pid_generic_to_available_file_ids': {},
+            'file_id_to_pid_generic': {},
         }
 
         count = 0
@@ -89,6 +92,23 @@ class URLTranslationManager:
             count += 1
             key_pid_v2 = art.get('pid_v2')
             key_pid_v3 = art.get('pid_v3')
+            key_pid_generic = art.get('pid_generic')
+
+            if key_pid_generic is not None:
+                self.articles_metadata['pid_generic_to_publication_date'][key_pid_generic] = art.get('publication_date')
+
+                files = art.get('files', [])
+                self.articles_metadata['pid_generic_to_available_file_ids'][key_pid_generic] = set(files)
+
+                for fid in files:
+                    file_key_generic = files[fid].get('file_persistent_id') or key_pid_generic
+                    # Map the persistent ID of the file to the generic PID
+                    self.articles_metadata['file_id_to_pid_generic'][file_key_generic] = key_pid_generic
+
+                    # Map the numeric ID of the file to the generic PID
+                    self.articles_metadata['file_id_to_pid_generic'][fid] = key_pid_generic
+
+                continue
 
             if key_pid_v2:
                 self.articles_metadata['pid_v2_to_pid_v3'][key_pid_v2] = key_pid_v3
@@ -97,22 +117,25 @@ class URLTranslationManager:
                 self.articles_metadata['pid_v2_to_scielo_issn'][key_pid_v2] = art.get('scielo_issn')
                 self.articles_metadata['pid_v2_to_publication_year'][key_pid_v2] = art.get('publication_year')
 
-            for pdf_data in art.get('pdfs'):
-                pdf_key = pdf_data.get('path')
-                if not pdf_key.startswith('/'):
-                    pdf_key = f'/{pdf_key}'
+            for file_data in art.get('files', []):
+                file_id = file_data.get('path')
+                if not file_id.startswith('/'):
+                    file_id = f'/{file_id}'
+
+                if file_id:
+                    if key_pid_v3:
+                        self.articles_metadata['pdf_to_pid_v3'][file_id] = key_pid_v3
 
                 if key_pid_v2:
-                    self.articles_metadata['pdf_to_pid_v2'][pdf_key] = key_pid_v2
+                    self.articles_metadata['pdf_to_pid_v2'][file_id] = key_pid_v2
 
-                doi_key = pdf_data.get('doi')
-   
-                if key_pid_v2:
-                    self.articles_metadata['doi_to_pid_v2'][doi_key] = key_pid_v2
+                doi_key = file_data.get('doi')
+                if doi_key:
+                    if key_pid_v2:
+                        self.articles_metadata['doi_to_pid_v2'][doi_key] = key_pid_v2
 
-                if key_pid_v3:
-                    self.articles_metadata['doi_to_pid_v3'][doi_key] = key_pid_v3
-                    self.articles_metadata['pdf_to_pid_v3'][pdf_key] = key_pid_v3
+                    if key_pid_v3:
+                        self.articles_metadata['doi_to_pid_v3'][doi_key] = key_pid_v3
 
             if key_pid_v3 and key_pid_v2:
                 self.articles_metadata['pid_v3_to_pid_v2'][key_pid_v3] = key_pid_v2
@@ -175,7 +198,7 @@ class URLTranslationManager:
         std_fields = {}
         
         for k, v in fields.items():
-            if k in ('scielo_issn', 'pid_v2', 'id'):
+            if k in ('scielo_issn', 'pid_v2', 'pid_generic',):
                 if v:
                     std_fields[k] = v.strip().upper()
                     continue

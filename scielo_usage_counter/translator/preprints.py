@@ -40,7 +40,7 @@ class URLTranslatorPreprintsSite:
 
         return {
             'scielo_issn': scielo_issn,
-            'id': preprint_id,
+            'pid_generic': preprint_id,
             'pid_v2': None,
             'pid_v3': None,
             'media_format': media_format,

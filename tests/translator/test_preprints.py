@@ -34,7 +34,7 @@ class TestTranslatorPreprints(unittest.TestCase):
             with self.subTest(url=url):
                 result = self.tm.translate(url)
                 self.assertIsInstance(self.tm.translator, URLTranslatorPreprintsSite)
-                self.assertEqual(result['id'], expected_id)
+                self.assertEqual(result['pid_generic'], expected_id)
 
     def test_translate_content_type_is_abstract(self):
         urls = [

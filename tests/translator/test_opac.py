@@ -55,7 +55,7 @@ class TestTranslatorOPAC(unittest.TestCase):
                 'text_langs': ['en', 'es'],
                 'scielo_issn': '0103-6351',
                 'publication_year': '2017',
-                'pdfs': [
+                'files': [
                     {'doi': '10.7727/neco.2014.321', 'lang': 'en', 'path': 'pdf/neco/v66n6/2309-5830-neco-66-06-0634.pdf', 'checked': False},
                     {'doi': '10.7727/neco.2014.321', 'lang': 'es', 'path': 'pdf/neco/v66n6/es_2309-5830-neco-66-06-0588.pdf', 'checked': False}
                 ] 
@@ -67,7 +67,7 @@ class TestTranslatorOPAC(unittest.TestCase):
                 'text_langs': ['pt', 'en'],
                 'scielo_issn': '0103-6351',
                 'publication_year': '2021',
-                'pdfs': [
+                'files': [
                     {'doi': '10.1590/neco.2021.123', 'lang': 'pt', 'path': 'pdf/neco/v29n3/1234-5678-neco-29-03-0123.pdf', 'checked': False},
                     {'doi': '10.1590/neco.2021.123', 'lang': 'en', 'path': 'pdf/neco/v29n3/en_1234-5678-neco-29-03-0123.pdf', 'checked': False}
                 ]
@@ -79,7 +79,7 @@ class TestTranslatorOPAC(unittest.TestCase):
                 'text_langs': ['en', 'es'],
                 'scielo_issn': '1516-3598',
                 'publication_year': '2020',
-                'pdfs': [
+                'files': [
                     {'doi': '10.1590/rbz.2020.456', 'lang': 'en', 'path': 'pdf/rbz/v47n4/5678-1234-rbz-47-04-0456.pdf', 'checked': False},
                     {'doi': '10.1590/rbz.2020.456', 'lang': 'es', 'path': 'pdf/rbz/v47n4/es_5678-1234-rbz-47-04-0456.pdf', 'checked': False}
                 ]
@@ -91,7 +91,7 @@ class TestTranslatorOPAC(unittest.TestCase):
                 'text_langs': ['es', 'en'],
                 'scielo_issn': '1807-0310',
                 'publication_year': '2019',
-                'pdfs': [
+                'files': [
                     {'doi': '10.1590/psoc.2019.789', 'lang': 'es', 'path': 'pdf/psoc/v37n2/7890-1234-psoc-37-02-0789.pdf', 'checked': False},
                     {'doi': '10.1590/psoc.2019.789', 'lang': 'en', 'path': 'pdf/psoc/v37n2/en_7890-1234-psoc-37-02-0789.pdf', 'checked': False}
                 ]
@@ -102,7 +102,7 @@ class TestTranslatorOPAC(unittest.TestCase):
                 'default_lang': 'pt',
                 'text_langs': ['pt', 'en'],
                 'scielo_issn': '1806-9460',
-                'pdfs': [],
+                'files': [],
             }
         ]
         self.tm = URLTranslationManager(self.journals_metadata, self.articles_metadata)

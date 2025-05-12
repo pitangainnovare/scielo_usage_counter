@@ -48,3 +48,21 @@ def get_valid_clicks(clicks: dict) -> int:
     return valid_clicks
 
 
+def is_request(content_type: str, request_types: list=DEFAULT_REQUEST_TYPES) -> bool:
+    """
+    Determines if the content type represents a request. 
+    A request refers to access to full content (e.g., full article text, full dataset).
+
+    :param content_type: content type string
+    :param request_types: list of request types to check against
+
+    :return: True if the content type represents a request, False otherwise
+    """
+    if not content_type:
+        return False
+    
+    if not request_types:
+        request_types = DEFAULT_REQUEST_TYPES
+    
+    return content_type.lower() in (rt.lower() for rt in request_types)
+

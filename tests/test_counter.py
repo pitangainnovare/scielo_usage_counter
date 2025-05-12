@@ -58,3 +58,38 @@ class TestGetValidClicks(unittest.TestCase):
         obtained_clicks = get_valid_clicks(clicks)
         self.assertEqual(expected_clicks, obtained_clicks)
 
+
+class TestIsRequest(unittest.TestCase):
+    def test_is_request_full_text(self):
+        content_type = 'full_text'
+        self.assertTrue(is_request(content_type))
+
+    def test_is_request_data(self):
+        content_type = 'data'
+        self.assertTrue(is_request(content_type))
+
+    def test_is_request_non_request_type(self):
+        content_type = 'abstract'
+        self.assertFalse(is_request(content_type))
+
+    def test_is_request_empty_content_type(self):
+        content_type = ''
+        self.assertFalse(is_request(content_type))
+
+    def test_is_request_custom_request_types(self):
+        content_type = 'custom_type'
+        custom_request_types = ['custom_type', 'another_type']
+        self.assertTrue(is_request(content_type, custom_request_types))
+
+    def test_is_request_custom_request_types_non_matching(self):
+        content_type = 'non_matching_type'
+        custom_request_types = ['custom_type', 'another_type']
+        self.assertFalse(is_request(content_type, custom_request_types))
+
+    def test_is_request_case_sensitivity(self):
+        content_type = 'Full_Text'
+        self.assertTrue(is_request(content_type))
+
+    def test_is_request_none_content_type(self):
+        content_type = None
+        self.assertFalse(is_request(content_type))

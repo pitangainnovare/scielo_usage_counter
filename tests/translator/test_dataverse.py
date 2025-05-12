@@ -210,6 +210,7 @@ class TestTranslatorDataverse(unittest.TestCase):
 
     def test_translate_dataverse_site_content_type_is_abstract(self):
         for url, identifier, media_format in [
+            ('/dataset.xhtml?persistentId=doi:10.48331/scielodata.JLMAIY&version=DRAFT', 'DOI:10.48331/SCIELODATA.JLMAIY', MEDIA_FORMAT_HTML),
             ('/dataset.xhtml?persistentId=doi:10.48331/scielodata.C5OLYQ/VQRNAW', 'DOI:10.48331/SCIELODATA.C5OLYQ', MEDIA_FORMAT_HTML),
             ('/api/datasets/export?exporter=Datacite&persistentId=doi%3A10.48331/scielodata.FYC8LU', 'DOI:10.48331/SCIELODATA.FYC8LU', MEDIA_FORMAT_HTML),
             ('/api/datasets/:persistentId?persistentId=doi:10.48331/scielodata.XEOF5P', 'DOI:10.48331/SCIELODATA.XEOF5P', MEDIA_FORMAT_HTML),

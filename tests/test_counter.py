@@ -1,6 +1,6 @@
 import unittest
 
-from scielo_usage_counter.counter import get_valid_clicks, is_request
+from scielo_usage_counter.counter import get_valid_clicks, is_request, compute_r5_metrics
 
 
 class TestGetValidClicks(unittest.TestCase):
@@ -93,3 +93,159 @@ class TestIsRequest(unittest.TestCase):
     def test_is_request_none_content_type(self):
         content_type = None
         self.assertFalse(is_request(content_type))
+
+
+class TestComputeR5Metrics(unittest.TestCase):
+    def test_compute_r5_metrics_valid_data(self):
+        key = "S0123-45672015000010002-en-US-2023-01-01-scl"
+        data = {}
+        collection = "scl"
+        journal = "S0123-4567"
+        pid_v2 = "S0123-45672015000010002"
+        pid_v3 = None
+        pid_generic = None
+        media_language = "en"
+        country_code = "US"
+        date_str = "2023-01-01"
+        year = 2023
+        month = 1
+        day = 1
+        click_timestamps = {"00:00": 1, "00:31": 1}
+        content_type = "full_text"
+
+        compute_r5_metrics(
+            key,
+            data,
+            collection,
+            journal,
+            pid_v2,
+            pid_v3,
+            pid_generic,
+            media_language,
+            country_code,
+            date_str,
+            year,
+            month,
+            day,
+            click_timestamps,
+            content_type,
+        )
+
+        self.assertIn(key, data)
+        self.assertEqual(data[key]["total_requests"], 2)
+        self.assertEqual(data[key]["total_investigations"], 2)
+        self.assertEqual(data[key]["unique_requests"], 1)
+        self.assertEqual(data[key]["unique_investigations"], 1)
+
+    def test_compute_r5_metrics_missing_pid(self):
+        key = "S0123-45672015000010002-en-US-2023-01-01-scl"
+        data = {}
+        collection = "scl"
+        journal = "S0123-4567"
+        pid_v2 = None
+        pid_v3 = None
+        pid_generic = None
+        media_language = "en"
+        country_code = "US"
+        date_str = "2023-01-01"
+        year = 2023
+        month = 1
+        day = 1
+        click_timestamps = {"00:00": 1}
+        content_type = "full_text"
+
+        with self.assertRaises(ValueError):
+            compute_r5_metrics(
+                key,
+                data,
+                collection,
+                journal,
+                pid_v2,
+                pid_v3,
+                pid_generic,
+                media_language,
+                country_code,
+                date_str,
+                year,
+                month,
+                day,
+                click_timestamps,
+                content_type,
+            )
+
+    def test_compute_r5_metrics_missing_required_param(self):
+        key = None
+        data = {}
+        collection = "test_collection"
+        journal = "test_journal"
+        pid_v2 = "pid_v2"
+        pid_v3 = None
+        pid_generic = None
+        media_language = "en"
+        country_code = "US"
+        date_str = "2023-01-01"
+        year = 2023
+        month = 1
+        day = 1
+        click_timestamps = {"00:00": 1}
+        content_type = "full_text"
+
+        with self.assertRaises(ValueError):
+            compute_r5_metrics(
+                key,
+                data,
+                collection,
+                journal,
+                pid_v2,
+                pid_v3,
+                pid_generic,
+                media_language,
+                country_code,
+                date_str,
+                year,
+                month,
+                day,
+                click_timestamps,
+                content_type,
+            )
+
+    def test_compute_r5_metrics_non_request_content_type(self):
+        key = "S0123-45672015000010002-en-US-2023-01-01-scl"
+        data = {}
+        collection = "scl"
+        journal = "S0123-4567"
+        pid_v2 = "S0123-45672015000010002"
+        pid_v3 = None
+        pid_generic = None
+        media_language = "en"
+        country_code = "US"
+        date_str = "2023-01-01"
+        year = 2023
+        month = 1
+        day = 1
+        click_timestamps = {"00:00": 1, "00:31": 1}
+        content_type = "abstract"
+
+        compute_r5_metrics(
+            key,
+            data,
+            collection,
+            journal,
+            pid_v2,
+            pid_v3,
+            pid_generic,
+            media_language,
+            country_code,
+            date_str,
+            year,
+            month,
+            day,
+            click_timestamps,
+            content_type,
+        )
+
+        self.assertIn(key, data)
+        self.assertEqual(data[key]["total_requests"], 0)
+        self.assertEqual(data[key]["total_investigations"], 2)
+        self.assertEqual(data[key]["unique_requests"], 0)
+        self.assertEqual(data[key]["unique_investigations"], 1)

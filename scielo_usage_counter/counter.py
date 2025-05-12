@@ -66,3 +66,81 @@ def is_request(content_type: str, request_types: list=DEFAULT_REQUEST_TYPES) -> 
     
     return content_type.lower() in (rt.lower() for rt in request_types)
 
+
+def compute_r5_metrics(
+    key,
+    data,
+    collection,
+    journal,
+    pid_v2,
+    pid_v3,
+    pid_generic,
+    media_language,
+    country_code,
+    date_str,
+    year,
+    month,
+    day,
+    click_timestamps,
+    content_type,
+):
+    """
+    Computes the R5 metrics for a given key and updates the data dictionary. The R5 metrics include:
+    - total_requests: Total number of requests
+    - total_investigations: Total number of investigations
+    - unique_requests: Unique number of requests
+    - unique_investigations: Unique number of investigations
+
+    :param key: unique identifier for the data entry
+    :param data: dictionary to store the computed metrics
+    :param collection: collection name
+    :param journal: journal name
+    :param pid_v2: PID v2
+    :param pid_v3: PID v3
+    :param pid_generic: generic PID
+    :param media_language: language of the media
+    :param country_code: country code
+    :param date_str: date string in the format YYYY-MM-DD
+    :param year: year of the data entry
+    :param month: month of the data entry
+    :param day: day of the data entry
+    :param click_timestamps: dictionary of click timestamps
+    :param content_type: content type string
+
+    :raises ValueError: if any of the required parameters are None or empty
+    :raises TypeError: if the click_timestamps parameter is not a dictionary
+    :raises KeyError: if the key is not found in the data dictionary
+    """
+    if not all([key, collection, journal, media_language, country_code, date_str, year, month, day, click_timestamps, content_type]):
+        raise ValueError("All parameters must be provided.")
+
+    if not (pid_v2 or pid_v3 or pid_generic):
+        raise ValueError("At least one PID (v2, v3, or generic) must be provided.")   
+
+    if key not in data:
+        data[key] = {
+            'collection': collection,
+            'journal': journal,
+            'pid_v2': pid_v2,
+            'pid_v3': pid_v3,
+            'pid_generic': pid_generic,
+            'media_language': media_language,
+            'country_code': country_code,
+            'date': date_str,
+            'year': year,
+            'month':month,
+            'day': day,
+            'total_requests': 0, 
+            'total_investigations': 0, 
+            'unique_requests': 0, 
+            'unique_investigations': 0,
+        }
+
+    number_of_clicks = get_valid_clicks(click_timestamps)
+
+    data[key]['total_investigations'] += number_of_clicks
+    data[key]['unique_investigations'] += 1
+
+    if is_request(content_type):
+        data[key]['total_requests'] += number_of_clicks
+        data[key]['unique_requests'] += 1

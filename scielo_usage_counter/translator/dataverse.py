@@ -37,8 +37,15 @@ class URLTranslatorDataverseSite:
         content_type = self.extract_content_type(url)
         media_format = self.extract_media_format(url)
         
+        scielo_issn = self.extract_issn(pid_generic)
+
         return {
-            'scielo_issn': self.extract_issn(pid_generic),
+            'scielo_issn': scielo_issn,
+            'journal_main_title': self.journals_metadata.get('issn_to_title', {}).get(scielo_issn),
+            'journal_subject_area_capes': self.journals_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
+            'journal_subject_area_wos': self.journals_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
+            'journal_publisher_name': self.journals_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
+            'journal_acronym': self.journals_metadata.get('issn_to_acronym', {}).get(scielo_issn),
             'pid_v2': None,
             'pid_v3': None,
             'pid_generic': pid_generic,
@@ -46,6 +53,7 @@ class URLTranslatorDataverseSite:
             'content_type': content_type,
             'media_format': media_format,
             'media_language': MEDIA_LANGUAGE_UNDEFINED,
+            'year_of_publication': self.articles_metadata.get('pid_generic_to_publication_date', {}).get(pid_generic),
         }
 
     def extract_media_format(self, url):

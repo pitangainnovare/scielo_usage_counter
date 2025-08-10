@@ -68,9 +68,6 @@ class URLTranslationManager:
         logging.info('Loading articles metadata...')
 
         self.articles_metadata = {
-            'pid_v2_to_db_id': {},
-            'pid_v3_to_db_id': {},
-            'pid_generic_to_db_id': {},
             'pid_v3_to_pid_v2': {},
             'pid_v3_to_default_lang': {},
             'pid_v3_to_available_langs': {},
@@ -88,6 +85,7 @@ class URLTranslationManager:
             'pid_generic_to_publication_date': {},
             'pid_generic_to_available_file_ids': {},
             'file_id_to_pid_generic': {},
+            'pid_set': set(),
         }
 
         count = 0
@@ -98,7 +96,7 @@ class URLTranslationManager:
             key_pid_generic = art.get('pid_generic')
 
             if key_pid_generic is not None:
-                self.articles_metadata['pid_generic_to_db_id'][key_pid_generic] = art.get('id')
+                self.articles_metadata['pid_set'].add(key_pid_generic)
 
                 self.articles_metadata['pid_generic_to_publication_date'][key_pid_generic] = art.get('publication_date')
 
@@ -116,7 +114,7 @@ class URLTranslationManager:
                 continue
 
             if key_pid_v2:
-                self.articles_metadata['pid_v2_to_db_id'][key_pid_v2] = art.get('id')
+                self.articles_metadata['pid_set'].add(key_pid_v2)
 
                 self.articles_metadata['pid_v2_to_pid_v3'][key_pid_v2] = key_pid_v3
                 self.articles_metadata['pid_v2_to_default_lang'][key_pid_v2] = art.get('default_lang')
@@ -147,9 +145,9 @@ class URLTranslationManager:
             if key_pid_v3 and key_pid_v2:
                 self.articles_metadata['pid_v3_to_pid_v2'][key_pid_v3] = key_pid_v2
     
-            if key_pid_v3:
-                self.articles_metadata['pid_v3_to_db_id'][key_pid_v3] = art.get('id')
-                
+            if key_pid_v3:     
+                self.articles_metadata['pid_set'].add(key_pid_v3)
+          
                 self.articles_metadata['pid_v3_to_default_lang'][key_pid_v3] = art.get('default_lang')
                 self.articles_metadata['pid_v3_to_available_langs'][key_pid_v3] = art.get('text_langs')
                 self.articles_metadata['pid_v3_to_scielo_issn'][key_pid_v3] = art.get('scielo_issn')
@@ -161,10 +159,13 @@ class URLTranslationManager:
         logging.info('Loading journals metadata...')
 
         self.journals_metadata = {
-            'issn_to_db_id': {},
             'acronym_to_scielo_issn': {},
             'issn_to_title': {},
+            'issn_to_subject_area_capes': {},
+            'issn_to_subject_area_wos': {},
             'issn_to_publisher_name': {},
+            'issn_to_acronym': {},
+            'issn_set': set(),
         }
 
         count = 0
@@ -173,9 +174,12 @@ class URLTranslationManager:
             self.journals_metadata['acronym_to_scielo_issn'][j.get('acronym')] = j.get('scielo_issn')
 
             for issn in j.get('issns'):
-                self.journals_metadata['issn_to_db_id'][issn] = j.get('id')
                 self.journals_metadata['issn_to_title'][issn] = j.get('title')
+                self.journals_metadata['issn_to_subject_area_capes'][issn] = j.get('subject_areas')
+                self.journals_metadata['issn_to_subject_area_wos'][issn] = j.get('wos_subject_areas')
                 self.journals_metadata['issn_to_publisher_name'][issn] = j.get('publisher_name')
+                self.journals_metadata['issn_set'].add(issn)
+                self.journals_metadata['issn_to_acronym'][issn] = j.get('acronym')
 
         logging.info(f'Loaded {count} journals metadata.')
 

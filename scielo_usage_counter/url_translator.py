@@ -226,3 +226,8 @@ class URLTranslationManager:
             std_fields[k] = v
 
         return std_fields
+
+    def is_valid_code(self, code: str, available_codes: set):
+        if code in available_codes:
+            return True
+        return False

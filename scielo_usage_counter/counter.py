@@ -71,16 +71,14 @@ def compute_r5_metrics(
     key,
     data,
     collection,
-    journal,
+    journal: dict,
     pid_v2,
     pid_v3,
     pid_generic,
+    year_of_publication,
     media_language,
     country_code,
     date_str,
-    year,
-    month,
-    day,
     click_timestamps,
     content_type,
 ):
@@ -94,16 +92,14 @@ def compute_r5_metrics(
     :param key: unique identifier for the data entry
     :param data: dictionary to store the computed metrics
     :param collection: collection name
-    :param journal: journal name
+    :param journal: dictionary with journal information (scielo_issn, main_title, subject_area_capes, subject_area_wos)
     :param pid_v2: PID v2
     :param pid_v3: PID v3
     :param pid_generic: generic PID
+    :param year_of_publication: year of publication
     :param media_language: language of the media
     :param country_code: country code
     :param date_str: date string in the format YYYY-MM-DD
-    :param year: year of the data entry
-    :param month: month of the data entry
-    :param day: day of the data entry
     :param click_timestamps: dictionary of click timestamps
     :param content_type: content type string
 
@@ -111,25 +107,29 @@ def compute_r5_metrics(
     :raises TypeError: if the click_timestamps parameter is not a dictionary
     :raises KeyError: if the key is not found in the data dictionary
     """
-    if not all([key, collection, journal, media_language, country_code, date_str, year, month, day, click_timestamps, content_type]):
+    if not isinstance(journal, dict):
+        raise TypeError("The 'journal' parameter must be a dictionary.")
+    
+    if not all([key, collection, journal.get('scielo_issn'), media_language, country_code, date_str, click_timestamps, content_type]):
         raise ValueError("All parameters must be provided.")
 
     if not (pid_v2 or pid_v3 or pid_generic):
         raise ValueError("At least one PID (v2, v3, or generic) must be provided.")   
+    
+    pid = pid_v3 or pid_v2 or pid_generic
 
     if key not in data:
         data[key] = {
             'collection': collection,
             'journal': journal,
+            'pid': pid,
             'pid_v2': pid_v2,
             'pid_v3': pid_v3,
             'pid_generic': pid_generic,
+            'year_of_publication': year_of_publication,
             'media_language': media_language,
             'country_code': country_code,
             'date': date_str,
-            'year': year,
-            'month':month,
-            'day': day,
             'total_requests': 0, 
             'total_investigations': 0, 
             'unique_requests': 0, 

@@ -40,12 +40,18 @@ class URLTranslatorPreprintsSite:
 
         return {
             'scielo_issn': scielo_issn,
+            'journal_main_title': self.journals_metadata.get('issn_to_title', {}).get(scielo_issn),
+            'journal_subject_area_capes': self.journals_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
+            'journal_subject_area_wos': self.journals_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
+            'journal_publisher_name': self.journals_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
+            'journal_acronym': self.journals_metadata.get('issn_to_acronym', {}).get(scielo_issn),
             'pid_generic': preprint_id,
             'pid_v2': None,
             'pid_v3': None,
             'media_format': media_format,
             'media_language': media_language,
             'content_type': content_type,
+            'year_of_publication': None,
         }
 
     def extract_media_format(self, url):

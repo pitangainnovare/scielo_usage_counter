@@ -38,11 +38,17 @@ class URLTranslatorOPACSite:
 
         return {
             'scielo_issn': scielo_issn,
-            'pid_v2': None,
+            'journal_main_title': self.journals_metadata.get('issn_to_title', {}).get(scielo_issn),
+            'journal_subject_area_capes': self.journals_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
+            'journal_subject_area_wos': self.journals_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
+            'journal_publisher_name': self.journals_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
+            'journal_acronym': self.journals_metadata.get('issn_to_acronym', {}).get(scielo_issn),
+            'pid_v2': self.articles_metadata.get('pid_v3_to_pid_v2', {}).get(pid_v3),
             'pid_v3': pid_v3,
             'media_format': media_format,
             'media_language': media_language,
             'content_type': content_type,
+            'year_of_publication': self.articles_metadata.get('pid_v3_to_publication_year', {}).get(pid_v3),
         }
 
     def extract_url_params(self, url):

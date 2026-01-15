@@ -458,6 +458,7 @@ class LogParser:
             values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN,
             values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_WITH_IP_LIST,
             values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN_WITH_IP_LIST,
+            values.PATTERN_BUNNY,
         ]
 
         match = None

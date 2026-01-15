@@ -27,6 +27,21 @@ PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN_WITH_IP_LIST = (
     r'(?P<domain>.*?)\s' + PATTERN_COMMON_LOG_FORMAT_WITH_IP_LIST + r'\s+"(?P<referrer>.*?)"\s+"(?P<user_agent>.*?)"'
 )
 
+PATTERN_BUNNY = (
+    r'^(?P<cache>HIT|MISS|BYPASS|EXPIRED|STALE)\|'
+    r'(?P<status>\d{3})\|'
+    r'(?P<timestamp>\d{10})\|'
+    r'(?P<length>\d+)\|'
+    r'(?P<zone>\d+)\|'
+    r'(?P<ip>\d{1,3}(?:\.\d{1,3}){3})\|'
+    r'(?P<referrer>[^|]*)\|'
+    r'(?P<path>[^|]+)\|'
+    r'(?P<country>[A-Z]{2})\|'
+    r'(?P<user_agent>[^|]+)\|'
+    r'(?P<request_id>[a-f0-9]{32})\|'
+    r'(?P<iq>[A-Z]{2})$'
+)
+
 # https://github.com/matomo-org/matomo-log-analytics/blob/4.x-dev/import_logs.py
 EXTENSIONS_STATIC = set([
     'gif',

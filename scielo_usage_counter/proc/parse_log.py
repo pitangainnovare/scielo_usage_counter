@@ -35,14 +35,14 @@ OUTPUT_DIRECTORY = os.environ.get(
 )
 
 
-def parse_file(logfile: str, output_directory: str, mmdb: str, robots: str):
+def parse_file(logfile: str, output_directory: str, mmdb: str, robots: str, sample_size=0.05, validate=True):
     logging.info(f'Validação iniciada para arquivo {logfile}')
     validation_results = validator.pipeline_validate(
         path=logfile, 
-        sample_size=0.05
+        sample_size=sample_size
     )
 
-    if validation_results.get('is_valid', {}).get('all', False):
+    if not validate or validation_results.get('is_valid', {}).get('all', False):
         output_filepath = file_utils.generate_filepath(output_directory, logfile)
 
         lp = log.LogParser(mmdb_path=mmdb, robots_path=robots)
@@ -61,17 +61,30 @@ def parse_file(logfile: str, output_directory: str, mmdb: str, robots: str):
         return values.LOGFILE_STATUS_INVALIDATED
 
 
-def parse_files_db(str_connection: str, collection: str, output_directory: str, mmdb: str, robots: str):
+def parse_files_db(str_connection: str, collection: str, output_directory: str, mmdb: str, robots: str, sample_size=0.05, validate=True):
     non_parsed_logs = db.get_non_parsed_logs(str_connection, collection)
 
     for lf in non_parsed_logs:
         lf_path = file_utils.translate_path(lf.full_path)
-        lf_status = parse_file(lf_path, output_directory, mmdb, robots)
+        lf_status = parse_file(lf_path, output_directory, mmdb, robots, sample_size, validate)
         db.set_logfile_status(str_connection, lf.id, lf_status)
 
 
 def main():
     parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        '--sample_size',
+        default=0.05,
+        help='Tamanho de amostra para validação',
+    )
+
+    parser.add_argument(
+        '--no-validate',
+        default=True,
+        action='store_false',
+        help='Desativa validação',
+    )
 
     parser.add_argument(
         '-m',

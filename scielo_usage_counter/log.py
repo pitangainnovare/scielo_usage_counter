@@ -566,7 +566,12 @@ class LogParser:
 
             date = data.get('date')
             timezone = data.get('timezone')
-            hit.local_datetime = self.format_date(date, timezone)
+            dt_from_date_and_timezone = self.format_date(date, timezone)
+
+            timestamp = data.get('timestamp')
+            dt_from_timestamp = self.format_date_from_timestamp(timestamp)
+
+            hit.local_datetime = dt_from_date_and_timezone or dt_from_timestamp
             if not hit.local_datetime:
                 self.stats.increment('ignored_lines_invalid_local_datetime')
                 hit.is_valid = False

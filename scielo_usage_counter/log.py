@@ -515,7 +515,7 @@ class LogParser:
 
             data = match.groupdict()
 
-            hit.method = data.get('method')
+            hit.method = data.get('method') or 'GET'
             if not self.has_valid_method(hit.method):
                 self.stats.increment('ignored_lines_invalid_method')
                 hit.is_valid = False

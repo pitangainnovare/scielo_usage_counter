@@ -82,6 +82,7 @@ def main():
     parser.add_argument(
         '--no-validate',
         default=True,
+        dest='validate',
         action='store_false',
         help='Desativa validação',
     )

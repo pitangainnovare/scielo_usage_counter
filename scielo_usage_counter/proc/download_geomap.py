@@ -7,7 +7,8 @@ import os
 from scielo_usage_counter.utils import file_utils
 
 
-MMDB_DEFAULT_URL_FORMAT = 'https://download.db-ip.com/free/dbip-city-lite-{0}-{1}.mmdb.gz'
+MMDB_CITY_URL_FORMAT = 'https://download.db-ip.com/free/dbip-city-lite-{0}-{1}.mmdb.gz'
+MMDB_COUNTRY_URL_FORMAT = 'https://download.db-ip.com/free/dbip-country-lite-{0}-{1}.mmdb.gz'
 
 LOGGING_LEVEL = os.environ.get(
     'GEOIP_LOGGING_LEVEL',
@@ -65,6 +66,12 @@ def main():
     )
 
     parser.add_argument(
+        '--subset',
+        choices=['city', 'country'],
+        default='city',
+    )
+
+    parser.add_argument(
         '--path_output',
         required=True,
         help='Caminho do arquivo de mapa de geolocalizações'
@@ -82,7 +89,12 @@ def main():
         mmdb_url = params.url
 
     elif params.year and params.month:
-        mmdb_url = _generate_mmdb_url_from_date(MMDB_DEFAULT_URL_FORMAT, params.year, params.month)
+        if params.subset == 'country':
+            mmdb_url = _generate_mmdb_url_from_date(MMDB_COUNTRY_URL_FORMAT, params.year, params.month)
+        else:
+            mmdb_url = _generate_mmdb_url_from_date(MMDB_CITY_URL_FORMAT, params.year, params.month)
+    else:
+        mmdb_url = _generate_mmdb_url_from_date(MMDB_COUNTRY_URL_FORMAT, 2025, 12)
 
     try:
         logging.info('Coletando arquivo MMDB de %s' % mmdb_url)

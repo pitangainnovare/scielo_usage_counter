@@ -181,4 +181,5 @@ LOG_PATH_TRANSLATOR = {
     '/app/usage-logs-newbrvarnish03': '/logs-newbrvarnish03',
     '/app/usage-logs-newbrvarnish05': '/logs-newbrvarnish05',
     '/app/usage-logs-newbrvarnish06': '/logs-newbrvarnish06',
+    '/app/usage-logs-bunnynet': '/logs-scl-bunny'
 }

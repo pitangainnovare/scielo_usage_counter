@@ -427,6 +427,17 @@ class LogParser:
         except:
             return
 
+    def format_date_from_timestamp(self, timestamp):
+        try:
+            if isinstance(timestamp, str):
+                timestamp = int(timestamp)
+
+            date = datetime.datetime.fromtimestamp(timestamp)
+            return date.strftime('%Y-%m-%d %H:%M:%S')
+
+        except (ValueError, TypeError, AttributeError):
+            return
+
     def format_user_agent(self, user_agent):
         fmt_ua = user_agent
 

@@ -48,8 +48,8 @@ def get_robots(url):
 
     Returns
     -------
-    json
-        Um objeto json contendo as expressões regulares de robôs (e a data de atualização)
+    list
+        Um objeto list contendo as expressões regulares de robôs (e a data de atualização)
             [
                 {
                     "pattern": "bot",
@@ -94,8 +94,8 @@ def save(data, output):
 
     Parameters
     ----------
-    data : json
-        Objeto json contendo robôs
+    data : list
+        Objeto list contendo robôs
     output : str
         Arquivo destino da lista de robôs
 

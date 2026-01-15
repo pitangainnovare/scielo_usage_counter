@@ -312,6 +312,32 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.total_imported_lines, 14)
         self.assertEqual(lp.stats.total_ignored_lines, 25)
 
+    def test_parse_success_bunny(self):
+        lp = log.LogParser(
+            mmdb_path='tests/fixtures/map.mmdb',
+            robots_path='tests/fixtures/counter-robots.txt'
+        )
+        lp.logfile = 'tests/fixtures/usage.bunny.log'
+        lp.output = 'tests/fixtures/usage.bunny.log.processed'
+        lp.stats.output = 'tests/fixtures/usage.bunny.log.processed.summary'
+
+        data = lp.parse()
+        lp.save(data)
+
+        self.assertEqual(lp.stats.ignored_lines_bot, 2)
+        self.assertEqual(lp.stats.ignored_lines_invalid_method, 0)
+        self.assertEqual(lp.stats.ignored_lines_http_errors, 1)
+        self.assertEqual(lp.stats.ignored_lines_http_redirects, 5)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_geolocation, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_local_datetime, 0)
+        self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
+        self.assertEqual(lp.stats.ignored_lines_static_resources, 9)
+        self.assertEqual(lp.stats.lines_parsed, 20)
+        self.assertEqual(lp.stats.total_imported_lines, 4)
+        self.assertEqual(lp.stats.total_ignored_lines, 16)
+
     def test_parse_line_valid(self):
         line = '89.155.0.1 - - [21/May/2021:11:30:37 -0300] "GET /scielo.php?script=sci_arttext&pid=S0102-69092018000300512 HTTP/1.1" 200 44995 "https://www.google.com/" "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/137.2.345735309 Mobile/15E148 Safari/604.1"'
         obtained = self.lp.parse_line(line)
@@ -476,6 +502,51 @@ class TestLogParser(unittest.TestCase):
             '9.95271\t-84.1648',
             '/scielo.php?lng=es&nrm=i&pid=S0213-91112023000100500&script=sci_abstract'
         ])
+
+    def test_parse_line_bunny_format_classic(self):
+        line = 'MISS|200|1755473648|1435|4339610|185.29.10.0|-|http://www.scielo.br/scielo.php?script=sci_arttext&pid=S0100-84042002000300008&lng=pt&nrm=iso&tlng=pt|SE|Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0|d0b6cb231fafac81cf42c524d05e0882|SE'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(
+            obtained,
+            [
+                "2025-08-17 20:34:08",
+                "FF",
+                "111.0",
+                "185.29.10.0",
+                "59.3293\t18.0686",
+                "http://www.scielo.br/scielo.php?script=sci_arttext&pid=S0100-84042002000300008&lng=pt&nrm=iso&tlng=pt",
+            ]
+        )
+
+    def test_parse_line_bunny_format_opac_html(self):
+        line = 'MISS|200|1755473644|37617|4339610|185.29.10.0|-|http://www.scielo.br/j/rbz/a/CKSH5K8T7x7Y84zMnSb7L4L/?lang=pt|SE|Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0|61d8e51d071e39d6b7b770ddf6406ae6|SE'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(
+            obtained,
+            [
+                "2025-08-17 20:34:04",
+                "FF",
+                "111.0",
+                "185.29.10.0",
+                "59.3293\t18.0686",
+                "http://www.scielo.br/j/rbz/a/CKSH5K8T7x7Y84zMnSb7L4L/?lang=pt",
+            ]
+        )
+
+    def test_parse_line_bunny_format_opac_pdf(self):
+        line = 'MISS|200|1755387228|263055|4339610|190.216.61.0|https://www.scielo.br/j/cadbto/a/Rj4pnrVyh3Pt9MnJ9pkNZtM/?format=pdf&lang=en|https://www.scielo.br/j/cadbto/a/Rj4pnrVyh3Pt9MnJ9pkNZtM/?format=pdf&lang=en|AR|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36|510a20260a79caca62a837dc37eb883f|AR'
+        obtained = self.lp.parse_line(line)
+        self.assertListEqual(
+            obtained,
+            [
+                "2025-08-16 20:33:48",
+                "CH",
+                "135.0.0.0",
+                "190.216.61.0",
+                "-34.6228\t-58.3577",
+                "https://www.scielo.br/j/cadbto/a/Rj4pnrVyh3Pt9MnJ9pkNZtM/?format=pdf&lang=en",
+            ]
+        )
 
     def test_parse_line_invalid(self):
         line = '67.205.129.249 - - [21/May/2021:05:05:16 -0300] "GET /scielo.php?download&pid=S0102-86502014000700465&format=EndNote HTTP/1.1" 200 491 "http://www.scielo.br/scielo.php?script=sci_isoref&pid=S0102-86502014000700465&lng=en" "LOCKSS cache"'

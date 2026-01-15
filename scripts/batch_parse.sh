@@ -27,9 +27,9 @@ run(){
 		echo "[Processando] $LOGFILE"
 
 		if [[ "$NO_VAL" == "1" ]]; then
-			parse-log -m "$FILE_MMDB" -r "$FILE_ROBOTS" -o "$OUTPUT_DIR" -f "$LOGFILE" --no-validate
+			parse-log -m "$FILE_MMDB" -r "$FILE_ROBOTS" --no-validate -o "$OUTPUT_DIR" file -f "$LOGFILE"
 		else
-			parse-log -m "$FILE_MMDB" -r "$FILE_ROBOTS" -o "$OUTPUT_DIR" -f "$LOGFILE"
+			parse-log -m "$FILE_MMDB" -r "$FILE_ROBOTS" -o "$OUTPUT_DIR" file -f "$LOGFILE"
 		fi
 	done
 }

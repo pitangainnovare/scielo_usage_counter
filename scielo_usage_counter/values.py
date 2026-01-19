@@ -33,7 +33,7 @@ PATTERN_BUNNY = (
     r'(?P<timestamp>\d{10})\|'
     r'(?P<length>\d+)\|'
     r'(?P<zone>\d+)\|'
-    r'(?P<ip>\d{1,3}(?:\.\d{1,3}){3})\|'
+    r'(?P<ip>[a-fA-F0-9:.]+)\|'
     r'(?P<referrer>[^|]*)\|'
     r'(?P<path>[^|]+)\|'
     r'(?P<country>[A-Z]{2})\|'

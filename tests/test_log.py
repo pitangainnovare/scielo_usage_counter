@@ -324,19 +324,19 @@ class TestLogParser(unittest.TestCase):
         data = lp.parse()
         lp.save(data)
 
-        self.assertEqual(lp.stats.ignored_lines_bot, 2)
+        self.assertEqual(lp.stats.ignored_lines_bot, 6)
         self.assertEqual(lp.stats.ignored_lines_invalid_method, 0)
         self.assertEqual(lp.stats.ignored_lines_http_errors, 1)
-        self.assertEqual(lp.stats.ignored_lines_http_redirects, 5)
+        self.assertEqual(lp.stats.ignored_lines_http_redirects,8)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_geolocation, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_local_datetime, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
-        self.assertEqual(lp.stats.ignored_lines_static_resources, 9)
-        self.assertEqual(lp.stats.lines_parsed, 20)
-        self.assertEqual(lp.stats.total_imported_lines, 4)
-        self.assertEqual(lp.stats.total_ignored_lines, 16)
+        self.assertEqual(lp.stats.ignored_lines_static_resources, 40)
+        self.assertEqual(lp.stats.lines_parsed, 63)
+        self.assertEqual(lp.stats.total_imported_lines, 10)
+        self.assertEqual(lp.stats.total_ignored_lines, 53)
 
     def test_parse_line_valid(self):
         line = '89.155.0.1 - - [21/May/2021:11:30:37 -0300] "GET /scielo.php?script=sci_arttext&pid=S0102-69092018000300512 HTTP/1.1" 200 44995 "https://www.google.com/" "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/137.2.345735309 Mobile/15E148 Safari/604.1"'

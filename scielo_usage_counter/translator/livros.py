@@ -192,6 +192,9 @@ class URLTranslatorLivrosSite:
             return media_language
         
         # Try to get from metadata if available
+        # Note: Using pid_v2_to_default_lang as a fallback for compatibility,
+        # though books use pid_generic format. This allows for potential
+        # future metadata storage if book language metadata becomes available.
         if pid_generic:
             stored_lang = self.articles_metadata.get('pid_v2_to_default_lang', {}).get(pid_generic)
             if stored_lang:

@@ -207,6 +207,10 @@ class URLTranslatorLivrosSite:
         :param chapter_id: Chapter identifier (optional)
         :return: Content type string
         """
+        # Get media_format if not already extracted
+        if not hasattr(self, 'url_params'):
+            self.url_params = self.extract_url_params(url)
+        
         # PDF and downloads are full text
         if re.search(REGEX_LIVROS_SITE_PDF, url) or re.search(REGEX_LIVROS_SITE_DOWNLOAD, url):
             return CONTENT_TYPE_FULL_TEXT
@@ -216,7 +220,7 @@ class URLTranslatorLivrosSite:
             return CONTENT_TYPE_FULL_TEXT
         
         # Chapter pages with HTML format are considered full text
-        if chapter_id and self.extract_media_format(url) == MEDIA_FORMAT_HTML:
+        if chapter_id:
             return CONTENT_TYPE_FULL_TEXT
         
         # Book landing pages without chapter are abstracts

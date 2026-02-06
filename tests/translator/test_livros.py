@@ -178,7 +178,11 @@ class TestTranslatorLivros(unittest.TestCase):
         self.assertIsNone(chapter_id)
 
     def test_direct_translator_instantiation(self):
-        """Test direct instantiation and use of URLTranslatorLivrosSite."""
+        """Test direct instantiation and use of URLTranslatorLivrosSite.
+        
+        Note: When calling translator directly (not via URLTranslationManager),
+        PIDs are not standardized to uppercase.
+        """
         translator = URLTranslatorLivrosSite(
             {'acronym_to_scielo_issn': {}, 'issn_to_title': {}},
             {'pid_v2_to_default_lang': {}, 'pid_generic_to_publication_date': {}}
@@ -188,13 +192,14 @@ class TestTranslatorLivros(unittest.TestCase):
         
         self.assertEqual(result['book_id'], 'book123')
         self.assertIsNone(result['chapter_id'])
+        # Direct translator call returns lowercase PIDs (not standardized)
         self.assertEqual(result['pid_generic'], 'book:book123')
         self.assertEqual(result['media_format'], MEDIA_FORMAT_HTML)
         self.assertEqual(result['content_type'], CONTENT_TYPE_ABSTRACT)
 
     def test_extract_identifiers_priority(self):
         """Test that chapter patterns take priority over book patterns."""
-        translator = URLTranslatorLivrosSite([], [])
+        translator = URLTranslatorLivrosSite({}, {})
         
         # Chapter patterns should match first
         book_id, chapter_id = translator.extract_identifiers("/c/book001/chap01")

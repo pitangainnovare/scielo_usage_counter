@@ -8,7 +8,7 @@ from  scielo_usage_counter.translator.opac import URLTranslatorOPACSite
 from  scielo_usage_counter.translator.opac_alpha import URLTranslatorOPACAlphaSite
 from  scielo_usage_counter.translator.dataverse import URLTranslatorDataverseSite
 from  scielo_usage_counter.translator.preprints import URLTranslatorPreprintsSite
-from  scielo_usage_counter.translator.livros import URLTranslatorLivrosSite
+from  scielo_usage_counter.translator.books import URLTranslatorBooksSite
 
 
 # Patterns to support identify a URL as a Classic Site URL
@@ -53,8 +53,8 @@ PATTERNS_PREPRINTS_SITE = [
     re.compile(r'/?plugins/generic/(hypothesis|pdfJsViewer)/', re.IGNORECASE),
 ]
 
-# Patterns to support identify a URL as a Livros (Books) Site URL
-PATTERNS_LIVROS_SITE = [
+# Patterns to support identify a URL as a Books Site URL
+PATTERNS_BOOKS_SITE = [
     re.compile(r'/?b/\w+', re.IGNORECASE),
     re.compile(r'/?book/\w+', re.IGNORECASE),
     re.compile(r'/?c/\w+/\w+', re.IGNORECASE),
@@ -204,7 +204,7 @@ class URLTranslationManager:
             (PATTERNS_PREPRINTS_SITE, URLTranslatorPreprintsSite),
             (PATTERNS_OPAC_ALPHA_SITE, URLTranslatorOPACAlphaSite),
             (PATTERNS_DATAVERSE_SITE, URLTranslatorDataverseSite),
-            (PATTERNS_LIVROS_SITE, URLTranslatorLivrosSite),
+            (PATTERNS_BOOKS_SITE, URLTranslatorBooksSite),
         ]:
             if any(re.search(p, parsed_url.path) for p in pattern):
                 logging.debug(f'Identified URL as a {url_translator_class.__name__} URL.')

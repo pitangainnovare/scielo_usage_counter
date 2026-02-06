@@ -251,10 +251,10 @@ class TestComputeR5Metrics(unittest.TestCase):
         self.assertEqual(data[key]["unique_investigations"], 1)
 
 
-class TestComputeR5MetricsLivros(unittest.TestCase):
-    """Test COUNTER R5 metrics computation for SciELO Livros (Books)."""
+class TestComputeR5MetricsBooks(unittest.TestCase):
+    """Test COUNTER R5 metrics computation for SciELO Books."""
     
-    def test_compute_r5_metrics_livros_book(self):
+    def test_compute_r5_metrics_books_book(self):
         """Test R5 metrics computation for a book landing page."""
         key = "BOOK:BOOK001-un-US-2023-01-01-scl"
         data = {}
@@ -293,7 +293,7 @@ class TestComputeR5MetricsLivros(unittest.TestCase):
         self.assertEqual(data[key]["unique_investigations"], 1)
         self.assertEqual(data[key]["pid_generic"], "BOOK:BOOK001")
 
-    def test_compute_r5_metrics_livros_chapter(self):
+    def test_compute_r5_metrics_books_chapter(self):
         """Test R5 metrics computation for a book chapter."""
         key = "BOOK:BOOK002/CHAPTER:CHAP01-en-BR-2023-01-02-scl"
         data = {}

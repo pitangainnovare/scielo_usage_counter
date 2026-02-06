@@ -15,7 +15,7 @@ from scielo_usage_counter.values import (
 )
 
 
-# Patterns to support parameter extraction for SciELO Livros (Books)
+# Patterns to support parameter extraction for SciELO Books
 REGEX_LIVROS_SITE_BOOK = re.compile(r'/?b/(?P<book_id>\w+)', re.IGNORECASE)
 REGEX_LIVROS_SITE_BOOK_LEGACY = re.compile(r'/?book/(?P<book_id>\w+)', re.IGNORECASE)
 REGEX_LIVROS_SITE_CHAPTER = re.compile(r'/?c/(?P<book_id>\w+)/(?P<chapter_id>\w+)', re.IGNORECASE)
@@ -25,7 +25,7 @@ REGEX_LIVROS_SITE_EPUB = re.compile(r'/?epub/(?P<book_id>\w+)', re.IGNORECASE)
 REGEX_LIVROS_SITE_DOWNLOAD = re.compile(r'/?download/(?P<book_id>\w+)(?:/(?P<chapter_id>\w+))?', re.IGNORECASE)
 
 
-class URLTranslatorLivrosSite:
+class URLTranslatorBooksSite:
     """
     Translator for SciELO Livros (Books) URLs.
     
@@ -35,7 +35,7 @@ class URLTranslatorLivrosSite:
     
     def __init__(self, journals_metadata, articles_metadata):
         """
-        Initialize the URLTranslatorLivrosSite.
+        Initialize the URLTranslatorBooksSite.
         
         :param journals_metadata: Dictionary containing journal metadata
         :param articles_metadata: Dictionary containing article/book metadata

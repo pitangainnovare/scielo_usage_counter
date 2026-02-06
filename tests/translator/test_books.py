@@ -1,7 +1,7 @@
 import unittest
 
 from scielo_usage_counter.url_translator import URLTranslationManager
-from scielo_usage_counter.translator.livros import URLTranslatorLivrosSite
+from scielo_usage_counter.translator.books import URLTranslatorBooksSite
 
 from scielo_usage_counter.values import (
     CONTENT_TYPE_FULL_TEXT,
@@ -12,9 +12,9 @@ from scielo_usage_counter.values import (
 )
 
 
-class TestTranslatorLivros(unittest.TestCase):
+class TestTranslatorBooks(unittest.TestCase):
     """
-    Test suite for the SciELO Livros (Books) URL translator.
+    Test suite for the SciELO Books URL translator.
     """
     
     def setUp(self):
@@ -38,7 +38,7 @@ class TestTranslatorLivros(unittest.TestCase):
         for url, expected_book_id, expected_chapter_id in urls_with_expected_ids:
             with self.subTest(url=url):
                 result = self.tm.translate(url)
-                self.assertIsInstance(self.tm.translator, URLTranslatorLivrosSite)
+                self.assertIsInstance(self.tm.translator, URLTranslatorBooksSite)
                 self.assertEqual(result['book_id'], expected_book_id)
                 self.assertEqual(result['chapter_id'], expected_chapter_id)
 
@@ -56,7 +56,7 @@ class TestTranslatorLivros(unittest.TestCase):
         for url, expected_book_id, expected_chapter_id in urls_with_expected_ids:
             with self.subTest(url=url):
                 result = self.tm.translate(url)
-                self.assertIsInstance(self.tm.translator, URLTranslatorLivrosSite)
+                self.assertIsInstance(self.tm.translator, URLTranslatorBooksSite)
                 self.assertEqual(result['book_id'], expected_book_id)
                 self.assertEqual(result['chapter_id'], expected_chapter_id)
 
@@ -86,7 +86,7 @@ class TestTranslatorLivros(unittest.TestCase):
         for url in urls:
             with self.subTest(url=url):
                 result = self.tm.translate(url)
-                self.assertIsInstance(self.tm.translator, URLTranslatorLivrosSite)
+                self.assertIsInstance(self.tm.translator, URLTranslatorBooksSite)
                 self.assertEqual(result['content_type'], CONTENT_TYPE_ABSTRACT)
 
     def test_translate_content_type_is_full_text(self):
@@ -104,7 +104,7 @@ class TestTranslatorLivros(unittest.TestCase):
         for url in urls:
             with self.subTest(url=url):
                 result = self.tm.translate(url)
-                self.assertIsInstance(self.tm.translator, URLTranslatorLivrosSite)
+                self.assertIsInstance(self.tm.translator, URLTranslatorBooksSite)
                 self.assertEqual(result['content_type'], CONTENT_TYPE_FULL_TEXT)
 
     def test_translate_media_format_html(self):
@@ -122,7 +122,7 @@ class TestTranslatorLivros(unittest.TestCase):
         for url in urls:
             with self.subTest(url=url):
                 result = self.tm.translate(url)
-                self.assertIsInstance(self.tm.translator, URLTranslatorLivrosSite)
+                self.assertIsInstance(self.tm.translator, URLTranslatorBooksSite)
                 self.assertEqual(result['media_format'], MEDIA_FORMAT_HTML)
 
     def test_translate_media_format_pdf(self):
@@ -139,7 +139,7 @@ class TestTranslatorLivros(unittest.TestCase):
         for url in urls:
             with self.subTest(url=url):
                 result = self.tm.translate(url)
-                self.assertIsInstance(self.tm.translator, URLTranslatorLivrosSite)
+                self.assertIsInstance(self.tm.translator, URLTranslatorBooksSite)
                 self.assertEqual(result['media_format'], MEDIA_FORMAT_PDF)
 
     def test_translate_issn_default(self):
@@ -153,7 +153,7 @@ class TestTranslatorLivros(unittest.TestCase):
         for url in urls:
             with self.subTest(url=url):
                 result = self.tm.translate(url)
-                self.assertIsInstance(self.tm.translator, URLTranslatorLivrosSite)
+                self.assertIsInstance(self.tm.translator, URLTranslatorBooksSite)
                 self.assertEqual(result['scielo_issn'], DEFAULT_SCIELO_ISSN)
 
     def test_translate_with_query_params(self):
@@ -161,14 +161,14 @@ class TestTranslatorLivros(unittest.TestCase):
         url = "https://books.scielo.org/b/book001?lang=en&format=html"
         result = self.tm.translate(url)
         
-        self.assertIsInstance(self.tm.translator, URLTranslatorLivrosSite)
+        self.assertIsInstance(self.tm.translator, URLTranslatorBooksSite)
         self.assertEqual(result['book_id'], 'book001')
         self.assertEqual(result['media_language'], 'en')
 
     def test_translate_returns_none_for_missing_ids(self):
         """Test that missing book/chapter IDs return None."""
         # Create translator instance directly with a malformed URL
-        translator = URLTranslatorLivrosSite(
+        translator = URLTranslatorBooksSite(
             self.journals_metadata, 
             self.articles_metadata
         )
@@ -178,12 +178,12 @@ class TestTranslatorLivros(unittest.TestCase):
         self.assertIsNone(chapter_id)
 
     def test_direct_translator_instantiation(self):
-        """Test direct instantiation and use of URLTranslatorLivrosSite.
+        """Test direct instantiation and use of URLTranslatorBooksSite.
         
         Note: When calling translator directly (not via URLTranslationManager),
         PIDs are not standardized to uppercase.
         """
-        translator = URLTranslatorLivrosSite(
+        translator = URLTranslatorBooksSite(
             {'acronym_to_scielo_issn': {}, 'issn_to_title': {}},
             {'pid_v2_to_default_lang': {}, 'pid_generic_to_publication_date': {}}
         )
@@ -199,7 +199,7 @@ class TestTranslatorLivros(unittest.TestCase):
 
     def test_extract_identifiers_priority(self):
         """Test that chapter patterns take priority over book patterns."""
-        translator = URLTranslatorLivrosSite({}, {})
+        translator = URLTranslatorBooksSite({}, {})
         
         # Chapter patterns should match first
         book_id, chapter_id = translator.extract_identifiers("/c/book001/chap01")

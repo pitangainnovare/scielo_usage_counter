@@ -566,3 +566,46 @@ class TestStats(unittest.TestCase):
         self.assertEqual(self.stats.total_ignored_lines, 50)
         self.assertEqual(self.stats.total_imported_lines, 50)
         self.assertEqual(self.stats.lines_parsed, 100)
+
+
+class TestBunnynetLogParsing(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(self):
+        self.maxDiff = None
+        self.lp = log_handler.LogParser(
+            mmdb_path='tests/fixtures/map.mmdb',
+            robots_path='tests/fixtures/counter-robots.txt'
+        )
+    
+    def test_bunnynet_log_format_date(self):
+        """Test Unix timestamp conversion for bunnynet logs"""
+        unix_ts = '1757548785'
+        timezone = None
+        result = self.lp.format_date(unix_ts, timezone)
+        self.assertEqual(result, '2025-09-10 23:59:45')
+    
+    def test_bunnynet_log_pattern_match(self):
+        """Test bunnynet pipe-delimited log pattern matching"""
+        log_line = 'HIT|200|1757548786|5432|4339610|186.225.0.1|-|https://www.scielo.br/j/neco/a/test/|BR|Mozilla/5.0|8dbbeef65a64c5235f863868a7c94d70|BR'
+        match, ip = self.lp.match_with_best_pattern(log_line)
+        self.assertIsNotNone(match)
+        self.assertEqual(ip, '186.225.0.1')
+        
+        data = match.groupdict()
+        self.assertEqual(data.get('status'), '200')
+        self.assertEqual(data.get('unix_ts'), '1757548786')
+        self.assertEqual(data.get('path'), 'https://www.scielo.br/j/neco/a/test/')
+    
+    def test_bunnynet_full_line_parse(self):
+        """Test full bunnynet log line parsing"""
+        log_line = 'HIT|200|1757548786|5432|4339610|186.225.0.1|-|https://www.scielo.br/scielo.php?script=sci_arttext&pid=S1806-37132013000500595|BR|Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36|8dbbeef65a64c5235f863868a7c94d70|BR'
+        self.lp.output_mode = 'dict'
+        result = self.lp.parse_line(log_line)
+        
+        if result:
+            self.assertEqual(result['http_response_status'], '200')
+            self.assertEqual(result['ip_address'], '186.225.0.1')
+            self.assertEqual(result['country_code'], 'BR')
+            self.assertEqual(result['local_datetime'], '2025-09-10 23:59:46')
+

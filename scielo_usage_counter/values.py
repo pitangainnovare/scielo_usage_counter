@@ -27,6 +27,22 @@ PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN_WITH_IP_LIST = (
     r'(?P<domain>.*?)\s' + PATTERN_COMMON_LOG_FORMAT_WITH_IP_LIST + r'\s+"(?P<referrer>.*?)"\s+"(?P<user_agent>.*?)"'
 )
 
+# BunnyCDN log format: pipe-delimited with 12 fields
+PATTERN_BUNNYCDN_LOG_FORMAT = (
+    r'(?P<cache_result>[A-Z]+)\|'
+    r'(?P<status>\d+)\|'
+    r'(?P<unix_ts>\d+)\|'
+    r'(?P<length>\d+)\|'
+    r'(?P<zone_identifier>\d+)\|'
+    r'(?P<ip>[\w*.:-]+)\|'
+    r'(?P<referrer>[^|]*)\|'
+    r'(?P<path>[^|]+)\|'
+    r'(?P<geo_code>[A-Z]{2})\|'
+    r'(?P<user_agent>[^|]+)\|'
+    r'(?P<request_identifier>[a-f0-9]+)\|'
+    r'(?P<geo_code_duplicate>[A-Z]{2})'
+)
+
 # https://github.com/matomo-org/matomo-log-analytics/blob/4.x-dev/import_logs.py
 EXTENSIONS_STATIC = set([
     'gif',

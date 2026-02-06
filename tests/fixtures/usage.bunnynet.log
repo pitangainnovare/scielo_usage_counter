@@ -1,0 +1,4 @@
+HIT|200|1757548785|9146|4339610|240e:3b0:a00e:10a3::|-|https://www.scielo.br/media/images/FAPESP.png|CN|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36|7caaeff65a64c5235f863868a7c94d69|CN
+HIT|200|1757548786|5432|4339610|186.225.0.1|-|https://www.scielo.br/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/|BR|Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36|8dbbeef65a64c5235f863868a7c94d70|BR
+MISS|200|1757548787|12345|4339610|177.52.0.1|https://www.google.com|https://www.scielo.br/j/psoc/a/hbSYnTbyNfzxcWT3FpXrL5G/?lang=es|BR|Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36|9eccfef65a64c5235f863868a7c94d71|BR
+HIT|200|1757548788|7890|4339610|200.144.0.1|-|https://www.scielo.br/j/rbz/a/cKnLLBn5NnshCX93Y6qYpHv/?format=pdf|BR|Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0|afdd0ef65a64c5235f863868a7c94d72|BR

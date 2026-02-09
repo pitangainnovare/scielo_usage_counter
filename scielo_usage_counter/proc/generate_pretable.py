@@ -111,7 +111,7 @@ def generate_pretables(
         try:
             for row in csv_reader:
                 if any(v is None for v in row.values()):
-                    logging.warning("Linha corrompida ignorada", row)
+                    logging.warning(f"Linha corrompida ignorada: {row}")
                     continue
                
                # obtém yyyy-mm-dd do acesso

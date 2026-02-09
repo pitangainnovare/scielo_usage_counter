@@ -78,7 +78,6 @@ def extract_values(data, header, delimiter):
     """
     return delimiter.join([data.get(h) for h in header])
 
-
 def generate_pretables(
     parsed_file, 
     output_directory, 
@@ -111,7 +110,11 @@ def generate_pretables(
 
         try:
             for row in csv_reader:
-                # obtém yyyy-mm-dd do acesso
+                if any(v is None for v in row.values()):
+                    logging.warning("Linha corrompida ignorada", row)
+                    continue
+               
+               # obtém yyyy-mm-dd do acesso
                 ymd = row.get('serverTime').split(' ')[0]
 
                 # gera nome de arquivo relacionado a ymd

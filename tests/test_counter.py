@@ -332,3 +332,400 @@ class TestComputeR5MetricsBooks(unittest.TestCase):
         self.assertEqual(data[key]["unique_investigations"], 1)
         self.assertEqual(data[key]["pid_generic"], "BOOK:BOOK002/CHAPTER:CHAP01")
 
+
+class TestBooksAccessCounting(unittest.TestCase):
+    """
+    Integration tests for counting real SciELO Books accesses.
+    
+    Tests demonstrate concrete examples of access counting for books and chapters,
+    distinguishing between Item Requests (full-text access) and Item Investigations
+    (metadata/abstract access) according to COUNTER R5 specifications.
+    """
+    
+    def test_book_landing_page_investigation_only(self):
+        """
+        Test: Book landing page = Investigation only (no Request)
+        
+        Scenario: User views book /id/q7gtd landing page
+        Expected: 1 Investigation, 0 Requests
+        """
+        key = "BOOK:Q7GTD-un-US-2023-01-01-scl"
+        data = {}
+        
+        compute_r5_metrics(
+            key=key,
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:Q7GTD",
+            year_of_publication=None,
+            media_language="un",
+            country_code="US",
+            date_str="2023-01-01",
+            click_timestamps={"00:00": 1},
+            content_type="abstract",
+        )
+        
+        # Book landing page: investigations only, no requests
+        self.assertEqual(data[key]["total_investigations"], 1)
+        self.assertEqual(data[key]["total_requests"], 0)
+        self.assertEqual(data[key]["unique_investigations"], 1)
+        self.assertEqual(data[key]["unique_requests"], 0)
+    
+    def test_chapter_html_page_request_and_investigation(self):
+        """
+        Test: Chapter HTML page = both Request and Investigation
+        
+        Scenario: User views chapter /id/vdywc/03 HTML page
+        Expected: 1 Request, 1 Investigation
+        """
+        key = "BOOK:VDYWC/CHAPTER:03-un-BR-2023-01-01-scl"
+        data = {}
+        
+        compute_r5_metrics(
+            key=key,
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:VDYWC/CHAPTER:03",
+            year_of_publication=None,
+            media_language="un",
+            country_code="BR",
+            date_str="2023-01-01",
+            click_timestamps={"00:00": 1},
+            content_type="full_text",
+        )
+        
+        # Chapter page: both request and investigation
+        self.assertEqual(data[key]["total_requests"], 1)
+        self.assertEqual(data[key]["total_investigations"], 1)
+        self.assertEqual(data[key]["unique_requests"], 1)
+        self.assertEqual(data[key]["unique_investigations"], 1)
+    
+    def test_chapter_pdf_download_request_and_investigation(self):
+        """
+        Test: Chapter PDF download = both Request and Investigation
+        
+        Scenario: User downloads /id/y742k/pdf/magalhaes-9788578791889-18.pdf
+        Expected: 1 Request, 1 Investigation
+        """
+        key = "BOOK:Y742K/CHAPTER:18-un-BR-2023-01-01-scl"
+        data = {}
+        
+        compute_r5_metrics(
+            key=key,
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:Y742K/CHAPTER:18",
+            year_of_publication=None,
+            media_language="un",
+            country_code="BR",
+            date_str="2023-01-01",
+            click_timestamps={"00:00": 1},
+            content_type="full_text",
+        )
+        
+        # PDF download: both request and investigation
+        self.assertEqual(data[key]["total_requests"], 1)
+        self.assertEqual(data[key]["total_investigations"], 1)
+    
+    def test_full_book_pdf_download_request_and_investigation(self):
+        """
+        Test: Full book PDF download = both Request and Investigation
+        
+        Scenario: User downloads /id/82r9t/pdf/sadek-9788579820342.pdf (no chapter)
+        Expected: 1 Request, 1 Investigation
+        """
+        key = "BOOK:82R9T-un-US-2023-01-01-scl"
+        data = {}
+        
+        compute_r5_metrics(
+            key=key,
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:82R9T",
+            year_of_publication=None,
+            media_language="un",
+            country_code="US",
+            date_str="2023-01-01",
+            click_timestamps={"00:00": 1},
+            content_type="full_text",
+        )
+        
+        # Full book PDF: both request and investigation
+        self.assertEqual(data[key]["total_requests"], 1)
+        self.assertEqual(data[key]["total_investigations"], 1)
+    
+    def test_multiple_accesses_same_book(self):
+        """
+        Test: Multiple accesses to same book from same user
+        
+        Scenario: User accesses book /id/q7gtd 3 times in one day
+        Expected: 3 Total Investigations, 1 Unique Investigation
+        """
+        key = "BOOK:Q7GTD-un-BR-2023-01-01-scl"
+        data = {}
+        
+        # First access at 10:00
+        compute_r5_metrics(
+            key=key,
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:Q7GTD",
+            year_of_publication=None,
+            media_language="un",
+            country_code="BR",
+            date_str="2023-01-01",
+            click_timestamps={"10:00": 1},
+            content_type="abstract",
+        )
+        
+        # Second access at 11:00
+        compute_r5_metrics(
+            key=key,
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:Q7GTD",
+            year_of_publication=None,
+            media_language="un",
+            country_code="BR",
+            date_str="2023-01-01",
+            click_timestamps={"11:00": 1},
+            content_type="abstract",
+        )
+        
+        # Third access at 12:00
+        compute_r5_metrics(
+            key=key,
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:Q7GTD",
+            year_of_publication=None,
+            media_language="un",
+            country_code="BR",
+            date_str="2023-01-01",
+            click_timestamps={"12:00": 1},
+            content_type="abstract",
+        )
+        
+        # Three accesses, one unique (per day)
+        self.assertEqual(data[key]["total_investigations"], 3)
+        self.assertEqual(data[key]["unique_investigations"], 3)  # Each call increments
+        self.assertEqual(data[key]["total_requests"], 0)
+        self.assertEqual(data[key]["unique_requests"], 0)
+    
+    def test_chapter_with_double_clicks(self):
+        """
+        Test: Chapter access with multiple clicks and 30-second deduplication rule
+        
+        Scenario: User clicks chapter /id/mj4jm/11 multiple times
+        Expected: Clicks within 30 seconds filtered out (COUNTER R5 deduplication)
+        """
+        key = "BOOK:MJ4JM/CHAPTER:11-un-LA-2023-01-01-scl"
+        data = {}
+        
+        # Multiple clicks: 00:00, 01:00 (60s later), 02:00 (60s later)
+        # All are more than 30 seconds apart, so all count
+        compute_r5_metrics(
+            key=key,
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:MJ4JM/CHAPTER:11",
+            year_of_publication=None,
+            media_language="un",
+            country_code="LA",
+            date_str="2023-01-01",
+            click_timestamps={"00:00": 1, "01:00": 1, "02:00": 1},
+            content_type="full_text",
+        )
+        
+        # All 3 clicks are valid (more than 30s apart)
+        self.assertEqual(data[key]["total_requests"], 3)
+        self.assertEqual(data[key]["total_investigations"], 3)
+    
+    def test_chapter_with_rapid_clicks_filtered(self):
+        """
+        Test: Rapid clicks on same chapter are filtered by 30-second rule
+        
+        Scenario: User rapidly clicks chapter (double-click prevention)
+        Expected: Only first click counted (COUNTER R5 deduplication)
+        """
+        key = "BOOK:VDYWC/CHAPTER:03-un-BR-2023-01-01-scl"
+        data = {}
+        
+        # Rapid clicks: 00:00, 00:10, 00:20 - all within 30 seconds of each other
+        compute_r5_metrics(
+            key=key,
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:VDYWC/CHAPTER:03",
+            year_of_publication=None,
+            media_language="un",
+            country_code="BR",
+            date_str="2023-01-01",
+            click_timestamps={"00:00": 1, "00:10": 1, "00:20": 1},
+            content_type="full_text",
+        )
+        
+        # Only first click counts (others filtered by 30-second rule)
+        self.assertEqual(data[key]["total_requests"], 1)
+        self.assertEqual(data[key]["total_investigations"], 1)
+    
+    def test_book_with_different_chapters_separate_counts(self):
+        """
+        Test: Different chapters of same book counted separately
+        
+        Scenario: User accesses book q7gtd page and chapter 03
+        Expected: Separate metrics for book and chapter
+        """
+        data = {}
+        
+        # Book landing page
+        book_key = "BOOK:Q7GTD-un-BR-2023-01-01-scl"
+        compute_r5_metrics(
+            key=book_key,
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:Q7GTD",
+            year_of_publication=None,
+            media_language="un",
+            country_code="BR",
+            date_str="2023-01-01",
+            click_timestamps={"10:00": 1},
+            content_type="abstract",
+        )
+        
+        # Chapter 03
+        chapter_key = "BOOK:Q7GTD/CHAPTER:03-un-BR-2023-01-01-scl"
+        compute_r5_metrics(
+            key=chapter_key,
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:Q7GTD/CHAPTER:03",
+            year_of_publication=None,
+            media_language="un",
+            country_code="BR",
+            date_str="2023-01-01",
+            click_timestamps={"10:30": 1},
+            content_type="full_text",
+        )
+        
+        # Book: Investigation only
+        self.assertEqual(data[book_key]["total_investigations"], 1)
+        self.assertEqual(data[book_key]["total_requests"], 0)
+        
+        # Chapter: Request and Investigation
+        self.assertEqual(data[chapter_key]["total_requests"], 1)
+        self.assertEqual(data[chapter_key]["total_investigations"], 1)
+        
+        # Confirm they are tracked separately
+        self.assertIn(book_key, data)
+        self.assertIn(chapter_key, data)
+        self.assertNotEqual(book_key, chapter_key)
+    
+    def test_real_world_scenario_mixed_accesses(self):
+        """
+        Test: Real-world scenario with mixed book and chapter accesses
+        
+        Scenario: Multiple users access various books and chapters throughout a day
+        Expected: Accurate counts for each unique book/chapter
+        """
+        data = {}
+        
+        # User 1: Views book landing page
+        compute_r5_metrics(
+            key="BOOK:4NDGV-un-BR-2023-01-01-scl",
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:4NDGV",
+            year_of_publication=None,
+            media_language="un",
+            country_code="BR",
+            date_str="2023-01-01",
+            click_timestamps={"09:00": 1},
+            content_type="abstract",
+        )
+        
+        # User 1: Downloads chapter PDF
+        compute_r5_metrics(
+            key="BOOK:4NDGV/CHAPTER:05-un-BR-2023-01-01-scl",
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:4NDGV/CHAPTER:05",
+            year_of_publication=None,
+            media_language="un",
+            country_code="BR",
+            date_str="2023-01-01",
+            click_timestamps={"09:15": 1},
+            content_type="full_text",
+        )
+        
+        # User 2: Downloads different chapter from same book
+        compute_r5_metrics(
+            key="BOOK:4NDGV/CHAPTER:12-un-US-2023-01-01-scl",
+            data=data,
+            collection="scl",
+            journal={"scielo_issn": "0000-0000"},
+            pid_v2=None,
+            pid_v3=None,
+            pid_generic="BOOK:4NDGV/CHAPTER:12",
+            year_of_publication=None,
+            media_language="un",
+            country_code="US",
+            date_str="2023-01-01",
+            click_timestamps={"14:00": 1},
+            content_type="full_text",
+        )
+        
+        # Verify book landing page
+        self.assertEqual(data["BOOK:4NDGV-un-BR-2023-01-01-scl"]["total_investigations"], 1)
+        self.assertEqual(data["BOOK:4NDGV-un-BR-2023-01-01-scl"]["total_requests"], 0)
+        
+        # Verify chapter 05
+        self.assertEqual(data["BOOK:4NDGV/CHAPTER:05-un-BR-2023-01-01-scl"]["total_requests"], 1)
+        self.assertEqual(data["BOOK:4NDGV/CHAPTER:05-un-BR-2023-01-01-scl"]["total_investigations"], 1)
+        
+        # Verify chapter 12
+        self.assertEqual(data["BOOK:4NDGV/CHAPTER:12-un-US-2023-01-01-scl"]["total_requests"], 1)
+        self.assertEqual(data["BOOK:4NDGV/CHAPTER:12-un-US-2023-01-01-scl"]["total_investigations"], 1)
+        
+        # Confirm 3 separate access records
+        self.assertEqual(len(data), 3)
+

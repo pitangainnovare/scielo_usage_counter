@@ -55,13 +55,9 @@ PATTERNS_PREPRINTS_SITE = [
 
 # Patterns to support identify a URL as a Books Site URL
 PATTERNS_BOOKS_SITE = [
-    re.compile(r'/?b/\w+', re.IGNORECASE),
-    re.compile(r'/?book/\w+', re.IGNORECASE),
-    re.compile(r'/?c/\w+/\w+', re.IGNORECASE),
-    re.compile(r'/?chapter/\w+/\w+', re.IGNORECASE),
-    re.compile(r'/?pdf/\w+', re.IGNORECASE),
-    re.compile(r'/?epub/\w+', re.IGNORECASE),
-    re.compile(r'/?download/\w+', re.IGNORECASE),
+    re.compile(r'/id/\w+/pdf/[\w\-]+\.pdf', re.IGNORECASE),  # /id/{book_id}/pdf/{filename}.pdf
+    re.compile(r'/id/\w+/\d+(?:[?#]|$)', re.IGNORECASE),  # /id/{book_id}/{chapter_number}
+    re.compile(r'/id/\w+(?:[?#]|$)', re.IGNORECASE),  # /id/{book_id}
 ]
 
 
@@ -199,12 +195,12 @@ class URLTranslationManager:
         parsed_url = urlparse(url)
 
         for pattern, url_translator_class  in [
+            (PATTERNS_BOOKS_SITE, URLTranslatorBooksSite),
             (PATTERNS_CLASSIC_SITE, URLTranslatorClassicSite),
             (PATTERNS_OPAC_SITE, URLTranslatorOPACSite),
             (PATTERNS_PREPRINTS_SITE, URLTranslatorPreprintsSite),
             (PATTERNS_OPAC_ALPHA_SITE, URLTranslatorOPACAlphaSite),
             (PATTERNS_DATAVERSE_SITE, URLTranslatorDataverseSite),
-            (PATTERNS_BOOKS_SITE, URLTranslatorBooksSite),
         ]:
             if any(re.search(p, parsed_url.path) for p in pattern):
                 logging.debug(f'Identified URL as a {url_translator_class.__name__} URL.')

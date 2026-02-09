@@ -24,15 +24,12 @@ class TestTranslatorBooks(unittest.TestCase):
         self.tm = URLTranslationManager(self.journals_metadata, self.articles_metadata)
 
     def test_translate_book_id_extraction(self):
-        """Test that book IDs are correctly extracted from various URL formats."""
+        """Test that book IDs are correctly extracted from actual SciELO Books URL formats."""
         urls_with_expected_ids = [
-            ("https://books.scielo.org/b/abc123", "abc123", None),
-            ("https://livros.scielo.org/book/xyz789", "xyz789", None),
-            ("/b/book001", "book001", None),
-            ("/book/book002", "book002", None),
-            ("https://books.scielo.org/pdf/book003", "book003", None),
-            ("https://books.scielo.org/epub/book004", "book004", None),
-            ("https://books.scielo.org/download/book005", "book005", None),
+            ("https://books.scielo.org/id/q7gtd", "q7gtd", None),
+            ("https://books.scielo.org/id/4ndgv", "4ndgv", None),
+            ("/id/gbvb4", "gbvb4", None),
+            ("/id/y742k", "y742k", None),
         ]
         
         for url, expected_book_id, expected_chapter_id in urls_with_expected_ids:
@@ -45,12 +42,9 @@ class TestTranslatorBooks(unittest.TestCase):
     def test_translate_chapter_id_extraction(self):
         """Test that chapter IDs are correctly extracted from URLs."""
         urls_with_expected_ids = [
-            ("https://books.scielo.org/c/book001/chap01", "book001", "chap01"),
-            ("https://livros.scielo.org/chapter/book002/chap02", "book002", "chap02"),
-            ("/c/book003/chapter123", "book003", "chapter123"),
-            ("/chapter/book004/ch999", "book004", "ch999"),
-            ("https://books.scielo.org/pdf/book005/chap05", "book005", "chap05"),
-            ("https://books.scielo.org/download/book006/chap06", "book006", "chap06"),
+            ("https://books.scielo.org/id/vdywc/03", "vdywc", "03"),
+            ("https://books.scielo.org/id/mj4jm/11", "mj4jm", "11"),
+            ("/id/abc123/05", "abc123", "05"),
         ]
         
         for url, expected_book_id, expected_chapter_id in urls_with_expected_ids:
@@ -63,10 +57,10 @@ class TestTranslatorBooks(unittest.TestCase):
     def test_translate_pid_generic_generation(self):
         """Test that generic PIDs are correctly generated."""
         test_cases = [
-            ("https://books.scielo.org/b/book001", "BOOK:BOOK001"),
-            ("https://books.scielo.org/c/book002/chap01", "BOOK:BOOK002/CHAPTER:CHAP01"),
-            ("/book/book003", "BOOK:BOOK003"),
-            ("/chapter/book004/chap02", "BOOK:BOOK004/CHAPTER:CHAP02"),
+            ("https://books.scielo.org/id/q7gtd", "BOOK:Q7GTD"),
+            ("https://books.scielo.org/id/vdywc/03", "BOOK:VDYWC/CHAPTER:03"),
+            ("/id/gbvb4", "BOOK:GBVB4"),
+            ("/id/mj4jm/11", "BOOK:MJ4JM/CHAPTER:11"),
         ]
         
         for url, expected_pid in test_cases:
@@ -77,10 +71,10 @@ class TestTranslatorBooks(unittest.TestCase):
     def test_translate_content_type_is_abstract(self):
         """Test that book landing pages are classified as abstract."""
         urls = [
-            "https://books.scielo.org/b/book001",
-            "https://livros.scielo.org/book/book002",
-            "/b/book003",
-            "/book/book004",
+            "https://books.scielo.org/id/q7gtd",
+            "https://books.scielo.org/id/4ndgv",
+            "/id/gbvb4",
+            "/id/y742k",
         ]
         
         for url in urls:
@@ -90,15 +84,14 @@ class TestTranslatorBooks(unittest.TestCase):
                 self.assertEqual(result['content_type'], CONTENT_TYPE_ABSTRACT)
 
     def test_translate_content_type_is_full_text(self):
-        """Test that PDF/EPUB/chapter pages are classified as full text."""
+        """Test that PDF/chapter pages are classified as full text."""
         urls = [
-            "https://books.scielo.org/pdf/book001",
-            "https://books.scielo.org/epub/book002",
-            "https://books.scielo.org/download/book003",
-            "https://books.scielo.org/c/book004/chap01",
-            "https://livros.scielo.org/chapter/book005/chap02",
-            "/pdf/book006/chap03",
-            "/download/book007/chap04",
+            "https://books.scielo.org/id/y742k/pdf/magalhaes-9788578791889-18.pdf",
+            "https://books.scielo.org/id/4ndgv/pdf/paim-9788575413593-05.pdf",
+            "https://books.scielo.org/id/vdywc/03",
+            "https://books.scielo.org/id/mj4jm/11",
+            "/id/82r9t/pdf/sadek-9788579820342.pdf",
+            "/id/abc123/05",
         ]
         
         for url in urls:
@@ -110,13 +103,11 @@ class TestTranslatorBooks(unittest.TestCase):
     def test_translate_media_format_html(self):
         """Test that HTML format is correctly identified."""
         urls = [
-            "https://books.scielo.org/b/book001",
-            "https://books.scielo.org/book/book002",
-            "https://books.scielo.org/c/book003/chap01",
-            "https://books.scielo.org/chapter/book004/chap02",
-            "https://books.scielo.org/epub/book005",
-            "/b/book006",
-            "/c/book007/chap03",
+            "https://books.scielo.org/id/q7gtd",
+            "https://books.scielo.org/id/4ndgv",
+            "https://books.scielo.org/id/vdywc/03",
+            "https://books.scielo.org/id/mj4jm/11",
+            "/id/gbvb4",
         ]
         
         for url in urls:
@@ -128,12 +119,10 @@ class TestTranslatorBooks(unittest.TestCase):
     def test_translate_media_format_pdf(self):
         """Test that PDF format is correctly identified."""
         urls = [
-            "https://books.scielo.org/pdf/book001",
-            "https://books.scielo.org/pdf/book002/chap01",
-            "https://books.scielo.org/download/book003",
-            "https://books.scielo.org/download/book004/chap02",
-            "/pdf/book005",
-            "/download/book006",
+            "https://books.scielo.org/id/y742k/pdf/magalhaes-9788578791889-18.pdf",
+            "https://books.scielo.org/id/4ndgv/pdf/paim-9788575413593-05.pdf",
+            "/id/82r9t/pdf/sadek-9788579820342.pdf",
+            "/id/5v9s3/pdf/rivera-9788575413036.pdf",
         ]
         
         for url in urls:
@@ -145,9 +134,9 @@ class TestTranslatorBooks(unittest.TestCase):
     def test_translate_issn_default(self):
         """Test that books use the default ISSN."""
         urls = [
-            "https://books.scielo.org/b/book001",
-            "https://books.scielo.org/c/book002/chap01",
-            "/pdf/book003",
+            "https://books.scielo.org/id/q7gtd",
+            "https://books.scielo.org/id/vdywc/03",
+            "/id/y742k/pdf/magalhaes-9788578791889-18.pdf",
         ]
         
         for url in urls:
@@ -158,11 +147,11 @@ class TestTranslatorBooks(unittest.TestCase):
 
     def test_translate_with_query_params(self):
         """Test URL translation with query parameters."""
-        url = "https://books.scielo.org/b/book001?lang=en&format=html"
+        url = "https://books.scielo.org/id/q7gtd?lang=en&format=html"
         result = self.tm.translate(url)
         
         self.assertIsInstance(self.tm.translator, URLTranslatorBooksSite)
-        self.assertEqual(result['book_id'], 'book001')
+        self.assertEqual(result['book_id'], 'q7gtd')
         self.assertEqual(result['media_language'], 'en')
 
     def test_translate_returns_none_for_missing_ids(self):
@@ -173,9 +162,10 @@ class TestTranslatorBooks(unittest.TestCase):
             self.articles_metadata
         )
         
-        book_id, chapter_id = translator.extract_identifiers("/invalid/path")
+        book_id, chapter_id, filename = translator.extract_identifiers("/invalid/path")
         self.assertIsNone(book_id)
         self.assertIsNone(chapter_id)
+        self.assertIsNone(filename)
 
     def test_direct_translator_instantiation(self):
         """Test direct instantiation and use of URLTranslatorBooksSite.
@@ -188,28 +178,52 @@ class TestTranslatorBooks(unittest.TestCase):
             {'pid_v2_to_default_lang': {}, 'pid_generic_to_publication_date': {}}
         )
         
-        result = translator.pipeline_translate("https://books.scielo.org/b/book123")
+        result = translator.pipeline_translate("https://books.scielo.org/id/abc123")
         
-        self.assertEqual(result['book_id'], 'book123')
+        self.assertEqual(result['book_id'], 'abc123')
         self.assertIsNone(result['chapter_id'])
         # Direct translator call returns lowercase PIDs (not standardized)
-        self.assertEqual(result['pid_generic'], 'book:book123')
+        self.assertEqual(result['pid_generic'], 'book:abc123')
         self.assertEqual(result['media_format'], MEDIA_FORMAT_HTML)
         self.assertEqual(result['content_type'], CONTENT_TYPE_ABSTRACT)
 
     def test_extract_identifiers_priority(self):
-        """Test that chapter patterns take priority over book patterns."""
+        """Test that PDF patterns take priority over chapter and book patterns."""
         translator = URLTranslatorBooksSite({}, {})
         
-        # Chapter patterns should match first
-        book_id, chapter_id = translator.extract_identifiers("/c/book001/chap01")
-        self.assertEqual(book_id, "book001")
-        self.assertEqual(chapter_id, "chap01")
+        # PDF pattern should match first
+        book_id, chapter_id, filename = translator.extract_identifiers("/id/y742k/pdf/magalhaes-9788578791889-18.pdf")
+        self.assertEqual(book_id, "y742k")
+        self.assertEqual(chapter_id, "18")
+        self.assertEqual(filename, "magalhaes-9788578791889-18.pdf")
+        
+        # Chapter pattern
+        book_id, chapter_id, filename = translator.extract_identifiers("/id/vdywc/03")
+        self.assertEqual(book_id, "vdywc")
+        self.assertEqual(chapter_id, "03")
+        self.assertIsNone(filename)
         
         # Book-only pattern
-        book_id, chapter_id = translator.extract_identifiers("/b/book002")
-        self.assertEqual(book_id, "book002")
+        book_id, chapter_id, filename = translator.extract_identifiers("/id/q7gtd")
+        self.assertEqual(book_id, "q7gtd")
         self.assertIsNone(chapter_id)
+        self.assertIsNone(filename)
+    
+    def test_pdf_chapter_extraction_from_filename(self):
+        """Test that chapter numbers are extracted from PDF filenames."""
+        translator = URLTranslatorBooksSite({}, {})
+        
+        test_cases = [
+            ("/id/y742k/pdf/magalhaes-9788578791889-18.pdf", "18"),
+            ("/id/yjxdq/pdf/mororo-9788574554938-01.pdf", "01"),
+            ("/id/4ndgv/pdf/paim-9788575413593-05.pdf", "05"),
+            ("/id/82r9t/pdf/sadek-9788579820342.pdf", None),  # No chapter number
+        ]
+        
+        for url, expected_chapter in test_cases:
+            with self.subTest(url=url):
+                book_id, chapter_id, filename = translator.extract_identifiers(url)
+                self.assertEqual(chapter_id, expected_chapter)
 
 
 if __name__ == '__main__':

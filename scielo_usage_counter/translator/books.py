@@ -16,13 +16,12 @@ from scielo_usage_counter.values import (
 
 
 # Patterns to support parameter extraction for SciELO Books
-REGEX_LIVROS_SITE_BOOK = re.compile(r'/?b/(?P<book_id>\w+)', re.IGNORECASE)
-REGEX_LIVROS_SITE_BOOK_LEGACY = re.compile(r'/?book/(?P<book_id>\w+)', re.IGNORECASE)
-REGEX_LIVROS_SITE_CHAPTER = re.compile(r'/?c/(?P<book_id>\w+)/(?P<chapter_id>\w+)', re.IGNORECASE)
-REGEX_LIVROS_SITE_CHAPTER_LEGACY = re.compile(r'/?chapter/(?P<book_id>\w+)/(?P<chapter_id>\w+)', re.IGNORECASE)
-REGEX_LIVROS_SITE_PDF = re.compile(r'/?pdf/(?P<book_id>\w+)(?:/(?P<chapter_id>\w+))?', re.IGNORECASE)
-REGEX_LIVROS_SITE_EPUB = re.compile(r'/?epub/(?P<book_id>\w+)', re.IGNORECASE)
-REGEX_LIVROS_SITE_DOWNLOAD = re.compile(r'/?download/(?P<book_id>\w+)(?:/(?P<chapter_id>\w+))?', re.IGNORECASE)
+# Pattern for PDF files: /id/{book_id}/pdf/{filename}.pdf
+REGEX_BOOKS_SITE_PDF = re.compile(r'/id/(?P<book_id>\w+)/pdf/(?P<filename>[\w\-]+\.pdf)', re.IGNORECASE)
+# Pattern for chapter pages: /id/{book_id}/{chapter_number}
+REGEX_BOOKS_SITE_CHAPTER = re.compile(r'/id/(?P<book_id>\w+)/(?P<chapter_id>\d+)(?:[?#]|$)', re.IGNORECASE)
+# Pattern for book landing pages: /id/{book_id}
+REGEX_BOOKS_SITE_BOOK = re.compile(r'/id/(?P<book_id>\w+)(?:[?#]|$)', re.IGNORECASE)
 
 
 class URLTranslatorBooksSite:
@@ -45,19 +44,19 @@ class URLTranslatorBooksSite:
 
     def pipeline_translate(self, url):
         """
-        Execute the complete translation pipeline for a SciELO Livros URL.
+        Execute the complete translation pipeline for a SciELO Books URL.
         
         :param url: URL string to translate
         :return: Dictionary containing extracted metadata
         """
         self.url_params = self.extract_url_params(url)
         
-        book_id, chapter_id = self.extract_identifiers(url)
+        book_id, chapter_id, filename = self.extract_identifiers(url)
         pid_generic = self._build_pid_generic(book_id, chapter_id)
         
-        media_format = self.extract_media_format(url)
+        media_format = self.extract_media_format(url, filename)
         media_language = self.extract_media_language(pid_generic)
-        content_type = self.extract_content_type(url, chapter_id)
+        content_type = self.extract_content_type(url, chapter_id, filename)
         scielo_issn = self.extract_issn(book_id)
 
         return {
@@ -109,30 +108,37 @@ class URLTranslatorBooksSite:
         """
         Extract book ID and chapter ID from URL.
         
+        Supports SciELO Books URL patterns:
+        - /id/{book_id}/pdf/{filename}.pdf - PDF download
+        - /id/{book_id}/{chapter_number} - Chapter page
+        - /id/{book_id} - Book landing page
+        
         :param url: URL string
-        :return: Tuple of (book_id, chapter_id)
+        :return: Tuple of (book_id, chapter_id, filename)
         """
-        # Try to match chapter patterns first (they are more specific)
-        for pattern in [REGEX_LIVROS_SITE_CHAPTER, REGEX_LIVROS_SITE_CHAPTER_LEGACY]:
-            match = re.search(pattern, url)
-            if match:
-                return match.group('book_id'), match.group('chapter_id')
+        # Try to match PDF pattern first (most specific)
+        match = re.search(REGEX_BOOKS_SITE_PDF, url)
+        if match:
+            book_id = match.group('book_id')
+            filename = match.group('filename')
+            # Extract chapter number from filename if present
+            # Pattern: author-ISBN-CHAPTER.pdf where ISBN is 10 or 13 digits
+            # Examples: magalhaes-9788578791889-18.pdf (chapter 18), sadek-9788579820342.pdf (no chapter)
+            chapter_match = re.search(r'-(\d{10,13})-(\d+)\.pdf$', filename)
+            chapter_id = chapter_match.group(2) if chapter_match else None
+            return book_id, chapter_id, filename
         
-        # Try to match PDF/download with optional chapter
-        for pattern in [REGEX_LIVROS_SITE_PDF, REGEX_LIVROS_SITE_DOWNLOAD]:
-            match = re.search(pattern, url)
-            if match:
-                book_id = match.group('book_id')
-                chapter_id = match.groupdict().get('chapter_id')
-                return book_id, chapter_id
+        # Try to match chapter pattern
+        match = re.search(REGEX_BOOKS_SITE_CHAPTER, url)
+        if match:
+            return match.group('book_id'), match.group('chapter_id'), None
         
-        # Try to match book-only patterns
-        for pattern in [REGEX_LIVROS_SITE_BOOK, REGEX_LIVROS_SITE_BOOK_LEGACY, REGEX_LIVROS_SITE_EPUB]:
-            match = re.search(pattern, url)
-            if match:
-                return match.group('book_id'), None
+        # Try to match book landing page pattern
+        match = re.search(REGEX_BOOKS_SITE_BOOK, url)
+        if match:
+            return match.group('book_id'), None, None
         
-        return None, None
+        return None, None, None
 
     def _build_pid_generic(self, book_id, chapter_id):
         """
@@ -150,34 +156,27 @@ class URLTranslatorBooksSite:
         
         return f"book:{book_id}"
 
-    def extract_media_format(self, url):
+    def extract_media_format(self, url, filename=None):
         """
         Determine the media format from URL.
         
         :param url: URL string
+        :param filename: Optional filename from URL
         :return: Media format string (html, pdf, xml, etc.)
         """
         # Check for explicit format in query params
         if self.url_params.get('media_format'):
             return self.url_params['media_format']
         
-        # Check URL patterns
-        if re.search(REGEX_LIVROS_SITE_PDF, url):
+        # Check if it's a PDF file
+        if filename and filename.endswith('.pdf'):
             return MEDIA_FORMAT_PDF
         
-        if re.search(REGEX_LIVROS_SITE_DOWNLOAD, url):
-            # Downloads could be PDF or EPUB
-            if '.pdf' in url.lower():
-                return MEDIA_FORMAT_PDF
-            elif '.epub' in url.lower() or re.search(REGEX_LIVROS_SITE_EPUB, url):
-                # EPUB is a type of download format
-                return MEDIA_FORMAT_HTML  # Treat as HTML for metrics purposes
-            return MEDIA_FORMAT_PDF  # Default to PDF for downloads
+        # Check URL patterns for PDF
+        if re.search(REGEX_BOOKS_SITE_PDF, url):
+            return MEDIA_FORMAT_PDF
         
-        if re.search(REGEX_LIVROS_SITE_EPUB, url):
-            return MEDIA_FORMAT_HTML
-        
-        # Default to HTML for book/chapter pages
+        # Default to HTML for book/chapter landing pages
         return MEDIA_FORMAT_HTML
 
     def extract_media_language(self, pid_generic):
@@ -202,35 +201,33 @@ class URLTranslatorBooksSite:
         
         return MEDIA_LANGUAGE_UNDEFINED
 
-    def extract_content_type(self, url, chapter_id):
+    def extract_content_type(self, url, chapter_id, filename=None):
         """
         Determine content type from URL and identifiers.
         
         :param url: URL string
         :param chapter_id: Chapter identifier (optional)
+        :param filename: Optional filename from URL
         :return: Content type string
         """
         # Get media_format if not already extracted
         if not hasattr(self, 'url_params'):
             self.url_params = self.extract_url_params(url)
         
-        # PDF and downloads are full text
-        if re.search(REGEX_LIVROS_SITE_PDF, url) or re.search(REGEX_LIVROS_SITE_DOWNLOAD, url):
+        # PDF files are full text
+        if filename and filename.endswith('.pdf'):
             return CONTENT_TYPE_FULL_TEXT
         
-        # EPUB is full text
-        if re.search(REGEX_LIVROS_SITE_EPUB, url):
+        # Check URL patterns for PDF
+        if re.search(REGEX_BOOKS_SITE_PDF, url):
             return CONTENT_TYPE_FULL_TEXT
         
-        # Chapter pages with HTML format are considered full text
+        # Chapter pages are considered full text
         if chapter_id:
             return CONTENT_TYPE_FULL_TEXT
         
         # Book landing pages without chapter are abstracts
-        if not chapter_id:
-            return CONTENT_TYPE_ABSTRACT
-        
-        return CONTENT_TYPE_UNDEFINED
+        return CONTENT_TYPE_ABSTRACT
 
     def extract_issn(self, book_id):
         """

@@ -8,6 +8,7 @@ from  scielo_usage_counter.translator.opac import URLTranslatorOPACSite
 from  scielo_usage_counter.translator.opac_alpha import URLTranslatorOPACAlphaSite
 from  scielo_usage_counter.translator.dataverse import URLTranslatorDataverseSite
 from  scielo_usage_counter.translator.preprints import URLTranslatorPreprintsSite
+from  scielo_usage_counter.translator.books import URLTranslatorBooksSite
 
 
 # Patterns to support identify a URL as a Classic Site URL
@@ -50,6 +51,13 @@ PATTERNS_PREPRINTS_SITE = [
     re.compile(r'/?(index.php)?/?documents/article/(download|view)/', re.IGNORECASE),
     re.compile(r'/?index.php/scielo/preprint/', re.IGNORECASE),
     re.compile(r'/?plugins/generic/(hypothesis|pdfJsViewer)/', re.IGNORECASE),
+]
+
+# Patterns to support identify a URL as a Books Site URL
+PATTERNS_BOOKS_SITE = [
+    re.compile(r'/id/\w+/pdf/[\w\-]+\.pdf', re.IGNORECASE),  # /id/{book_id}/pdf/{filename}.pdf
+    re.compile(r'/id/\w+/\d+(?:[?#]|$)', re.IGNORECASE),  # /id/{book_id}/{chapter_number}
+    re.compile(r'/id/\w+(?:[?#]|$)', re.IGNORECASE),  # /id/{book_id}
 ]
 
 
@@ -187,6 +195,7 @@ class URLTranslationManager:
         parsed_url = urlparse(url)
 
         for pattern, url_translator_class  in [
+            (PATTERNS_BOOKS_SITE, URLTranslatorBooksSite),
             (PATTERNS_CLASSIC_SITE, URLTranslatorClassicSite),
             (PATTERNS_OPAC_SITE, URLTranslatorOPACSite),
             (PATTERNS_PREPRINTS_SITE, URLTranslatorPreprintsSite),

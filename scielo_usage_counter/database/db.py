@@ -86,7 +86,7 @@ def _check_previous_and_next_dates(session, collection, dates):
                 )
             ).one()
 
-            if cds.status != values.DATE_STATUS_EXTRACTING_PRETABLE and cds.status < values.DATE_STATUS_LOADED:
+            if cds.status not in {values.DATE_STATUS_EXTRACTING_PRETABLE, values.DATE_STATUS_NO_LOG} and cds.status < values.DATE_STATUS_LOADED:
                 return False
 
         except NoResultFound:
@@ -95,9 +95,68 @@ def _check_previous_and_next_dates(session, collection, dates):
     return True
 
 
+def _reconcile_dates_without_valid_logs(session, collection, now=None, wait_days=values.NO_LOG_WAIT_DAYS):
+    if now is None:
+        now = datetime.datetime.now()
+
+    cutoff_date = (now - datetime.timedelta(days=wait_days)).date()
+
+    date_statuses = session.query(models.ControlDateStatus).filter(
+        models.ControlDateStatus.collection == collection
+    ).all()
+    existing_dates = {date_status.date for date_status in date_statuses}
+
+    log_rows = session.query(models.ControlLogFile.date, models.ControlLogFile.status).filter(
+        and_(
+            models.ControlLogFile.collection == collection,
+            models.ControlLogFile.date.isnot(None),
+        )
+    ).all()
+
+    all_log_dates = {date for date, _ in log_rows}
+    valid_or_pending_log_dates = {
+        date for date, status in log_rows if status != values.LOGFILE_STATUS_INVALIDATED
+    }
+
+    reference_dates = sorted(existing_dates.union(all_log_dates))
+    changed = False
+
+    if reference_dates:
+        current_date = reference_dates[0]
+        last_reference_date = min(reference_dates[-1], now.date())
+
+        while current_date <= last_reference_date:
+            if current_date not in existing_dates:
+                new_status = values.DATE_STATUS_QUEUE
+                if current_date <= cutoff_date and current_date not in valid_or_pending_log_dates:
+                    new_status = values.DATE_STATUS_NO_LOG
+
+                session.add(
+                    models.ControlDateStatus(
+                        collection=collection,
+                        date=current_date,
+                        status=new_status,
+                    )
+                )
+                changed = True
+
+            current_date += datetime.timedelta(days=1)
+
+    for date_status in date_statuses:
+        has_valid_or_pending_log = date_status.date in valid_or_pending_log_dates
+        if date_status.status == values.DATE_STATUS_QUEUE and not has_valid_or_pending_log and date_status.date <= cutoff_date:
+            date_status.status = values.DATE_STATUS_NO_LOG
+            changed = True
+
+    if changed:
+        session.commit()
+
+
 def get_non_pretable_dates(str_connection, collection):
     session = get_session(str_connection)
     try:
+        _reconcile_dates_without_valid_logs(session, collection)
+
         parsed_dates = session.query(models.ControlDateStatus).filter(
             and_(
                 models.ControlDateStatus.collection == collection,

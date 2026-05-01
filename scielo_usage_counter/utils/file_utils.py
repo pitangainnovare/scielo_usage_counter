@@ -5,7 +5,7 @@ import os
 import gzip
 import shutil
 
-from scielo_usage_counter import exceptions, values
+from scielo_usage_counter import exceptions
 
 
 def check_dir(output, force_tail=False):
@@ -22,7 +22,7 @@ def check_dir(output, force_tail=False):
 
 
 def open_gzip(file_path, mode):
-    return gzip.GzipFile(file_path, mode)
+    return gzip.open(file_path, mode)
 
 
 def open_bz2(file_path, mode):
@@ -102,10 +102,3 @@ def translate_date_to_output_path(date, output_directory, posfix='', extension='
 
 def is_valid_path(path):
     return os.path.exists(path)
-
-
-def translate_path(path):
-    for p in values.LOG_PATH_TRANSLATOR.keys():
-        if path.startswith(p):
-            return path.replace(p, values.LOG_PATH_TRANSLATOR[p])    
-    return path

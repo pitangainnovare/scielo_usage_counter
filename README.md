@@ -1,96 +1,182 @@
 # SciELO Usage Counter
 
+The SciELO Usage Counter processes SciELO access logs and generates COUNTER R5.1 compliant usage metrics. It supports Apache NCSA extended log format and BunnyCDN pipe-delimited format, geo-IP resolution, robot detection, and URL translation for articles, books, preprints, and datasets.
 
 ## Installation
 
-__Create a virtual environment and install the application dependencies__
-```shell
-# Create a virtual environment
-virtualenv -p python3 .venv
-
-# Access the virtual environment
-source .venv/bin/activated
-
-# Please ensure that the MySQL developer library is installed on your system. For Ubuntu-based distributions, you can install it using the following command
-sudo apt install libmysql++-dev
-
-# Install dependencies
+```bash
+git clone https://github.com/scieloorg/scielo_usage_counter.git
+cd scielo_usage_counter
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-
-# Install the package
-python setup.py install
+pip install -e .
 ```
 
-__Run tests__
-```
-python -m unittest discover
+Run tests:
+
+```bash
+pytest
 ```
 
+## Environment Variables
+
+### Download geomap (`dl-geomap`)
+
+| Variable | Type | Default | Description |
+|---|---|---|---|
+| `GEOIP_LOGGING_LEVEL` | str | `INFO` | Logging level for the geomap downloader. |
+
+### Download robots (`dl-robots`)
+
+| Variable | Type | Default | Description |
+|---|---|---|---|
+| `COUNTER_ROBOTS_LOGGING_LEVEL` | str | `INFO` | Logging level for the robots downloader. |
+| `COUNTER_ROBOTS_MAX_RETRIES` | int | `5` | Maximum retry attempts when fetching the robots list. |
+| `COUNTER_ROBOTS_URL` | str | `https://...COUNTER_Robots_list.json` | Default URL for the COUNTER robots list. |
+| `COUNTER_ROBOTS_URL_SLEEP_TIME` | int | `30` | Sleep time in seconds between retries. |
+
+### Parse log (`parse-log`)
+
+| Variable | Type | Default | Description |
+|---|---|---|---|
+| `PARSE_LOG_COLLECTION` | str | `scl` | Default collection acronym. |
+| `PARSE_LOG_LOGGING_LEVEL` | str | `INFO` | Logging level for the log parser. |
+| `OUTPUT_DIRECTORY` | str | `data` | Default output directory for processed logs. |
 
 ## Usage
-_Get the official COUNTER list of robots_
+
+### Command line
+
+Three entry points are available:
+
+#### `parse-log` — Parse a single access log file
+
 ```bash
-usage: dl-robots [-h] [-u URL] --path_output PATH_OUTPUT
-
-options:
-  -h, --help            show this help message and exit
-  -u URL, --url URL     URL da lista de robôs
-  --path_output PATH_OUTPUT
-                        Arquivo de saída
+parse-log -m <mmdb> -r <robots> -f <logfile> [-o <output_dir>] [--sample_size <pct>] [--validate]
 ```
 
-_Get the Maxming GeoIP Map_
+| Argument | Default | Description |
+|---|---|---|
+| `-m`, `--mmdb` | *(required)* | Path to the MMDB geolocation database. |
+| `-r`, `--robots` | *(required)* | Path to the robots pattern file. |
+| `-f`, `--logfile` | — | Path to the access log file to parse. |
+| `-o`, `--output_directory` | `data` | Output directory for processed files. |
+| `--sample_size` | `0.05` | Fraction of lines to sample for validation (0–1). |
+| `--validate` | off | Enable pre-validation with scielo-log-validator. |
+
+**Example:**
+
 ```bash
-usage: dl-geomap [-h] [--year YEAR] [--month MONTH] [--url URL] --path_output PATH_OUTPUT
-
-options:
-  -h, --help            show this help message and exit
-  --year YEAR           Ano do mapa de geolocalização (yyyy)
-  --month MONTH         Mês do mapa de geolocalização (mm)
-  --url URL             URL do mapa em formato mmdb.gz
-  --path_output PATH_OUTPUT
-                        Caminho do arquivo de mapa de geolocalizações
+parse-log -m data/map.mmdb -r data/counter-robots.txt \
+  -f logs/2025-08-17_scielo-br.log.gz -o output --validate
 ```
 
-_Parse log file_
-```
-usage: parse-log [-h] -m MMDB -r ROBOTS [-o OUTPUT_DIRECTORY] [-f LOGFILE]
+#### `dl-geomap` — Download MaxMind GeoIP database
 
-options:
-  -h, --help            show this help message and exit
-  -m MMDB, --mmdb MMDB  Arquivo de mapa de geolocalizações
-  -r ROBOTS, --robots ROBOTS
-                        Arquivo de robôs
-  -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
-                        Diretório de saída
-  -f LOGFILE, --logfile LOGFILE
-                        Caminho de arquivo de log de acesso
-```
-
-_Batch script parse logs_
 ```bash
-SciELO Usage COUNTER - Batch script Parse Log
-Please, inform:
-   1. The directory of logs (parameter -d)
-   2. The file MMDB (parameter -m)
-   3. The file robots (parameter -r)
-
-For example:
-
-   scripts/batch_parse.sh -d /logs/apache -m /data/map.mmdb -r /data/counter-robots.txt
+dl-geomap --path_output <path> [--year <yyyy>] [--month <mm>] [--url <url>] [--subset city|country]
 ```
 
+| Argument | Default | Description |
+|---|---|---|
+| `--path_output` | *(required)* | Output file path for the MMDB database. |
+| `--year` | last month | Year of the geolocation map (yyyy). |
+| `--month` | last month | Month of the geolocation map (mm). |
+| `--url` | — | Direct URL to a mmdb.gz file (overrides year/month). |
+| `--subset` | `city` | Database precision: `city` or `country`. |
+
+**Example:**
+
+```bash
+dl-geomap --year 2025 --month 04 --path_output data/map.mmdb
+```
+
+#### `dl-robots` — Download COUNTER robots list
+
+```bash
+dl-robots --path_output <path> [-u <url>]
+```
+
+| Argument | Default | Description |
+|---|---|---|
+| `--path_output` | *(required)* | Output file path for the robots list. |
+| `-u`, `--url` | COUNTER-Robots list | URL of the robots JSON list. |
+
+**Example:**
+
+```bash
+dl-robots --path_output data/counter-robots.txt
+```
+
+### Batch processing
+
+Use the shell helper to parse multiple log files:
+
+```bash
+scripts/batch_parse.sh -m <mmdb> -r <robots> -o <output_dir> -f <file_list> [-v]
+```
+
+| Flag | Description |
+|---|---|
+| `-m` | MMDB geolocation file. |
+| `-r` | Robots pattern file. |
+| `-o` | Output directory. |
+| `-f` | File containing a list of log file paths (one per line). |
+| `-v` | Enable pre-validation (optional). |
+
+**Example:**
+
+```bash
+scripts/batch_parse.sh -m data/map.mmdb -r data/counter-robots.txt \
+  -o output -f logs_paths.txt -v
+```
+
+### Python library
+
+```python
+from scielo_usage_counter import log_handler
+
+lp = log_handler.LogParser(
+    mmdb_path='data/map.mmdb',
+    robots_path='data/counter-robots.txt',
+)
+
+lp.logfile = 'logs/2025-08-17_scielo-br.log.gz'
+lp.output = 'output/2025-08-17.tsv'
+lp.stats.output = 'output/2025-08-17.summary.tsv'
+
+for record in lp.parse():
+    print(record)
+
+lp.stats.save()
+```
+
+## Supported log formats
+
+| Format | Description |
+|---|---|
+| NCSA Extended | Standard Apache combined log format with optional domain prefix and IP list fields. |
+| BunnyCDN | Pipe-delimited format with Unix timestamps (7 or 10 digits), country codes, and request IDs. |
+
+## Features
+
+- **COUNTER R5.1 compliant** metrics with unique item and title-level counting
+- **Geo-IP resolution** via MaxMind MMDB (city and country)
+- **Robot detection** using COUNTER Robots list patterns
+- **URL translation** for multiple SciELO platforms:
+  - Classic site (`scielo.php`)
+  - OPAC site (`/j/acronym/`)
+  - OPAC Alpha (`article/`, `/pdf/`)
+  - SciELO Books (`/id/<book>`)
+  - SciELO Preprints
+  - SciELO Data (Dataverse)
+- **BunnyCDN** log format detection and parsing
+- **Device detection** for client name and version extraction
+- **Pre-validation** via scielo-log-validator before parsing
 
 ## Libraries
 
-__User agent - Robots__
-- https://github.com/atmire/COUNTER-Robots
-- https://raw.githubusercontent.com/atmire/COUNTER-Robots/master/COUNTER_Robots_list.json
-
-__IP - Geolocation__
-- https://github.com/maxmind/GeoIP2-python
-- https://dev.maxmind.com/geoip/geolite2-free-geolocation-data
-- https://dev.maxmind.com/geoip/importing-databases/postgresql?lang=en
-
-__Device detector__
-- https://github.com/thinkwelltwd/device_detector
+- [COUNTER-Robots](https://github.com/atmire/COUNTER-Robots) — robot user-agent patterns
+- [GeoIP2-python](https://github.com/maxmind/GeoIP2-python) — IP geolocation
+- [device_detector](https://github.com/thinkwelltwd/device_detector) — client name/version detection

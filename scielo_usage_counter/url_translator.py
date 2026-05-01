@@ -3,12 +3,18 @@ import re
 
 from urllib.parse import urlparse
 
-from  scielo_usage_counter.translator.classic import URLTranslatorClassicSite
-from  scielo_usage_counter.translator.opac import URLTranslatorOPACSite
-from  scielo_usage_counter.translator.opac_alpha import URLTranslatorOPACAlphaSite
-from  scielo_usage_counter.translator.dataverse import URLTranslatorDataverseSite
-from  scielo_usage_counter.translator.preprints import URLTranslatorPreprintsSite
-from  scielo_usage_counter.translator.books import URLTranslatorBooksSite
+from scielo_scholarly_data import standardizer
+
+from scielo_usage_counter.translator.classic import URLTranslatorClassicSite
+from scielo_usage_counter.translator.opac import URLTranslatorOPACSite
+from scielo_usage_counter.translator.opac_alpha import URLTranslatorOPACAlphaSite
+from scielo_usage_counter.translator.dataverse import URLTranslatorDataverseSite
+from scielo_usage_counter.translator.preprints import URLTranslatorPreprintsSite
+from scielo_usage_counter.translator.books import URLTranslatorBooksSite
+from scielo_usage_counter.utils.metadata import (
+    build_documents_metadata,
+    build_sources_metadata,
+)
 
 
 # Patterns to support identify a URL as a Classic Site URL
@@ -55,141 +61,34 @@ PATTERNS_PREPRINTS_SITE = [
 
 # Patterns to support identify a URL as a Books Site URL
 PATTERNS_BOOKS_SITE = [
-    re.compile(r'/id/\w+/pdf/[\w\-]+\.pdf', re.IGNORECASE),  # /id/{book_id}/pdf/{filename}.pdf
-    re.compile(r'/id/\w+/\d+(?:[?#]|$)', re.IGNORECASE),  # /id/{book_id}/{chapter_number}
-    re.compile(r'/id/\w+(?:[?#]|$)', re.IGNORECASE),  # /id/{book_id}
+    re.compile(r'^/id/[-\w]+/pdf/[-\w]+\.pdf', re.IGNORECASE),  # /id/{book_id}/pdf/{filename}.pdf
+    re.compile(r'^/id/[-\w]+/epub/[-\w]+\.epub$', re.IGNORECASE),  # /id/{book_id}/epub/{filename}.epub
+    re.compile(r'^/id/[-\w]+/(?:Text|epub)/\d+\.(?:xhtml|html)$', re.IGNORECASE),  # chapter html/xhtml
+    re.compile(r'^/id/[-\w]+/(?:cover|swf)/.+$', re.IGNORECASE),  # ignored books assets
+    re.compile(r'^/id/[-\w]+/\d+/?$', re.IGNORECASE),  # /id/{book_id}/{chapter_number}
+    re.compile(r'^/id/[-\w]+/?$', re.IGNORECASE),  # /id/{book_id}
 ]
 
 
 class URLTranslationManager:
-    def __init__(self, journals_metadata, articles_metadata, translator=None):
-        self.load_journals(journals_metadata)
-        self.load_articles(articles_metadata)
+    def __init__(self, sources_metadata, documents_metadata, translator=None):
+        self.load_sources(sources_metadata)
+        self.load_documents(documents_metadata)
         self.translator = translator
         
         self.is_translator_forced = bool(translator)
         if self.is_translator_forced:
             logging.info(f'Using {translator.__name__} as the URL translator class.')
-            self.translator = translator(self.journals_metadata, self.articles_metadata)
+            self.translator = translator(self.sources_metadata, self.documents_metadata)
 
-    def load_articles(self, data):
-        logging.info('Loading articles metadata...')
+    def load_documents(self, data):
+        self.documents_metadata = build_documents_metadata(
+            data,
+            sources_metadata=getattr(self, 'sources_metadata', None),
+        )
 
-        self.articles_metadata = {
-            'pid_v3_to_pid_v2': {},
-            'pid_v3_to_default_lang': {},
-            'pid_v3_to_available_langs': {},
-            'pid_v3_to_scielo_issn': {},
-            'pid_v3_to_publication_year': {},
-            'pid_v2_to_pid_v3': {},
-            'pid_v2_to_default_lang': {},
-            'pid_v2_to_available_langs': {},
-            'pid_v2_to_scielo_issn': {},
-            'pid_v2_to_publication_year': {},
-            'pdf_to_pid_v2': {},
-            'pdf_to_pid_v3': {},
-            'doi_to_pid_v2': {},
-            'doi_to_pid_v3': {},
-            'pid_generic_to_publication_date': {},
-            'pid_generic_to_available_file_ids': {},
-            'file_id_to_pid_generic': {},
-            'pid_set': set(),
-        }
-
-        count = 0
-        for art in data:
-            count += 1
-            key_pid_v2 = art.get('pid_v2')
-            key_pid_v3 = art.get('pid_v3')
-            key_pid_generic = art.get('pid_generic')
-
-            if key_pid_generic is not None:
-                self.articles_metadata['pid_set'].add(key_pid_generic)
-
-                self.articles_metadata['pid_generic_to_publication_date'][key_pid_generic] = art.get('publication_date')
-
-                files = art.get('files', [])
-                self.articles_metadata['pid_generic_to_available_file_ids'][key_pid_generic] = set(files)
-
-                for fid in files:
-                    file_key_generic = files[fid].get('file_persistent_id') or key_pid_generic
-                    # Map the persistent ID of the file to the generic PID
-                    self.articles_metadata['file_id_to_pid_generic'][file_key_generic] = key_pid_generic
-
-                    # Map the numeric ID of the file to the generic PID
-                    self.articles_metadata['file_id_to_pid_generic'][fid] = key_pid_generic
-
-                continue
-
-            if key_pid_v2:
-                self.articles_metadata['pid_set'].add(key_pid_v2)
-
-                self.articles_metadata['pid_v2_to_pid_v3'][key_pid_v2] = key_pid_v3
-                self.articles_metadata['pid_v2_to_default_lang'][key_pid_v2] = art.get('default_lang')
-                self.articles_metadata['pid_v2_to_available_langs'][key_pid_v2] = art.get('text_langs')
-                self.articles_metadata['pid_v2_to_scielo_issn'][key_pid_v2] = art.get('scielo_issn')
-                self.articles_metadata['pid_v2_to_publication_year'][key_pid_v2] = art.get('publication_year')
-
-            for file_data in art.get('files', []):
-                file_id = file_data.get('path')
-                if not file_id.startswith('/'):
-                    file_id = f'/{file_id}'
-
-                if file_id:
-                    if key_pid_v3:
-                        self.articles_metadata['pdf_to_pid_v3'][file_id] = key_pid_v3
-
-                if key_pid_v2:
-                    self.articles_metadata['pdf_to_pid_v2'][file_id] = key_pid_v2
-
-                doi_key = file_data.get('doi')
-                if doi_key:
-                    if key_pid_v2:
-                        self.articles_metadata['doi_to_pid_v2'][doi_key] = key_pid_v2
-
-                    if key_pid_v3:
-                        self.articles_metadata['doi_to_pid_v3'][doi_key] = key_pid_v3
-
-            if key_pid_v3 and key_pid_v2:
-                self.articles_metadata['pid_v3_to_pid_v2'][key_pid_v3] = key_pid_v2
-    
-            if key_pid_v3:     
-                self.articles_metadata['pid_set'].add(key_pid_v3)
-          
-                self.articles_metadata['pid_v3_to_default_lang'][key_pid_v3] = art.get('default_lang')
-                self.articles_metadata['pid_v3_to_available_langs'][key_pid_v3] = art.get('text_langs')
-                self.articles_metadata['pid_v3_to_scielo_issn'][key_pid_v3] = art.get('scielo_issn')
-                self.articles_metadata['pid_v3_to_publication_year'][key_pid_v3] = art.get('publication_year')
-
-        logging.info(f'Loaded {count} articles metadata.')
-
-    def load_journals(self, data):
-        logging.info('Loading journals metadata...')
-
-        self.journals_metadata = {
-            'acronym_to_scielo_issn': {},
-            'issn_to_title': {},
-            'issn_to_subject_area_capes': {},
-            'issn_to_subject_area_wos': {},
-            'issn_to_publisher_name': {},
-            'issn_to_acronym': {},
-            'issn_set': set(),
-        }
-
-        count = 0
-        for j in data:
-            count += 1
-            self.journals_metadata['acronym_to_scielo_issn'][j.get('acronym')] = j.get('scielo_issn')
-
-            for issn in j.get('issns'):
-                self.journals_metadata['issn_to_title'][issn] = j.get('title')
-                self.journals_metadata['issn_to_subject_area_capes'][issn] = j.get('subject_areas')
-                self.journals_metadata['issn_to_subject_area_wos'][issn] = j.get('wos_subject_areas')
-                self.journals_metadata['issn_to_publisher_name'][issn] = j.get('publisher_name')
-                self.journals_metadata['issn_set'].add(issn)
-                self.journals_metadata['issn_to_acronym'][issn] = j.get('acronym')
-
-        logging.info(f'Loaded {count} journals metadata.')
+    def load_sources(self, data):
+        self.sources_metadata = build_sources_metadata(data)
 
     def identify_translator_class(self, url):
         parsed_url = urlparse(url)
@@ -204,25 +103,30 @@ class URLTranslationManager:
         ]:
             if any(re.search(p, parsed_url.path) for p in pattern):
                 logging.debug(f'Identified URL as a {url_translator_class.__name__} URL.')
-                self.translator = url_translator_class(self.journals_metadata, self.articles_metadata)
+                self.translator = url_translator_class(self.sources_metadata, self.documents_metadata)
                 return
         
         if not self.translator:
             logging.debug(f'Could not identify URL translator class for {url}')
-            self.translator = URLTranslatorClassicSite(self.journals_metadata, self.articles_metadata)
+            self.translator = URLTranslatorClassicSite(self.sources_metadata, self.documents_metadata)
 
     def translate(self, url: str):
         if not self.is_translator_forced:
             self.identify_translator_class(url)
 
         data = self.translator.pipeline_translate(url)
+        if not data:
+            return {}
         return self.standardize_fields(data)
 
     def standardize_fields(self, fields: dict):
         std_fields = {}
         
         for k, v in fields.items():
-            if k in ('scielo_issn', 'pid_v2', 'pid_generic',):
+            if not v:
+                continue
+
+            if k in ('scielo_issn', 'pid_v2', 'pid_generic', 'title_pid_generic'):
                 if v:
                     std_fields[k] = v.strip().upper()
                     continue
@@ -231,6 +135,20 @@ class URLTranslationManager:
                 if v:
                     std_fields[k] = v.strip()
                     continue
+
+            if k == 'year_of_publication':
+                year = standardizer.document_publication_date(v, only_year=True)
+                if year:
+                    std_fields[k] = str(year)
+                continue
+
+            if k == 'segment_pid_generics':
+                std_fields[k] = [
+                    str(item).strip().upper()
+                    for item in (v or [])
+                    if item
+                ]
+                continue
             
             std_fields[k] = v
 

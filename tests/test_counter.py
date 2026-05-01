@@ -4,6 +4,9 @@ from scielo_usage_counter.counter import get_valid_clicks, is_request, compute_r
 
 
 class TestGetValidClicks(unittest.TestCase):
+    def setUp(self):
+        self.maxdiff= None
+
     def test_valid_clicks_within_00_10_20(self):
         clicks = {'00:00': 1, '00:10': 1, '00:20': 1}
         expected_clicks = 1
@@ -96,20 +99,26 @@ class TestIsRequest(unittest.TestCase):
 
 
 class TestComputeR5Metrics(unittest.TestCase):
+    def setUp(self):
+        self.maxDiff=  None
+
     def test_compute_r5_metrics_valid_data(self):
         key = "S0123-45672015000010002-en-US-2023-01-01-scl"
         data = {}
         collection = "scl"
-        journal = "S0123-4567"
+        journal = {
+            'scielo_issn': "0123-4567",
+            'main_title': 'Meu titulo',
+            'subject_area_capes': ['Minha área'],
+            'subject_area_wos': ['Minha área WoS'],
+        }
         pid_v2 = "S0123-45672015000010002"
         pid_v3 = None
         pid_generic = None
         media_language = "en"
         country_code = "US"
         date_str = "2023-01-01"
-        year = 2023
-        month = 1
-        day = 1
+        year_of_publication = '2015'
         click_timestamps = {"00:00": 1, "00:31": 1}
         content_type = "full_text"
 
@@ -121,12 +130,10 @@ class TestComputeR5Metrics(unittest.TestCase):
             pid_v2,
             pid_v3,
             pid_generic,
+            year_of_publication,
             media_language,
             country_code,
             date_str,
-            year,
-            month,
-            day,
             click_timestamps,
             content_type,
         )
@@ -141,16 +148,19 @@ class TestComputeR5Metrics(unittest.TestCase):
         key = "S0123-45672015000010002-en-US-2023-01-01-scl"
         data = {}
         collection = "scl"
-        journal = "S0123-4567"
+        journal = {
+            'scielo_issn': "0123-4567",
+            'main_title': 'Meu titulo',
+            'subject_area_capes': ['Minha área'],
+            'subject_area_wos': ['Minha área WoS'],
+        }
         pid_v2 = None
         pid_v3 = None
         pid_generic = None
         media_language = "en"
         country_code = "US"
         date_str = "2023-01-01"
-        year = 2023
-        month = 1
-        day = 1
+        year_of_publication = '2023'
         click_timestamps = {"00:00": 1}
         content_type = "full_text"
 
@@ -163,12 +173,10 @@ class TestComputeR5Metrics(unittest.TestCase):
                 pid_v2,
                 pid_v3,
                 pid_generic,
+                year_of_publication,
                 media_language,
                 country_code,
                 date_str,
-                year,
-                month,
-                day,
                 click_timestamps,
                 content_type,
             )
@@ -177,16 +185,19 @@ class TestComputeR5Metrics(unittest.TestCase):
         key = None
         data = {}
         collection = "test_collection"
-        journal = "test_journal"
+        journal = {
+            'scielo_issn': "0123-4567",
+            'main_title': 'Meu titulo',
+            'subject_area_capes': ['Minha área'],
+            'subject_area_wos': ['Minha área WoS'],
+        }
         pid_v2 = "pid_v2"
         pid_v3 = None
         pid_generic = None
         media_language = "en"
         country_code = "US"
         date_str = "2023-01-01"
-        year = 2023
-        month = 1
-        day = 1
+        year_of_publication = '2023'
         click_timestamps = {"00:00": 1}
         content_type = "full_text"
 
@@ -199,12 +210,10 @@ class TestComputeR5Metrics(unittest.TestCase):
                 pid_v2,
                 pid_v3,
                 pid_generic,
+                year_of_publication,
                 media_language,
                 country_code,
                 date_str,
-                year,
-                month,
-                day,
                 click_timestamps,
                 content_type,
             )
@@ -213,16 +222,19 @@ class TestComputeR5Metrics(unittest.TestCase):
         key = "S0123-45672015000010002-en-US-2023-01-01-scl"
         data = {}
         collection = "scl"
-        journal = "S0123-4567"
+        journal = {
+            'scielo_issn': "0123-4567",
+            'main_title': 'Meu titulo',
+            'subject_area_capes': ['Minha área'],
+            'subject_area_wos': ['Minha área WoS'],
+        }
         pid_v2 = "S0123-45672015000010002"
         pid_v3 = None
         pid_generic = None
         media_language = "en"
         country_code = "US"
         date_str = "2023-01-01"
-        year = 2023
-        month = 1
-        day = 1
+        year_of_publication = '2023'
         click_timestamps = {"00:00": 1, "00:31": 1}
         content_type = "abstract"
 
@@ -234,12 +246,10 @@ class TestComputeR5Metrics(unittest.TestCase):
             pid_v2,
             pid_v3,
             pid_generic,
+            year_of_publication,
             media_language,
             country_code,
             date_str,
-            year,
-            month,
-            day,
             click_timestamps,
             content_type,
         )
@@ -356,7 +366,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key=key,
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:Q7GTD",
@@ -388,7 +398,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key=key,
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:VDYWC/CHAPTER:03",
@@ -420,7 +430,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key=key,
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:Y742K/CHAPTER:18",
@@ -450,7 +460,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key=key,
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:82R9T",
@@ -481,7 +491,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key=key,
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:Q7GTD",
@@ -498,7 +508,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key=key,
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:Q7GTD",
@@ -515,7 +525,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key=key,
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:Q7GTD",
@@ -549,7 +559,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key=key,
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:MJ4JM/CHAPTER:11",
@@ -580,7 +590,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key=key,
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:VDYWC/CHAPTER:03",
@@ -611,7 +621,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key=book_key,
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:Q7GTD",
@@ -629,7 +639,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key=chapter_key,
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:Q7GTD/CHAPTER:03",
@@ -668,7 +678,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key="BOOK:4NDGV-un-BR-2023-01-01-scl",
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:4NDGV",
@@ -685,7 +695,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key="BOOK:4NDGV/CHAPTER:05-un-BR-2023-01-01-scl",
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:4NDGV/CHAPTER:05",
@@ -702,7 +712,7 @@ class TestBooksAccessCounting(unittest.TestCase):
             key="BOOK:4NDGV/CHAPTER:12-un-US-2023-01-01-scl",
             data=data,
             collection="scl",
-            journal={"scielo_issn": "0000-0000"},
+            source={"scielo_issn": "0000-0000"},
             pid_v2=None,
             pid_v3=None,
             pid_generic="BOOK:4NDGV/CHAPTER:12",

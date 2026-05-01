@@ -8,6 +8,7 @@ from scielo_usage_counter.values import (
 
 from scielo_usage_counter.url_translator import URLTranslationManager
 from scielo_usage_counter.translator.classic import URLTranslatorClassicSite
+from scielo_usage_counter.translator.books import URLTranslatorBooksSite
 from scielo_usage_counter.translator.dataverse import URLTranslatorDataverseSite
 from scielo_usage_counter.translator.opac import URLTranslatorOPACSite
 from scielo_usage_counter.translator.opac_alpha import URLTranslatorOPACAlphaSite
@@ -228,6 +229,93 @@ class TestURLTranslationManager(unittest.TestCase):
                 else:
                     self.assertIsInstance(self.tm.translator, URLTranslatorOPACAlphaSite)
 
+    def test_loads_source_and_document_contract_for_journal_metadata(self):
+        sources_metadata = [
+            {
+                'source_type': 'journal',
+                'source_id': '0103-6351',
+                'scielo_issn': '0103-6351',
+                'acronym': 'neco',
+                'title': 'Nova Economia',
+                'issns': {'0103-6351'},
+                'publisher_name': ['Universidade Federal de Minas Gerais'],
+                'subject_areas': ['Economics'],
+                'wos_subject_areas': ['ECONOMICS'],
+                'identifiers': {'scielo_issn': '0103-6351'},
+            }
+        ]
+        documents_metadata = [
+            {
+                'document_type': 'article',
+                'document_id': 'dqLRqnpmnncSmnzMCB8bzPG',
+                'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
+                'default_lang': 'pt',
+                'text_langs': ['pt', 'en'],
+                'scielo_issn': '0103-6351',
+                'publication_year': '2021',
+                'source_type': 'journal',
+                'source_id': '0103-6351',
+                'files': [
+                    {'doi': '10.1590/neco.2021.123', 'lang': 'pt', 'path': 'pdf/neco/v29n3/1234-5678-neco-29-03-0123.pdf'},
+                ],
+            }
+        ]
+
+        tm = URLTranslationManager(sources_metadata, documents_metadata)
+
+        self.assertEqual(tm.sources_metadata['issn_to_title']['0103-6351'], 'Nova Economia')
+        self.assertEqual(tm.sources_metadata['source_id_to_type']['0103-6351'], 'journal')
+        self.assertEqual(tm.documents_metadata['pid_v3_to_default_lang']['dqLRqnpmnncSmnzMCB8bzPG'], 'pt')
+        self.assertEqual(tm.documents_metadata['pid_v3_to_scielo_issn']['dqLRqnpmnncSmnzMCB8bzPG'], '0103-6351')
+
+    def test_loads_source_and_document_contract_for_books(self):
+        sources_metadata = [
+            {
+                'source_type': 'book',
+                'source_id': 'q7gtd',
+                'title': 'Book Title',
+                'publication_year': '2023',
+                'identifiers': {'book_id': 'q7gtd', 'isbn': '9788578791889'},
+            }
+        ]
+        documents_metadata = [
+            {
+                'document_type': 'book',
+                'document_id': 'book:q7gtd',
+                'pid_generic': 'book:q7gtd',
+                'default_lang': 'pt',
+                'publication_date': '2023-01-01',
+                'publication_year': '2023',
+                'source_type': 'book',
+                'source_id': 'q7gtd',
+                'title': 'Book Title',
+                'identifiers': {'book_id': 'q7gtd', 'isbn': '9788578791889'},
+                'files': {},
+            },
+            {
+                'document_type': 'chapter',
+                'document_id': 'book:q7gtd/chapter:03',
+                'pid_generic': 'book:q7gtd/chapter:03',
+                'default_lang': 'en',
+                'publication_date': '2023-01-01',
+                'publication_year': '2023',
+                'source_type': 'book',
+                'source_id': 'q7gtd',
+                'title': 'Chapter Title',
+                'identifiers': {'book_id': 'q7gtd', 'chapter_id': '03'},
+                'files': {},
+            },
+        ]
+
+        tm = URLTranslationManager(sources_metadata, documents_metadata)
+        result = tm.translate('/id/q7gtd/03')
+
+        self.assertIsInstance(tm.translator, URLTranslatorBooksSite)
+        self.assertEqual(result['book_title'], 'Book Title')
+        self.assertEqual(result['chapter_title'], 'Chapter Title')
+        self.assertEqual(result['year_of_publication'], '2023')
+        self.assertEqual(result['media_language'], 'en')
+
     def test_identify_translator_class_is_opac_site(self):
         for url in [
             'https://scielo.br/j/aa/',
@@ -423,8 +511,7 @@ class TestURLTranslationManager(unittest.TestCase):
         obtained = tm_forced.translate('/scielo.php?pid=S1981-77462017005002103&script=sci_arttext')
         expected = {
             'scielo_issn': '1981-7746', 
-            'pid_v2': 'S1981-77462017005002103', 
-            'pid_v3': None, 
+            'pid_v2': 'S1981-77462017005002103',
             'media_format': MEDIA_FORMAT_HTML, 
             'media_language': MEDIA_LANGUAGE_UNDEFINED, 
             'content_type': CONTENT_TYPE_FULL_TEXT

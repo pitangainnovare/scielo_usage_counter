@@ -3,13 +3,13 @@ local_datetime	client_name	client_version	ip_address	country_code	url
 2024-12-11 01:51:35	UNK	UNK	54.248.220.32	JP	/scielo.php?script=sci_serial&pid=0102-8650&lng=en&nrm=iso
 2024-12-11 01:51:37	UNK	UNK	176.34.159.224	IE	/scielo.php?script=sci_serial&pid=0102-8650&lng=en&nrm=iso
 2024-12-11 01:51:37	UNK	UNK	54.255.254.224	SG	/scielo.php?script=sci_serial&pid=0102-8650&lng=en&nrm=iso
-2024-12-09 21:00:12	CH	131.0.0.0	81.176.8.78	RU	/popup/questions_es.html
-2024-12-09 21:00:12	CH	131.0.0.0	181.176.8.78	PE	/popup/whatismyip.php
-2024-12-09 21:00:12	CH	131.0.0.0	190.121.153.189	CO	/scielo.php?pid=S0718-34292016005000002&script=sci_arttext&tlng=en
-2024-12-09 21:00:12	CH	131.0.0.0	2806:108e:21:4720:552:4011:137c:a7fb	MX	/scielo.php?pid=S0718-07642017000400014&script=sci_arttext
-2024-12-09 21:00:12	CH	131.0.0.0	181.176.8.78	PE	/popup/questions_es.html
-2024-12-09 21:00:12	CH	131.0.0.0	181.176.8.78	PE	/popup/whatismyip.php
-2024-12-09 21:00:12	CH	131.0.0.0	190.121.153.189	CO	/scielo.php?pid=S0718-34292016005000002&script=sci_arttext&tlng=en
-2024-12-09 21:00:12	CH	131.0.0.0	2806:108e:21:4720:552:4011:137c:a7fb	MX	/scielo.php?pid=S0718-07642017000400014&script=sci_arttext
-2024-12-10 21:00:16	CM	131.0.0.0	191.108.167.126	CO	/popup/questions_es.html
-2024-12-10 21:00:16	CM	131.0.0.0	191.108.167.126	CO	/popup/whatismyip.php
+2024-12-09 21:00:12	Chrome	131.0.0.0	81.176.8.78	RU	/popup/questions_es.html
+2024-12-09 21:00:12	Chrome	131.0.0.0	181.176.8.78	PE	/popup/whatismyip.php
+2024-12-09 21:00:12	Chrome	131.0.0.0	190.121.153.189	CO	/scielo.php?pid=S0718-34292016005000002&script=sci_arttext&tlng=en
+2024-12-09 21:00:12	Chrome	131.0.0.0	2806:108e:21:4720:552:4011:137c:a7fb	MX	/scielo.php?pid=S0718-07642017000400014&script=sci_arttext
+2024-12-09 21:00:12	Chrome	131.0.0.0	181.176.8.78	PE	/popup/questions_es.html
+2024-12-09 21:00:12	Chrome	131.0.0.0	181.176.8.78	PE	/popup/whatismyip.php
+2024-12-09 21:00:12	Chrome	131.0.0.0	190.121.153.189	CO	/scielo.php?pid=S0718-34292016005000002&script=sci_arttext&tlng=en
+2024-12-09 21:00:12	Chrome	131.0.0.0	2806:108e:21:4720:552:4011:137c:a7fb	MX	/scielo.php?pid=S0718-07642017000400014&script=sci_arttext
+2024-12-10 21:00:16	Chrome Mobile	131.0.0.0	191.108.167.126	CO	/popup/questions_es.html
+2024-12-10 21:00:16	Chrome Mobile	131.0.0.0	191.108.167.126	CO	/popup/whatismyip.php

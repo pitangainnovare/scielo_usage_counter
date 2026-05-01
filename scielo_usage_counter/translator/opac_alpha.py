@@ -20,9 +20,9 @@ REGEX_OPAC_ALPHA_MEDIA_ASSETS_ACRONYM = re.compile(r'.*/media/assets/(?P<journal
 
 
 class URLTranslatorOPACAlphaSite:
-    def __init__(self, journals_metadata, articles_metadata):
-        self.journals_metadata = journals_metadata
-        self.articles_metadata = articles_metadata
+    def __init__(self, sources_metadata, documents_metadata):
+        self.sources_metadata = sources_metadata
+        self.documents_metadata = documents_metadata
 
     def pipeline_translate(self, url):
         self.url_params = self.extract_url_params(url)
@@ -36,17 +36,17 @@ class URLTranslatorOPACAlphaSite:
 
         return {
             'scielo_issn': scielo_issn,
-            'journal_main_title': self.journals_metadata.get('issn_to_title', {}).get(scielo_issn),
-            'journal_subject_area_capes': self.journals_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
-            'journal_subject_area_wos': self.journals_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
-            'journal_publisher_name': self.journals_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
-            'journal_acronym': self.journals_metadata.get('issn_to_acronym', {}).get(scielo_issn),
-            'pid_v2': self.articles_metadata.get('pid_v3_to_pid_v2', {}).get(pid_v3),
+            'journal_main_title': self.sources_metadata.get('issn_to_title', {}).get(scielo_issn),
+            'journal_subject_area_capes': self.sources_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
+            'journal_subject_area_wos': self.sources_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
+            'journal_publisher_name': self.sources_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
+            'journal_acronym': self.sources_metadata.get('issn_to_acronym', {}).get(scielo_issn),
+            'pid_v2': self.documents_metadata.get('pid_v3_to_pid_v2', {}).get(pid_v3),
             'pid_v3': pid_v3,
             'media_format': media_format,
             'media_language': media_language,
             'content_type': content_type,
-            'year_of_publication': self.articles_metadata.get('pid_v3_to_publication_year', {}).get(pid_v3),
+            'year_of_publication': self.documents_metadata.get('pid_v3_to_publication_year', {}).get(pid_v3),
         }
 
     def extract_url_params(self, url):
@@ -120,18 +120,18 @@ class URLTranslatorOPACAlphaSite:
     def extract_media_language(self, pid_v3):
         media_language = self.url_params.get('media_language')
         if not media_language:
-            media_language = self.articles_metadata['pid_v3_to_default_lang'].get(pid_v3, MEDIA_LANGUAGE_UNDEFINED)
+            media_language = self.documents_metadata['pid_v3_to_default_lang'].get(pid_v3, MEDIA_LANGUAGE_UNDEFINED)
         return media_language
 
     def extract_pid_v3(self):
-        return self._extract_artifitial_pid()
+        return self._extract_artificial_pid()
     
-    def _extract_artifitial_pid(self):    
+    def _extract_artificial_pid(self):    
         # If the URL is a PDF, it is necessary to extract the pid_v3 from the article metadata
         if self.url_params.get('file'):
             key = self.url_params.get('file', '').lstrip('/')
             key = f'/{key}' if key else ''
-            return self.articles_metadata['pdf_to_pid_v3'].get(key)
+            return self.documents_metadata['pdf_to_pid_v3'].get(key)
 
         # If the URL is a HTML, we need to construct an artificial
         #  PID using available URL parameters
@@ -149,7 +149,7 @@ class URLTranslatorOPACAlphaSite:
 
     
     def extract_issn(self):
-        return self.journals_metadata['acronym_to_scielo_issn'].get(self.url_params.get('journal_acronym'))
+        return self.sources_metadata['acronym_to_scielo_issn'].get(self.url_params.get('journal_acronym'))
 
     def extract_content_type(self, url):
         if 'abstract_lang' in self.url_params:

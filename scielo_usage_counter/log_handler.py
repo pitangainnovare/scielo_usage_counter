@@ -7,7 +7,7 @@ import urllib.parse
 
 from device_detector import DeviceDetector
 
-from . import exceptions, geo, values
+from . import geo, values
 from .utils import file_utils, resource_utils
 
 
@@ -15,9 +15,13 @@ IP_ORIGIN_REMOTE = 'remote'
 IP_ORIGIN_LOCAL = 'local'
 IP_ORIGIN_UNKNOWN = 'unknown'
 
-RESPONSE_STATUS_REDIRECT = ['301', '302', '303', '307', '308']
-RESPONSE_STATUS_SUPPORTED = ['200', '304',]
-HTTP_METHOD_SUPPORTED = ['GET', 'HEAD']
+# COUNTER R5.1 counting is limited to intended content access. In practice we
+# only count successful GET requests, while redirects and error responses are
+# discarded and 304 is still accepted as cache revalidation for a prior GET.
+RESPONSE_STATUS_SUPPORTED = ['200', '304']
+HTTP_METHOD_SUPPORTED = ['GET']
+
+REGEX_BOOKS_SWF_PATH = re.compile(r'/id/\w+/swf/\d+\.swf(?:[?#]|$)', re.IGNORECASE)
 
 
 class LogStats:
@@ -157,10 +161,14 @@ class LogStats:
     @output.setter
     def output(self, path):
         try:
+            # Close existing file if open
+            if self.__output and not self.__output.closed:
+                self.__output.close()
             self.__output = open(path, 'w')
         except Exception as e:
-            logging.error(f"Failed to open file: {e}")
+            logging.error(f"Failed to open stats output file {path}: {e}")
             logging.info(self.dump_to_str())
+            self.__output = None
 
     def increment(self, measure):
         current_value = getattr(self, measure)
@@ -207,7 +215,7 @@ class LogStats:
     def dump_to_str(self, sep='\t'):
         stats_kv = self.get_stats()
         for i in stats_kv:
-            logging(sep.join(i))
+            print(sep.join([str(x) for x in i]))
 
     def save(self, sep='\t'):
         if self.output is None:
@@ -247,7 +255,14 @@ class LogParser:
 
     @output.setter
     def output(self, path):
-        self.__output = open(path, 'w')
+        try:
+            # Close existing file if open
+            if self.__output and not self.__output.closed:
+                self.__output.close()
+            self.__output = open(path, 'w')
+        except Exception as e:
+            logging.error(f"Failed to open output file {path}: {e}")
+            self.__output = None
 
     @property
     def output_mode(self):
@@ -288,7 +303,7 @@ class LogParser:
         return self.__stats
 
     @stats.setter
-    def stats(self):
+    def stats(self, value):
         self.__stats = LogStats()
 
     def has_valid_method(self, method):
@@ -325,9 +340,16 @@ class LogParser:
 
     def url_is_static_file(self, path):
         try:
-            file_from_url = urllib.parse.urlparse(path).path
-        except ValueError:
+            parsed = urllib.parse.urlparse(path)
+            file_from_url = parsed.path
+        except (ValueError, AttributeError):
+            # Fallback for malformed URLs
+            if not path:
+                return True  # Treat as static (will be ignored)
             file_from_url = path.split('/')[-1]
+
+        if REGEX_BOOKS_SWF_PATH.search(file_from_url):
+            return False
 
         ext = file_from_url.rsplit('.')[-1].lower()
 
@@ -355,12 +377,22 @@ class LogParser:
         return datetime.timedelta(hours=hours, minutes=minutes)
 
     def format_date(self, date, timezone):
+        # Check if date is Unix timestamp (bunnynet format)
+        if timezone is None and date and date.isdigit():
+            try:
+                unix_ts = int(date)
+                dt_obj = datetime.datetime.utcfromtimestamp(unix_ts)
+                return dt_obj.strftime('%Y-%m-%d %H:%M:%S')
+            except (ValueError, OSError):
+                return None
+        
+        # Standard Apache date format
         try:
             date = datetime.datetime.strptime(date, '%d/%b/%Y:%H:%M:%S')
             date -= self.timedelta_from_timezone(timezone)
             return date.strftime('%Y-%m-%d %H:%M:%S')
-        except:
-            return
+        except (ValueError, TypeError, OverflowError):
+            return None
 
     def format_user_agent(self, user_agent):
         fmt_ua = user_agent
@@ -371,12 +403,24 @@ class LogParser:
         return fmt_ua
 
     def format_client_name(self, device):
-        return device.client_short_name() or device.client_name() or device.UNKNOWN
+        return device.client_name() or 'UNK'
 
     def format_client_version(self, device):
-        return device.client_version() or device.UNKNOWN
+        return device.client_version() or 'UNK'
 
     def match_with_best_pattern(self, line):
+        # Detect bunnynet pipe-delimited format by pipe count
+        pipe_count = line.count('|')
+        if pipe_count >= 11:
+            bunny_match = re.match(values.PATTERN_BUNNYCDN_LOG_FORMAT, line)
+            if bunny_match:
+                extracted = bunny_match.groupdict()
+                ip_addr = extracted.get('ip', '')
+                ip_type = self.get_ip_origin_type(ip_addr)
+                if ip_type != IP_ORIGIN_UNKNOWN:
+                    return bunny_match, ip_addr
+        
+        # Try standard Apache patterns
         patterns = [
             values.PATTERN_NCSA_EXTENDED_LOG_FORMAT,
             values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN,
@@ -385,7 +429,6 @@ class LogParser:
         ]
 
         match = None
-        ip_origin_type = IP_ORIGIN_UNKNOWN
         ip_value = ''
 
         for pattern in patterns:
@@ -446,13 +489,45 @@ class LogParser:
             }
 
             data = match.groupdict()
+            
+            # Check if this is bunnynet format (has unix_ts field)
+            is_bunnynet = 'unix_ts' in data
+            
+            if is_bunnynet:
+                # Bunnynet logs don't have explicit method, assume GET
+                processed_line['http_method'] = 'GET'
+                processed_line['http_response_status'] = data.get('status')
+                processed_line['user_agent'] = self.format_user_agent(data.get('user_agent'))
+                processed_line['url'] = data.get('path')
+                processed_line['ip_address'] = ip_value
+                
+                # Bunnynet provides country code directly
+                processed_line['country_code'] = data.get('country')
+                if not processed_line['country_code']:
+                    processed_line['country_code'] = self.geoip.ip_to_country_code(processed_line['ip_address'])
+                
+                # Handle Unix timestamp
+                unix_ts = data.get('unix_ts')
+                processed_line['local_datetime'] = self.format_date(unix_ts, None)
 
-            processed_line['http_method'] = data.get('method')
+            else:
+                # Standard Apache log format
+                processed_line['http_method'] = data.get('method')
+                processed_line['http_response_status'] = data.get('status')
+                processed_line['user_agent'] = self.format_user_agent(data.get('user_agent'))
+                processed_line['url'] = data.get('path')
+                processed_line['ip_address'] = ip_value
+                processed_line['country_code'] = self.geoip.ip_to_country_code(processed_line['ip_address'])
+                
+                date = data.get('date')
+                timezone = data.get('timezone')
+                processed_line['local_datetime'] = self.format_date(date, timezone)
+
+            # Validation checks
             if not self.has_valid_method(processed_line['http_method']):
                 self.stats.increment('ignored_lines_invalid_method')
                 processed_line['is_valid'] = False
 
-            processed_line['http_response_status'] = data.get('status')
             if not self.has_valid_status(processed_line['http_response_status']):
                 if self.status_is_redirect(processed_line['http_response_status']):
                     self.stats.increment('ignored_lines_http_redirects')
@@ -460,18 +535,16 @@ class LogParser:
                     self.stats.increment('ignored_lines_http_errors')
                 processed_line['is_valid'] = False
 
-            processed_line['user_agent'] = self.format_user_agent(data.get('user_agent'))
-
             if self.user_agent_is_bot(processed_line['user_agent']):
                 self.stats.increment('ignored_lines_bot')
                 processed_line['is_valid'] = False
 
             try:
                 device = DeviceDetector(processed_line['user_agent']).parse()
-            except ZeroDivisionError:
+            except Exception as e:
                 device = DeviceDetector('').parse()
                 self.stats.increment('ignored_lines_invalid_user_agent')
-                logging.error(exceptions.DeviceDetectionError(f"Não foi possível identificar UserAgent {processed_line['user_agent']} from line {decoded_line}"))
+                logging.error(f"Device detection failed for UserAgent {processed_line['user_agent']}: {e}")
                 processed_line['is_valid'] = False
 
             processed_line['client_name'] = self.format_client_name(device)
@@ -484,20 +557,14 @@ class LogParser:
                 self.stats.increment('ignored_lines_invalid_client_version')
                 processed_line['is_valid'] = False
 
-            processed_line['url'] = data.get('path')
             if not self.has_supported_url(processed_line['url']):
                 self.stats.increment('ignored_lines_static_resources')
                 processed_line['is_valid'] = False
 
-            processed_line['ip_address'] = ip_value
-            processed_line['country_code'] = self.geoip.ip_to_country_code(processed_line['ip_address'])
             if not processed_line['country_code']:
                 self.stats.increment('ignored_lines_invalid_country_code')
                 processed_line['is_valid'] = False
 
-            date = data.get('date')
-            timezone = data.get('timezone')
-            processed_line['local_datetime'] = self.format_date(date, timezone)
             if not processed_line['local_datetime']:
                 self.stats.increment('ignored_lines_invalid_local_datetime')
                 processed_line['is_valid'] = False

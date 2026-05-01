@@ -18,6 +18,7 @@ from scielo_usage_counter.values import (
 
 class TestTranslatorClassic(unittest.TestCase):
     def setUp(self):
+        self.maxDiff = None
         self.journals_metadata = [
             {
                 'acronym': 'wimj',
@@ -38,7 +39,6 @@ class TestTranslatorClassic(unittest.TestCase):
         self.articles_metadata = [
             {
                 'pid_v2': 'S0043-31442017000600634',
-                'pid_v3': None,
                 'default_lang': 'en',
                 'text_langs': ['en', 'es'],
                 'scielo_issn': '0043-3144',
@@ -50,7 +50,6 @@ class TestTranslatorClassic(unittest.TestCase):
             },
             {
                 'pid_v2': 'S0001-60022024000100008',
-                'pid_v3': None,
                 'default_lang': 'en',
                 'text_langs': ['en', 'es'],
                 'scielo_issn': '0001-6002',
@@ -66,8 +65,13 @@ class TestTranslatorClassic(unittest.TestCase):
         url = 'https://westindies.scielo.org/scielo.php?script=sci_arttext&pid=S0043-31442017000600634&tlng=en'
 
         expected = {}
+        expected['journal_acronym'] = 'wimj'
+        expected['journal_main_title'] = 'West Indian Medical Journal'
+        expected['journal_publisher_name'] = 'The University of the West Indies'
+        expected['journal_subject_area_capes'] = ['Health Sciences']
+        expected['journal_subject_area_wos'] = ['HEALTH CARE SCIENCES & SERVICES']
+        expected['year_of_publication'] = '2017'
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = MEDIA_FORMAT_HTML
         expected['media_language'] = 'en'
@@ -81,8 +85,13 @@ class TestTranslatorClassic(unittest.TestCase):
     def test_translate_classic_site_url_scielo_php_script_sci_arttext_with_pid_tlng_and_extra_params(self):
         url = 'https://westindies.scielo.org/scielo.php?script=sci_arttext&pid=S0043-31442017000600634&lng=en&nrm=iso&tlng=en'
         expected = {}
+        expected['journal_acronym'] = 'wimj'
+        expected['journal_main_title'] = 'West Indian Medical Journal'
+        expected['journal_publisher_name'] = 'The University of the West Indies'
+        expected['journal_subject_area_capes'] = ['Health Sciences']
+        expected['journal_subject_area_wos'] = ['HEALTH CARE SCIENCES & SERVICES']
+        expected['year_of_publication'] = '2017'
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = MEDIA_FORMAT_HTML
         expected['media_language'] = 'en'
@@ -97,8 +106,13 @@ class TestTranslatorClassic(unittest.TestCase):
         url = 'https://westindies.scielo.org/pdf/wimj/v66n6/2309-5830-wimj-66-06-0634.pdf'
         
         expected = {}
+        expected['journal_acronym'] = 'wimj'
+        expected['journal_main_title'] = 'West Indian Medical Journal'
+        expected['journal_publisher_name'] = 'The University of the West Indies'
+        expected['journal_subject_area_capes'] = ['Health Sciences']
+        expected['journal_subject_area_wos'] = ['HEALTH CARE SCIENCES & SERVICES']
+        expected['year_of_publication'] = '2017'
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = MEDIA_FORMAT_PDF
         expected['media_language'] = 'en'
@@ -113,8 +127,13 @@ class TestTranslatorClassic(unittest.TestCase):
         url = 'http://westindies.scielo.org/scieloOrg/php/articleXML.php?pid=S0043-31442017000600634&tlng=en'
         
         expected = {}
+        expected['journal_acronym'] = 'wimj'
+        expected['journal_main_title'] = 'West Indian Medical Journal'
+        expected['journal_publisher_name'] = 'The University of the West Indies'
+        expected['journal_subject_area_capes'] = ['Health Sciences']
+        expected['journal_subject_area_wos'] = ['HEALTH CARE SCIENCES & SERVICES']
+        expected['year_of_publication'] = '2017'
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = MEDIA_FORMAT_XML
         expected['media_language'] = 'en'
@@ -129,8 +148,13 @@ class TestTranslatorClassic(unittest.TestCase):
         url = 'https://westindies.scielo.org/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&tlng=es'
         
         expected = {}
+        expected['journal_acronym'] = 'wimj'
+        expected['journal_main_title'] = 'West Indian Medical Journal'
+        expected['journal_publisher_name'] = 'The University of the West Indies'
+        expected['journal_subject_area_capes'] = ['Health Sciences']
+        expected['journal_subject_area_wos'] = ['HEALTH CARE SCIENCES & SERVICES']
+        expected['year_of_publication'] = '2017'
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = MEDIA_FORMAT_HTML
         expected['media_language'] = 'es'
@@ -146,8 +170,13 @@ class TestTranslatorClassic(unittest.TestCase):
         url = 'https://westindies.scielo.org/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&tlng=de'
         
         expected = {}
+        expected['journal_acronym'] = 'wimj'
+        expected['journal_main_title'] = 'West Indian Medical Journal'
+        expected['journal_publisher_name'] = 'The University of the West Indies'
+        expected['journal_subject_area_capes'] = ['Health Sciences']
+        expected['journal_subject_area_wos'] = ['HEALTH CARE SCIENCES & SERVICES']
+        expected['year_of_publication'] = '2017'
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = MEDIA_FORMAT_HTML
         expected['content_type'] = CONTENT_TYPE_ABSTRACT
@@ -164,8 +193,13 @@ class TestTranslatorClassic(unittest.TestCase):
         url = 'https://westindies.scielo.org/scielo.php?script=sci_abstract&pid=S0043-31442017000600634&lng=en&nrm=iso&tlng=es'
         
         expected = {}
+        expected['journal_acronym'] = 'wimj'
+        expected['journal_main_title'] = 'West Indian Medical Journal'
+        expected['journal_publisher_name'] = 'The University of the West Indies'
+        expected['journal_subject_area_capes'] = ['Health Sciences']
+        expected['journal_subject_area_wos'] = ['HEALTH CARE SCIENCES & SERVICES']
+        expected['year_of_publication'] = '2017'
         expected['pid_v2'] = 'S0043-31442017000600634'
-        expected['pid_v3'] = None
         expected['scielo_issn'] = '0043-3144'
         expected['media_format'] = MEDIA_FORMAT_HTML
         expected['media_language'] = 'es'
@@ -188,9 +222,14 @@ class TestTranslatorClassic(unittest.TestCase):
                 obtained = self.tm.translate(url)
                 self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
                 expected = {
+                    'journal_acronym': 'wimj',
+                    'journal_main_title': 'West Indian Medical Journal',
+                    'journal_publisher_name': 'The University of the West Indies',
+                    'journal_subject_area_capes': ['Health Sciences'],
+                    'journal_subject_area_wos': ['HEALTH CARE SCIENCES & SERVICES'],
+                    'year_of_publication': '2017',
                     'scielo_issn': '0043-3144',
                     'pid_v2': 'S0043-31442017000600634',
-                    'pid_v3': None,
                     'media_format': MEDIA_FORMAT_HTML,
                     'media_language': 'en',
                     'content_type': CONTENT_TYPE_ABSTRACT,
@@ -210,9 +249,14 @@ class TestTranslatorClassic(unittest.TestCase):
                 obtained = self.tm.translate(url)
                 self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
                 expected = {
+                    'journal_acronym': 'wimj',
+                    'journal_main_title': 'West Indian Medical Journal',
+                    'journal_publisher_name': 'The University of the West Indies',
+                    'journal_subject_area_capes': ['Health Sciences'],
+                    'journal_subject_area_wos': ['HEALTH CARE SCIENCES & SERVICES'],
+                    'year_of_publication': '2017',
                     'scielo_issn': '0043-3144',
                     'pid_v2': 'S0043-31442017000600634',
-                    'pid_v3': None,
                     'media_format': MEDIA_FORMAT_HTML if 'sci_arttext' in url else MEDIA_FORMAT_PDF if 'pdf' in url else MEDIA_FORMAT_XML,
                     'media_language': 'en',
                     'content_type': CONTENT_TYPE_FULL_TEXT,
@@ -229,9 +273,6 @@ class TestTranslatorClassic(unittest.TestCase):
                 obtained = self.tm.translate(url)
                 self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
                 expected = {
-                    'scielo_issn': None,
-                    'pid_v2': '',
-                    'pid_v3': None,
                     'media_format': MEDIA_FORMAT_HTML,
                     'media_language': 'un',
                     'content_type': CONTENT_TYPE_UNDEFINED,
@@ -245,9 +286,11 @@ class TestTranslatorClassic(unittest.TestCase):
         self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
 
         expected = {
+            'journal_acronym': 'amc',
+            'journal_main_title': 'Acta Médica Costarricense',
+            'year_of_publication': '2024',
             'scielo_issn': '0001-6002',
             'pid_v2': 'S0001-60022024000100008',
-            'pid_v3': None,
             'media_format': MEDIA_FORMAT_HTML,
             'media_language': 'es',
             'content_type': CONTENT_TYPE_HOW_TO_CITE,
@@ -261,9 +304,11 @@ class TestTranslatorClassic(unittest.TestCase):
         self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
 
         expected = {
+            'journal_acronym': 'amc',
+            'journal_main_title': 'Acta Médica Costarricense',
+            'year_of_publication': '2024',
             'scielo_issn': '0001-6002',
             'pid_v2': 'S0001-60022024000100008',
-            'pid_v3': None,
             'media_format': MEDIA_FORMAT_HTML,
             'media_language': 'en',
             'content_type': CONTENT_TYPE_CITATION_EXPORT,
@@ -276,9 +321,11 @@ class TestTranslatorClassic(unittest.TestCase):
         self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
 
         expected = {
+            'journal_acronym': 'amc',
+            'journal_main_title': 'Acta Médica Costarricense',
+            'year_of_publication': '2024',
             'scielo_issn': '0001-6002',
             'pid_v2': 'S0001-60022024000100008',
-            'pid_v3': None,
             'media_format': MEDIA_FORMAT_HTML,
             'media_language': 'en',
             'content_type': CONTENT_TYPE_REFERENCES_LIST,
@@ -291,9 +338,11 @@ class TestTranslatorClassic(unittest.TestCase):
         self.assertIsInstance(self.tm.translator, URLTranslatorClassicSite)
 
         expected = {
+            'journal_acronym': 'amc',
+            'journal_main_title': 'Acta Médica Costarricense',
+            'year_of_publication': '2024',
             'scielo_issn': '0001-6002',
             'pid_v2': 'S0001-60022024000100008',
-            'pid_v3': None,
             'media_format': MEDIA_FORMAT_HTML,
             'media_language': 'en',
             'content_type': CONTENT_TYPE_TRANSLATE_DOCUMENT,

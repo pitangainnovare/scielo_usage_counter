@@ -71,7 +71,7 @@ def compute_r5_metrics(
     key,
     data,
     collection,
-    journal: dict,
+    source: dict,
     pid_v2,
     pid_v3,
     pid_generic,
@@ -92,7 +92,7 @@ def compute_r5_metrics(
     :param key: unique identifier for the data entry
     :param data: dictionary to store the computed metrics
     :param collection: collection name
-    :param journal: dictionary with journal information (scielo_issn, main_title, subject_area_capes, subject_area_wos)
+    :param source: dictionary with source information (scielo_issn, main_title, subject_area_capes, subject_area_wos)
     :param pid_v2: PID v2
     :param pid_v3: PID v3
     :param pid_generic: generic PID
@@ -107,10 +107,10 @@ def compute_r5_metrics(
     :raises TypeError: if the click_timestamps parameter is not a dictionary
     :raises KeyError: if the key is not found in the data dictionary
     """
-    if not isinstance(journal, dict):
-        raise TypeError("The 'journal' parameter must be a dictionary.")
+    if not isinstance(source, dict):
+        raise TypeError("The 'source' parameter must be a dictionary.")
     
-    if not all([key, collection, journal.get('scielo_issn'), media_language, country_code, date_str, click_timestamps, content_type]):
+    if not all([key, collection, source.get('scielo_issn'), media_language, country_code, date_str, click_timestamps, content_type]):
         raise ValueError("All parameters must be provided.")
 
     if not (pid_v2 or pid_v3 or pid_generic):
@@ -121,7 +121,7 @@ def compute_r5_metrics(
     if key not in data:
         data[key] = {
             'collection': collection,
-            'journal': journal,
+            'source': source,
             'pid': pid,
             'pid_v2': pid_v2,
             'pid_v3': pid_v3,

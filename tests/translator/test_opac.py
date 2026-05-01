@@ -111,8 +111,13 @@ class TestTranslatorOPAC(unittest.TestCase):
         url = '/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/abstract/?lang=en'
         
         expected = {
+            'journal_acronym': 'neco',
+            'journal_main_title': 'Nova Economia',
+            'journal_publisher_name': 'Universidade Federal de Minas Gerais',
+            'journal_subject_area_capes': ['Economics'],
+            'journal_subject_area_wos': ['ECONOMICS'],
+            'year_of_publication': '2021',
             'scielo_issn': '0103-6351',
-            'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
             'media_format': 'html',
             'media_language': 'en',
@@ -127,8 +132,13 @@ class TestTranslatorOPAC(unittest.TestCase):
         url = '/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/'
         
         expected = {
+            'journal_acronym': 'neco',
+            'journal_main_title': 'Nova Economia',
+            'journal_publisher_name': 'Universidade Federal de Minas Gerais',
+            'journal_subject_area_capes': ['Economics'],
+            'journal_subject_area_wos': ['ECONOMICS'],
+            'year_of_publication': '2021',
             'scielo_issn': '0103-6351',
-            'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
             'media_format': MEDIA_FORMAT_HTML,
             'media_language': 'pt',
@@ -143,8 +153,13 @@ class TestTranslatorOPAC(unittest.TestCase):
         url = '/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/?lang=pt'
         
         expected = {
+            'journal_acronym': 'neco',
+            'journal_main_title': 'Nova Economia',
+            'journal_publisher_name': 'Universidade Federal de Minas Gerais',
+            'journal_subject_area_capes': ['Economics'],
+            'journal_subject_area_wos': ['ECONOMICS'],
+            'year_of_publication': '2021',
             'scielo_issn': '0103-6351',
-            'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
             'media_format': MEDIA_FORMAT_HTML,
             'media_language': 'pt',
@@ -159,8 +174,13 @@ class TestTranslatorOPAC(unittest.TestCase):
         url = '/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/?format=pdf'
         
         expected = {
+            'journal_acronym': 'neco',
+            'journal_main_title': 'Nova Economia',
+            'journal_publisher_name': 'Universidade Federal de Minas Gerais',
+            'journal_subject_area_capes': ['Economics'],
+            'journal_subject_area_wos': ['ECONOMICS'],
+            'year_of_publication': '2021',
             'scielo_issn': '0103-6351',
-            'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
             'media_format': MEDIA_FORMAT_PDF,
             'media_language': 'pt',
@@ -175,8 +195,13 @@ class TestTranslatorOPAC(unittest.TestCase):
         url = '/j/rbz/a/cKnLLBn5NnshCX93Y6qYpHv/?format=xml'
         
         expected = {
+            'journal_acronym': 'rbz',
+            'journal_main_title': 'Revista Brasileira de Zootecnia',
+            'journal_publisher_name': 'Sociedade Brasileira de Zootecnia',
+            'journal_subject_area_capes': ['Agricultural Sciences'],
+            'journal_subject_area_wos': ['AGRICULTURE, DAIRY & ANIMAL SCIENCE'],
+            'year_of_publication': '2020',
             'scielo_issn': '1516-3598',
-            'pid_v2': None,
             'pid_v3': 'cKnLLBn5NnshCX93Y6qYpHv',
             'media_format': MEDIA_FORMAT_XML,
             'media_language': 'en',
@@ -191,8 +216,13 @@ class TestTranslatorOPAC(unittest.TestCase):
         url = '/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/abstract/'
         
         expected = {
+            'journal_acronym': 'neco',
+            'journal_main_title': 'Nova Economia',
+            'journal_publisher_name': 'Universidade Federal de Minas Gerais',
+            'journal_subject_area_capes': ['Economics'],
+            'journal_subject_area_wos': ['ECONOMICS'],
+            'year_of_publication': '2021',
             'scielo_issn': '0103-6351',
-            'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
             'media_format': MEDIA_FORMAT_HTML,
             'media_language': 'pt',
@@ -208,8 +238,13 @@ class TestTranslatorOPAC(unittest.TestCase):
         url = '/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/'
         
         expected = {
+            'journal_acronym': 'neco',
+            'journal_main_title': 'Nova Economia',
+            'journal_publisher_name': 'Universidade Federal de Minas Gerais',
+            'journal_subject_area_capes': ['Economics'],
+            'journal_subject_area_wos': ['ECONOMICS'],
+            'year_of_publication': '2021',
             'scielo_issn': '0103-6351',
-            'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
             'media_format': MEDIA_FORMAT_HTML,
             'media_language': 'pt',
@@ -225,8 +260,13 @@ class TestTranslatorOPAC(unittest.TestCase):
         url = '/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/?format=pdf'
         
         expected = {
+            'journal_acronym': 'neco',
+            'journal_main_title': 'Nova Economia',
+            'journal_publisher_name': 'Universidade Federal de Minas Gerais',
+            'journal_subject_area_capes': ['Economics'],
+            'journal_subject_area_wos': ['ECONOMICS'],
+            'year_of_publication': '2021',
             'scielo_issn': '0103-6351',
-            'pid_v2': None,
             'pid_v3': 'dqLRqnpmnncSmnzMCB8bzPG',
             'media_format': MEDIA_FORMAT_PDF,
             'media_language': 'pt',
@@ -242,8 +282,13 @@ class TestTranslatorOPAC(unittest.TestCase):
         url = '/j/rbz/a/cKnLLBn5NnshCX93Y6qYpHv/?format=xml'
         
         expected = {
+            'journal_acronym': 'rbz',
+            'journal_main_title': 'Revista Brasileira de Zootecnia',
+            'journal_publisher_name': 'Sociedade Brasileira de Zootecnia',
+            'journal_subject_area_capes': ['Agricultural Sciences'],
+            'journal_subject_area_wos': ['AGRICULTURE, DAIRY & ANIMAL SCIENCE'],
+            'year_of_publication': '2020',
             'scielo_issn': '1516-3598',
-            'pid_v2': None,
             'pid_v3': 'cKnLLBn5NnshCX93Y6qYpHv',
             'media_format': 'xml',
             'media_language': 'en',
@@ -265,8 +310,14 @@ class TestTranslatorOPAC(unittest.TestCase):
         for url in urls:
             with self.subTest(url=url):
                 expected = {
+                    'journal_acronym': 'neco',
+                    'journal_main_title': 'Nova Economia',
+                    'journal_publisher_name': 'Universidade Federal de Minas Gerais',
+                    'journal_subject_area_capes': ['Economics'],
+                    'journal_subject_area_wos': ['ECONOMICS'],
+                    'year_of_publication': '2017',
                     'scielo_issn': '0103-6351',
-                    'pid_v2': None,
+
                     'pid_v3': '5ySvRy7VFTxsKLt35Mwsm9g',
                     'media_format': MEDIA_FORMAT_HTML,
                     'media_language': 'en',
@@ -280,8 +331,9 @@ class TestTranslatorOPAC(unittest.TestCase):
         url = '/article/ssm/content/raw/?resource_ssm_path=/documentstore/1806-9460/YdZ7HCqnBkgxhJRPCmKrxkz/b7e997318152c89988a6aad8b0c541d510f468f6.pdf'
         
         expected = {
+            'journal_acronym': 'smj',
+            'journal_main_title': 'Revista de Economia e Sociologia Rural',
             'scielo_issn': '1806-9460',
-            'pid_v2': None,
             'pid_v3': 'YdZ7HCqnBkgxhJRPCmKrxkz',
             'media_format': MEDIA_FORMAT_PDF,
             'media_language': 'pt',

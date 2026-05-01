@@ -219,9 +219,6 @@ class TestTranslatorDataverse(unittest.TestCase):
                 obtained = self.tm.translate(url)
                 expected = {
                     'scielo_issn': DEFAULT_SCIELO_ISSN,
-                    'pid_v2': None,
-                    'pid_v3': None,
-                    'file_id': None,
                     'pid_generic': identifier,
                     'content_type': CONTENT_TYPE_ABSTRACT,
                     'media_format': media_format,
@@ -231,24 +228,41 @@ class TestTranslatorDataverse(unittest.TestCase):
                 self.assertIsInstance(self.tm.translator, URLTranslatorDataverseSite)
 
     def test_translate_dataverse_site_media_format_is_dataverse(self):
-        for url, file_id, identifier in [
-            ('/api/access/datafile/12530;jsessionid=10f3dcfc6fc3781167757d5156bc?imageThumb=true&pfdrid_c=true', '12530', 'DOI:10.48331/SCIELODATA.C5OLYQ'),
-            ('/file.xhtml?persistentId=doi:10.48331/scielodata.SYBBUJ/WYQQ54', None, 'DOI:10.48331/SCIELODATA.SYBBUJ'),
-        ]:
-            with self.subTest(url=url):
-                obtained = self.tm.translate(url)
-                expected = {
-                    'scielo_issn': DEFAULT_SCIELO_ISSN,
-                    'pid_v2': None,
-                    'pid_v3': None,
-                    'file_id': file_id,
-                    'pid_generic': identifier,
-                    'content_type': CONTENT_TYPE_FULL_TEXT,
-                    'media_format': MEDIA_FORMAT_DATAVERSE,
-                    'media_language': MEDIA_LANGUAGE_UNDEFINED,
-                }
-                self.assertDictEqual(obtained, expected)
-                self.assertIsInstance(self.tm.translator, URLTranslatorDataverseSite)
+        url_api_access_datafile = {
+            'url': '/api/access/datafile/12530;jsessionid=10f3dcfc6fc3781167757d5156bc?imageThumb=true&pfdrid_c=true',
+            'file_id': '12530',
+            'identifier': 'DOI:10.48331/SCIELODATA.C5OLYQ',
+            'yop': '2023',
+        }
+        expected = {
+            'file_id': url_api_access_datafile['file_id'],
+            'scielo_issn': DEFAULT_SCIELO_ISSN,
+            'pid_generic': url_api_access_datafile['identifier'],
+            'content_type': CONTENT_TYPE_FULL_TEXT,
+            'media_format': MEDIA_FORMAT_DATAVERSE,
+            'media_language': MEDIA_LANGUAGE_UNDEFINED,
+            'year_of_publication': url_api_access_datafile['yop'],
+        }
+        obtained = self.tm.translate(url_api_access_datafile['url'])
+        self.assertDictEqual(obtained, expected)
+        self.assertIsInstance(self.tm.translator, URLTranslatorDataverseSite)
+
+        url_file_xhtml = {
+            'url': '/file.xhtml?persistentId=doi:10.48331/scielodata.SYBBUJ/WYQQ54',
+            'file_id': None,
+            'identifier': 'DOI:10.48331/SCIELODATA.SYBBUJ',
+            'yop': None,
+        }
+        expected = {
+            'scielo_issn': DEFAULT_SCIELO_ISSN,
+            'pid_generic': url_file_xhtml['identifier'],
+            'content_type': CONTENT_TYPE_FULL_TEXT,
+            'media_format': MEDIA_FORMAT_DATAVERSE,
+            'media_language': MEDIA_LANGUAGE_UNDEFINED,
+        }
+        obtained = self.tm.translate(url_file_xhtml['url'])
+        self.assertDictEqual(obtained, expected)
+        self.assertIsInstance(self.tm.translator, URLTranslatorDataverseSite)
 
     def test_translate_dataverse_site_identifier_is_not_doi(self):
         for url, identifier in [
@@ -258,33 +272,46 @@ class TestTranslatorDataverse(unittest.TestCase):
                 obtained = self.tm.translate(url)
                 expected = {
                     'scielo_issn': DEFAULT_SCIELO_ISSN,
-                    'pid_v2': None,
-                    'pid_v3': None,
                     'file_id': '12530',
                     'pid_generic': identifier,
                     'content_type': CONTENT_TYPE_FULL_TEXT,
                     'media_format': MEDIA_FORMAT_DATAVERSE,
                     'media_language': MEDIA_LANGUAGE_UNDEFINED,
+                    'year_of_publication': '2023',
                 }
                 self.assertDictEqual(obtained, expected)
                 self.assertIsInstance(self.tm.translator, URLTranslatorDataverseSite)
 
     def test_translate_dataverse_site_content_type_is_full_text(self):
-        for url, file_id, identifier in [
-            ('/api/access/datafile/12530;jsessionid=10f3dcfc6fc3781167757d5156bc?imageThumb=true&pfdrid_c=true', '12530', 'DOI:10.48331/SCIELODATA.C5OLYQ'),
-            ('/file.xhtml?persistentId=doi:10.48331/scielodata.SYBBUJ/WYQQ54', None, 'DOI:10.48331/SCIELODATA.SYBBUJ'),
-        ]:
-            with self.subTest(url=url):
-                obtained = self.tm.translate(url)
-                expected = {
-                    'scielo_issn': DEFAULT_SCIELO_ISSN,
-                    'pid_v2': None,
-                    'pid_v3': None,
-                    'file_id': file_id,
-                    'pid_generic': identifier,
-                    'content_type': CONTENT_TYPE_FULL_TEXT,
-                    'media_format': MEDIA_FORMAT_DATAVERSE,
-                    'media_language': MEDIA_LANGUAGE_UNDEFINED,
-                }
-                self.assertDictEqual(obtained, expected)
-                self.assertIsInstance(self.tm.translator, URLTranslatorDataverseSite)
+        url_api_access_datafile_fulltext = {
+            'url': '/api/access/datafile/12530;jsessionid=10f3dcfc6fc3781167757d5156bc?imageThumb=true&pfdrid_c=true',
+            'file_id': '12530',
+            'pid_generic': 'DOI:10.48331/SCIELODATA.C5OLYQ',
+        }
+        expected = {
+            'scielo_issn': DEFAULT_SCIELO_ISSN,
+            'file_id': url_api_access_datafile_fulltext['file_id'],
+            'pid_generic': url_api_access_datafile_fulltext['pid_generic'],
+            'content_type': CONTENT_TYPE_FULL_TEXT,
+            'media_format': MEDIA_FORMAT_DATAVERSE,
+            'media_language': MEDIA_LANGUAGE_UNDEFINED,
+            'year_of_publication': '2023',
+        }
+        obtained = self.tm.translate(url_api_access_datafile_fulltext['url'])
+        self.assertDictEqual(obtained, expected)
+        self.assertIsInstance(self.tm.translator, URLTranslatorDataverseSite)
+
+        url_file_xhtml_fulltext = {
+            'url': '/file.xhtml?persistentId=doi:10.48331/scielodata.SYBBUJ/WYQQ54',
+            'pid_generic': 'DOI:10.48331/SCIELODATA.SYBBUJ',
+        }
+        expected = {
+            'scielo_issn': DEFAULT_SCIELO_ISSN,
+            'pid_generic': url_file_xhtml_fulltext['pid_generic'],
+            'content_type': CONTENT_TYPE_FULL_TEXT,
+            'media_format': MEDIA_FORMAT_DATAVERSE,
+            'media_language': MEDIA_LANGUAGE_UNDEFINED,
+        }
+        obtained = self.tm.translate(url_file_xhtml_fulltext['url'])
+        self.assertDictEqual(obtained, expected)
+        self.assertIsInstance(self.tm.translator, URLTranslatorDataverseSite)

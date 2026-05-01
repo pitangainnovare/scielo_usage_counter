@@ -98,8 +98,9 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 self.assertDictEqual(
                     result,
                     {
+                        'journal_acronym': 'resp',
+                        'journal_main_title': 'Revista Española de Salud Pública',
                         'scielo_issn': '2173-9110',
-                        'pid_v2': None,
                         'pid_v3': 'resp:2009:v83n1:109-121',
                         'media_format': MEDIA_FORMAT_HTML,
                         'media_language': 'es',
@@ -118,8 +119,9 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 self.assertDictEqual(
                     result,
                     {
+                        'journal_acronym': 'resp',
+                        'journal_main_title': 'Revista Española de Salud Pública',
                         'scielo_issn': '2173-9110',
-                        'pid_v2': None,
                         'pid_v3': 'resp:2001:v75n5:459-466',
                         'media_format': MEDIA_FORMAT_PDF,
                         'media_language': 'es',
@@ -141,8 +143,9 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
                 self.assertDictEqual(
                     result,
                     {
+                        'journal_acronym': 'gs',
+                        'journal_main_title': 'Gaceta Sanitaria',
                         'scielo_issn': '0213-9111',
-                        'pid_v2': None,
                         'pid_v3': 'gs:2010:v24n3:233-240',
                         'media_format': MEDIA_FORMAT_HTML,
                         'media_language': 'es',
@@ -157,8 +160,9 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
         self.assertDictEqual(
             result,
             {
+                'journal_main_title': 'Revista Española de Salud Pública',
+                'journal_acronym': 'resp',
                 'scielo_issn': '2173-9110',
-                'pid_v2': None,
                 'pid_v3': 'resp:2024:v98:e202409053',
                 'media_format': MEDIA_FORMAT_HTML,
                 'media_language': 'es',
@@ -173,8 +177,9 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
         self.assertDictEqual(
             result,
             {
+                'journal_acronym': 'resp',
+                'journal_main_title': 'Revista Española de Salud Pública',
                 'scielo_issn': '2173-9110',
-                'pid_v2': None,
                 'pid_v3': 'resp:2024:v98:e202409053',
                 'media_format': MEDIA_FORMAT_PDF,
                 'media_language': 'es',
@@ -188,8 +193,9 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
         self.assertDictEqual(
             result,
             {
+                'journal_acronym': 'gs',
+                'journal_main_title': 'Gaceta Sanitaria',
                 'scielo_issn': '0213-9111',
-                'pid_v2': None,
                 'pid_v3': 'gs:2010:v24n3:233-240',
                 'media_format': MEDIA_FORMAT_HTML,
                 'media_language': 'es',
@@ -204,8 +210,9 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
         self.assertDictEqual(
             result,
             {
+                'journal_acronym': 'csc',
+                'journal_main_title': 'Ciência & Saúde Coletiva',
                 'scielo_issn': '0103-9733',
-                'pid_v2': None,
                 'pid_v3': 'csc:2025:v30n2:e05402023',
                 'media_format': MEDIA_FORMAT_HTML,
                 'media_language': 'pt',
@@ -220,8 +227,9 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
         self.assertDictEqual(
             result,
             {
+                'journal_acronym': 'resp',
+                'journal_main_title': 'Revista Española de Salud Pública',
                 'scielo_issn': '2173-9110',
-                'pid_v2': None,
                 'pid_v3': 'resp:2005:v79n5:591-597',
                 'media_format': MEDIA_FORMAT_PDF,
                 'media_language': 'es',
@@ -232,7 +240,7 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
     def test_translate_opac_alpha_url_pdf_journal_acronym_vol_issue_file_path(self):
         # This URLs is very similar to the classic URL format
         # In this case, we have to use the OPACAlphaSite translator
-        self.tm.translator = URLTranslatorOPACAlphaSite(self.tm.journals_metadata, self.tm.articles_metadata)
+        self.tm.translator = URLTranslatorOPACAlphaSite(self.tm.sources_metadata, self.tm.documents_metadata)
         self.tm.is_translator_forced = True
 
         url = '/pdf/resp/v83n1/109-121/resp_83_01_0109.pdf'
@@ -242,8 +250,9 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
         self.assertDictEqual(
             result,
             {
+                'journal_acronym': 'resp',
+                'journal_main_title': 'Revista Española de Salud Pública',
                 'scielo_issn': '2173-9110',
-                'pid_v2': None,
                 'pid_v3': 'resp:2005:v83n1:109-121',
                 'media_format': MEDIA_FORMAT_PDF,
                 'media_language': 'es',
@@ -255,14 +264,15 @@ class TestTranslatorOPACAlpha(unittest.TestCase):
         url = '/article/ssm/content/raw/?resource_ssm_path=/media/assets/resp/v92/1135-5727-resp-92-e201806033.pdf'
 
         # This URL is very similar to the OPAC URL format, so, we have to force the OPACAlphaSite translator
-        self.tm.translator = URLTranslatorOPACAlphaSite(self.tm.journals_metadata, self.tm.articles_metadata)
+        self.tm.translator = URLTranslatorOPACAlphaSite(self.tm.sources_metadata, self.tm.documents_metadata)
         self.tm.is_translator_forced = True
         result = self.tm.translate(url)
         self.assertDictEqual(
             result,
             {
+                'journal_acronym': 'resp',
+                'journal_main_title': 'Revista Española de Salud Pública',
                 'scielo_issn': '2173-9110',
-                'pid_v2': None,
                 'pid_v3': 'resp:v92:e201806033',
                 'media_format': MEDIA_FORMAT_PDF,
                 'media_language': 'es',

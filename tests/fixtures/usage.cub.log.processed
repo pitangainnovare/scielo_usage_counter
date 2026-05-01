@@ -1,3 +1,3 @@
 local_datetime	client_name	client_version	ip_address	country_code	url
-2024-02-14 11:34:06	CM	121.0.0.0	181.42.0.1	CL	/scielo.php?script=sci_arttext&pid=S0864-21252003000200011
-2024-02-14 11:34:05	CH	121.0.0.0	85.192.0.1	RU	/google_metrics/get_h5_m5.php?issn=0034-7531&callback=jsonp1707910443945
+2024-02-14 11:34:06	Chrome Mobile	121.0.0.0	181.42.0.1	CL	/scielo.php?script=sci_arttext&pid=S0864-21252003000200011
+2024-02-14 11:34:05	Chrome	121.0.0.0	85.192.0.1	RU	/google_metrics/get_h5_m5.php?issn=0034-7531&callback=jsonp1707910443945

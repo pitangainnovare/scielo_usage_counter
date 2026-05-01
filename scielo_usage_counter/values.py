@@ -27,6 +27,21 @@ PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN_WITH_IP_LIST = (
     r'(?P<domain>.*?)\s' + PATTERN_COMMON_LOG_FORMAT_WITH_IP_LIST + r'\s+"(?P<referrer>.*?)"\s+"(?P<user_agent>.*?)"'
 )
 
+PATTERN_BUNNYCDN_LOG_FORMAT = (
+    r'^(?P<cache>HIT|MISS|BYPASS|EXPIRED|STALE)\|'
+    r'(?P<status>\d{3})\|'
+    r'(?P<unix_ts>\d{10})\|'
+    r'(?P<length>\d+)\|'
+    r'(?P<zone>\d+)\|'
+    r'(?P<ip>[a-fA-F0-9:.]+)\|'
+    r'(?P<referrer>[^|]*)\|'
+    r'(?P<path>[^|]+)\|'
+    r'(?P<country>[A-Z]{2})\|'
+    r'(?P<user_agent>[^|]+)\|'
+    r'(?P<request_id>[a-f0-9]{32})\|'
+    r'(?P<iq>[A-Z]{2})$'
+)
+
 # https://github.com/matomo-org/matomo-log-analytics/blob/4.x-dev/import_logs.py
 EXTENSIONS_STATIC = set([
     'gif',
@@ -46,8 +61,7 @@ EXTENSIONS_STATIC = set([
     'swf',
     'css',
     'js',
-    'xml',
-    'webp'
+    'webp',
 ])
 
 # https://github.com/matomo-org/matomo-log-analytics/blob/4.x-dev/import_logs.py
@@ -107,7 +121,6 @@ EXTENSIONS_DOWNLOAD = set([
     'tar',
     'tbz',
     'bz2',
-    'tbz',
     'tgz',
     'torrent',
     'txt',
@@ -139,6 +152,8 @@ MEDIA_LANGUAGE_UNDEFINED = 'un'
 # Media formats
 MEDIA_FORMAT_HTML = 'html'
 MEDIA_FORMAT_PDF = 'pdf'
+MEDIA_FORMAT_EPUB = 'epub'
+MEDIA_FORMAT_SWF = 'swf'
 MEDIA_FORMAT_XML = 'xml'
 MEDIA_FORMAT_DATAVERSE = 'dat'
 MEDIA_FORMAT_UNDEFINED = 'und'
@@ -158,3 +173,6 @@ DEFAULT_REQUEST_TYPES = [
     CONTENT_TYPE_FULL_TEXT, 
     CONTENT_TYPE_DATA,
 ]
+
+LOG_FILE_PROCESSED = 1
+LOG_FILE_INVALIDATED = -1

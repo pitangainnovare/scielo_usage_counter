@@ -22,9 +22,9 @@ REGEX_OPAC_SITE_CITATION_EXPORT = re.compile(r'.*/?citation/export/(?P<pid_v3>\w
 
 
 class URLTranslatorOPACSite:
-    def __init__(self, journals_metadata, articles_metadata):
-        self.journals_metadata = journals_metadata
-        self.articles_metadata = articles_metadata
+    def __init__(self, sources_metadata, documents_metadata):
+        self.sources_metadata = sources_metadata
+        self.documents_metadata = documents_metadata
 
     def pipeline_translate(self, url):
         self.url_params = self.extract_url_params(url)
@@ -38,17 +38,17 @@ class URLTranslatorOPACSite:
 
         return {
             'scielo_issn': scielo_issn,
-            'journal_main_title': self.journals_metadata.get('issn_to_title', {}).get(scielo_issn),
-            'journal_subject_area_capes': self.journals_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
-            'journal_subject_area_wos': self.journals_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
-            'journal_publisher_name': self.journals_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
-            'journal_acronym': self.journals_metadata.get('issn_to_acronym', {}).get(scielo_issn),
-            'pid_v2': self.articles_metadata.get('pid_v3_to_pid_v2', {}).get(pid_v3),
+            'journal_main_title': self.sources_metadata.get('issn_to_title', {}).get(scielo_issn),
+            'journal_subject_area_capes': self.sources_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
+            'journal_subject_area_wos': self.sources_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
+            'journal_publisher_name': self.sources_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
+            'journal_acronym': self.sources_metadata.get('issn_to_acronym', {}).get(scielo_issn),
+            'pid_v2': self.documents_metadata.get('pid_v3_to_pid_v2', {}).get(pid_v3),
             'pid_v3': pid_v3,
             'media_format': media_format,
             'media_language': media_language,
             'content_type': content_type,
-            'year_of_publication': self.articles_metadata.get('pid_v3_to_publication_year', {}).get(pid_v3),
+            'year_of_publication': self.documents_metadata.get('pid_v3_to_publication_year', {}).get(pid_v3),
         }
 
     def extract_url_params(self, url):
@@ -111,7 +111,7 @@ class URLTranslatorOPACSite:
     def extract_media_language(self, pid_v3):
         media_language = self.url_params.get('media_language')
         if not media_language:
-            media_language = self.articles_metadata['pid_v3_to_default_lang'].get(pid_v3, MEDIA_LANGUAGE_UNDEFINED)
+            media_language = self.documents_metadata['pid_v3_to_default_lang'].get(pid_v3, MEDIA_LANGUAGE_UNDEFINED)
         return media_language
 
     def extract_pid_v3(self):
@@ -119,8 +119,8 @@ class URLTranslatorOPACSite:
     
     def extract_issn(self):
         if not self.url_params.get('journal_acronym'):
-            return self.articles_metadata['pid_v3_to_scielo_issn'].get(self.url_params.get('pid_v3'))
-        return self.journals_metadata['acronym_to_scielo_issn'].get(self.url_params.get('journal_acronym'))
+            return self.documents_metadata['pid_v3_to_scielo_issn'].get(self.url_params.get('pid_v3'))
+        return self.sources_metadata['acronym_to_scielo_issn'].get(self.url_params.get('journal_acronym'))
     
     def extract_content_type(self, url):
         if not hasattr(self, 'media_format'):

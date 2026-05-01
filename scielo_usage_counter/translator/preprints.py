@@ -24,9 +24,9 @@ REGEX_PREPRINTS_SITE_VERSION_DOWNLOAD_PDF = re.compile(r'preprint/download/(?P<i
 
 
 class URLTranslatorPreprintsSite:
-    def __init__(self, journals_metadata, articles_metadata):
-        self.journals_metadata = journals_metadata
-        self.articles_metadata = articles_metadata
+    def __init__(self, sources_metadata, documents_metadata):
+        self.sources_metadata = sources_metadata
+        self.documents_metadata = documents_metadata
 
     def pipeline_translate(self, url):
         parsed_url = urlparse(url)
@@ -40,11 +40,11 @@ class URLTranslatorPreprintsSite:
 
         return {
             'scielo_issn': scielo_issn,
-            'journal_main_title': self.journals_metadata.get('issn_to_title', {}).get(scielo_issn),
-            'journal_subject_area_capes': self.journals_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
-            'journal_subject_area_wos': self.journals_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
-            'journal_publisher_name': self.journals_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
-            'journal_acronym': self.journals_metadata.get('issn_to_acronym', {}).get(scielo_issn),
+            'journal_main_title': self.sources_metadata.get('issn_to_title', {}).get(scielo_issn),
+            'journal_subject_area_capes': self.sources_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
+            'journal_subject_area_wos': self.sources_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
+            'journal_publisher_name': self.sources_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
+            'journal_acronym': self.sources_metadata.get('issn_to_acronym', {}).get(scielo_issn),
             'pid_generic': preprint_id,
             'pid_v2': None,
             'pid_v3': None,
@@ -79,10 +79,9 @@ class URLTranslatorPreprintsSite:
         return MEDIA_FORMAT_UNDEFINED
 
     def extract_media_language(self, pid_v2):
-        return self.articles_metadata['pid_v2_to_default_lang'].get(pid_v2)
+        return self.documents_metadata.get('pid_v2_to_default_lang', {}).get(pid_v2)
 
     def extract_issn(self, preprint_id):
-        # TODO: Implement ISSN extraction logic using external data sources
         return DEFAULT_SCIELO_ISSN
 
     def extract_preprint_id(self, url):

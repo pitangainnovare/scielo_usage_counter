@@ -26,9 +26,9 @@ REGEX_DATAVERSE_PID_GENERIC_ONLY = re.compile(r"(?P<pid_generic>doi:\d+\.\d+/\w+
 
 
 class URLTranslatorDataverseSite:
-    def __init__(self, journals_metadata, articles_metadata):
-        self.journals_metadata = journals_metadata
-        self.articles_metadata = articles_metadata
+    def __init__(self, sources_metadata, documents_metadata):
+        self.sources_metadata = sources_metadata
+        self.documents_metadata = documents_metadata
 
     def pipeline_translate(self, url):
         self.url_params = self.extract_url_params(url)
@@ -41,11 +41,11 @@ class URLTranslatorDataverseSite:
 
         return {
             'scielo_issn': scielo_issn,
-            'journal_main_title': self.journals_metadata.get('issn_to_title', {}).get(scielo_issn),
-            'journal_subject_area_capes': self.journals_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
-            'journal_subject_area_wos': self.journals_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
-            'journal_publisher_name': self.journals_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
-            'journal_acronym': self.journals_metadata.get('issn_to_acronym', {}).get(scielo_issn),
+            'journal_main_title': self.sources_metadata.get('issn_to_title', {}).get(scielo_issn),
+            'journal_subject_area_capes': self.sources_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
+            'journal_subject_area_wos': self.sources_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
+            'journal_publisher_name': self.sources_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
+            'journal_acronym': self.sources_metadata.get('issn_to_acronym', {}).get(scielo_issn),
             'pid_v2': None,
             'pid_v3': None,
             'pid_generic': pid_generic,
@@ -53,7 +53,7 @@ class URLTranslatorDataverseSite:
             'content_type': content_type,
             'media_format': media_format,
             'media_language': MEDIA_LANGUAGE_UNDEFINED,
-            'year_of_publication': self.articles_metadata.get('pid_generic_to_publication_date', {}).get(pid_generic),
+            'year_of_publication': self.documents_metadata.get('pid_generic_to_publication_date', {}).get(pid_generic),
         }
 
     def extract_media_format(self, url):
@@ -112,7 +112,7 @@ class URLTranslatorDataverseSite:
         match = re.search(REGEX_DATAVERSE_SITE_API_ACCESS_DATAFILE, url)
         if match:
             file_id = match.groupdict().get('id')
-            return self.articles_metadata['file_id_to_pid_generic'].get(file_id), file_id
+            return self.documents_metadata['file_id_to_pid_generic'].get(file_id), file_id
         
         return None, None
 

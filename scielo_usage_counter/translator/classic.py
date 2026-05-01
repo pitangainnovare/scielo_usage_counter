@@ -30,9 +30,9 @@ REGEX_CLASSIC_SITE_ARTICLE_XML = re.compile(r'.*articlexml', re.IGNORECASE)
 
 
 class URLTranslatorClassicSite:
-    def __init__(self, journals_metadata, articles_metadata):
-        self.journals_metadata = journals_metadata
-        self.articles_metadata = articles_metadata
+    def __init__(self, sources_metadata, documents_metadata):
+        self.sources_metadata = sources_metadata
+        self.documents_metadata = documents_metadata
 
     def pipeline_translate(self, url):
         self.url_params = self.extract_url_params(url)
@@ -46,17 +46,17 @@ class URLTranslatorClassicSite:
 
         return {
             'scielo_issn': scielo_issn,
-            'journal_main_title': self.journals_metadata.get('issn_to_title', {}).get(scielo_issn),
-            'journal_subject_area_capes': self.journals_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
-            'journal_subject_area_wos': self.journals_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
-            'journal_publisher_name': self.journals_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
-            'journal_acronym': self.journals_metadata.get('issn_to_acronym', {}).get(scielo_issn),
+            'journal_main_title': self.sources_metadata.get('issn_to_title', {}).get(scielo_issn),
+            'journal_subject_area_capes': self.sources_metadata.get('issn_to_subject_area_capes', {}).get(scielo_issn),
+            'journal_subject_area_wos': self.sources_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
+            'journal_publisher_name': self.sources_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
+            'journal_acronym': self.sources_metadata.get('issn_to_acronym', {}).get(scielo_issn),
             'pid_v2': pid_v2,
-            'pid_v3': self.articles_metadata.get('pid_v2_to_pid_v3', {}).get(pid_v2),
+            'pid_v3': self.documents_metadata.get('pid_v2_to_pid_v3', {}).get(pid_v2),
             'media_format': media_format,
             'media_language': media_language,
             'content_type': content_type,
-            'year_of_publication': self.articles_metadata.get('pid_v2_to_publication_year', {}).get(pid_v2),
+            'year_of_publication': self.documents_metadata.get('pid_v2_to_publication_year', {}).get(pid_v2),
         }
 
     def extract_url_params(self, url):
@@ -120,10 +120,10 @@ class URLTranslatorClassicSite:
 
     def extract_media_language(self, pid_v2):
         media_language = self.url_params.get('media_language')
-        default_media_language = self.articles_metadata['pid_v2_to_default_lang'].get(pid_v2, MEDIA_LANGUAGE_UNDEFINED)
+        default_media_language = self.documents_metadata['pid_v2_to_default_lang'].get(pid_v2, MEDIA_LANGUAGE_UNDEFINED)
         
         if media_language:
-            pid_v2_published_languages = self.articles_metadata['pid_v2_to_available_langs'].get(pid_v2, [])
+            pid_v2_published_languages = self.documents_metadata['pid_v2_to_available_langs'].get(pid_v2, [])
             if media_language in pid_v2_published_languages:
                 return media_language
         
@@ -166,10 +166,10 @@ class URLTranslatorClassicSite:
         if not pdf_path.endswith('.pdf'):
             pdf_path += '.pdf'
 
-        return self.articles_metadata['pdf_to_pid_v2'].get(pdf_path)
+        return self.documents_metadata['pdf_to_pid_v2'].get(pdf_path)
     
     def extract_issn(self, pid_v2):
-        scielo_issn = self.articles_metadata['pid_v2_to_scielo_issn'].get(pid_v2)
+        scielo_issn = self.documents_metadata['pid_v2_to_scielo_issn'].get(pid_v2)
 
         if not scielo_issn:
             if pid_v2 and pid_v2.startswith('S') and len(pid_v2) == 23 and '-' in pid_v2:

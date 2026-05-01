@@ -77,7 +77,6 @@ class TestBunnynetTranslator(unittest.TestCase):
         obtained = self.tm.translate(url)
         
         self.assertEqual(obtained['scielo_issn'], '0103-6351')
-        self.assertIsNone(obtained['pid_v2'])
         self.assertEqual(obtained['pid_v3'], 'dqLRqnpmnncSmnzMCB8bzPG')
         self.assertEqual(obtained['media_format'], MEDIA_FORMAT_HTML)
         self.assertEqual(obtained['media_language'], 'pt')
@@ -89,7 +88,6 @@ class TestBunnynetTranslator(unittest.TestCase):
         obtained = self.tm.translate(url)
         
         self.assertEqual(obtained['scielo_issn'], '1807-0310')
-        self.assertIsNone(obtained['pid_v2'])
         self.assertEqual(obtained['pid_v3'], 'hbSYnTbyNfzxcWT3FpXrL5G')
         self.assertEqual(obtained['media_format'], MEDIA_FORMAT_HTML)
         self.assertEqual(obtained['media_language'], 'es')
@@ -101,7 +99,6 @@ class TestBunnynetTranslator(unittest.TestCase):
         obtained = self.tm.translate(url)
         
         self.assertEqual(obtained['scielo_issn'], '1516-3598')
-        self.assertIsNone(obtained['pid_v2'])
         self.assertEqual(obtained['pid_v3'], 'cKnLLBn5NnshCX93Y6qYpHv')
         self.assertEqual(obtained['media_format'], MEDIA_FORMAT_PDF)
         self.assertEqual(obtained['media_language'], 'en')

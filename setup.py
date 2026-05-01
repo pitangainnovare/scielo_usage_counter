@@ -6,15 +6,16 @@ install_requirements=[
     'requests',
     'reverse_geocoder',
     'scielo_log_validator',
+    'scielo_scholarly_data',
     'wget',
 ]
 
 setup(
     name='scielo-usage-counter',
-    version='1.5.1',
+    version='2.0.0',
     description='The SciELO Usage Counter Tool',
-    author='SciELO',
-    author_email='scielo-dev@googlegroups.com',
+    author='Rafael JP Damaceno',
+    author_email='rafael@pitangainnovare.com.br',
     license='BSD',
     install_requires=install_requirements,
     url='https://github.com/scieloorg/scielo_usage_counter',

@@ -1,6 +1,7 @@
 data/
 .venv/
 .vscode/
+.idea/
 build
 dist
 *.egg-info

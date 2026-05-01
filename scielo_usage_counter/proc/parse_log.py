@@ -1,4 +1,4 @@
-#!/usr/env python
+#!/usr/bin/env python3
 import argparse
 import logging
 import os
@@ -28,7 +28,7 @@ def parse_file(logfile: str, output_directory: str, mmdb: str, robots: str, samp
     validation_results = {}
 
     if validate:
-        logging.info(f'Validação iniciada para arquivo {logfile}')
+        logging.info(f'Validation started for file {logfile}')
         validation_results = validator.pipeline_validate(
             path=logfile, 
             sample_size=sample_size
@@ -42,15 +42,15 @@ def parse_file(logfile: str, output_directory: str, mmdb: str, robots: str, samp
         lp.output = output_filepath
         lp.stats.output = output_filepath + '.summary'
 
-        logging.info(f'Processamento iniciado para arquivo {logfile} com saída em {output_filepath}')
+        logging.info(f'Processing started for file {logfile} with output at {output_filepath}')
         data = [d for d in lp.parse()]
         lp.save(data)
 
-        logging.info(f'Arquivo {logfile} foi processado em {lp.total_time} segundos. Há {len(data)} linhas.')
-        return values.LOGFILE_STATUS_LOADED
+        logging.info(f'File {logfile} processed in {lp.total_time} seconds. {len(data)} lines.')
+        return values.LOG_FILE_PROCESSED
     else:
-        logging.warning(f'Arquivo {logfile} foi invalidado')
-        return values.LOGFILE_STATUS_INVALIDATED
+        logging.warning(f'File {logfile} was invalidated')
+        return values.LOG_FILE_INVALIDATED
 
 
 def main():
@@ -60,27 +60,40 @@ def main():
         '-m',
         '--mmdb',
         required=True,
-        help='Arquivo de mapa de geolocalizações',
+        help='Geolocation map file',
     )
 
     parser.add_argument(
         '-r',
         '--robots',
         required=True,
-        help='Arquivo de robôs',
+        help='Robots file',
     )
 
     parser.add_argument(
         '-o',
         '--output_directory',
         default=OUTPUT_DIRECTORY,
-        help='Diretório de saída',
+        help='Output directory',
     )
 
     parser.add_argument(
         '-f',
         '--logfile',
-        help='Caminho de arquivo de log de acesso',
+        help='Access log file path',
+    )
+
+    parser.add_argument(
+        '--sample_size',
+        default=0.05,
+        help='Sample size for validation',
+    )
+
+    parser.add_argument(
+        '--validate',
+        default=False,
+        action='store_true',
+        help='Enable validation',
     )
 
     args = parser.parse_args()

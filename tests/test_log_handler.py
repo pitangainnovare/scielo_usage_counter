@@ -6,6 +6,19 @@ from device_detector import DeviceDetector
 from scielo_usage_counter import log_handler
 
 
+BOOKS_LOG_EXPECTED = [
+    {'url': '/id/xjcw9', 'country_code': 'BR', 'local_datetime': '2012-04-01 03:00:29'},
+    {'url': '/id/h8pyf/08', 'country_code': 'BR', 'local_datetime': '2012-04-01 03:30:27'},
+    {'url': '/id/3hs/pdf/sampaio-9788523206277.pdf', 'country_code': 'BR', 'local_datetime': '2012-04-01 03:00:00'},
+    {'url': '/id/hd5d8/epub/gelamo-9788598605951.epub', 'country_code': 'US', 'local_datetime': '2012-04-01 03:41:33'},
+    {'url': 'https://books.scielo.org/id/96spq', 'country_code': 'MI', 'local_datetime': '2025-09-14 23:59:27'},
+    {'url': 'https://books.scielo.org/id/3dqnm/10', 'country_code': 'DE', 'local_datetime': '2025-09-14 23:59:37'},
+    {'url': 'http://books.scielo.org/id/htnbt/pdf/caldeira-9788579830419-10.pdf', 'country_code': 'IL', 'local_datetime': '2025-09-14 23:59:41'},
+    {'url': 'https://books.scielo.org/id/wg88m/epub/ortigoza-9788579831287.epub', 'country_code': 'IL', 'local_datetime': '2025-09-14 23:58:48'},
+    {'url': 'https://books.scielo.org/id/p8kpd/Text/12.xhtml', 'country_code': 'DE', 'local_datetime': '2025-09-14 23:58:58'},
+]
+
+
 class TestLogParser(unittest.TestCase):
 
     @classmethod
@@ -41,6 +54,7 @@ class TestLogParser(unittest.TestCase):
             '/google_metrics/get_h5_m5.php?issn=1413-6538&callback=jsonp1530327621274',
             '/scielo.php?script=sci_serial&pid=1678-6971&lng=en&nrm=iso',
             '/cgi-bin/wxis.exe/iah/?IsisScript=iah/iah.xis&base=title&fmt=iso.pft&lang=p',
+            '/id/xstc2/swf/18.swf',
         ]
 
         for url in not_static_urls:
@@ -112,6 +126,7 @@ class TestLogParser(unittest.TestCase):
         invalid_paths = [
             '/img/revistas/rbp/v26n3/a13img02.gif',
             '/img/revistas/pab/v47n8/a19tab02.jpg',
+            '/id/rnvj3/cover/cover.jpeg',
         ]
 
         for vp in invalid_paths:
@@ -122,6 +137,7 @@ class TestLogParser(unittest.TestCase):
         valid_paths = [
             '/scielo.php?pid=S1981-77462017005002103&script=sci_arttext',
             '/pdf/rem/v63n4/a07v63n4.pdf',
+            '/id/xstc2/swf/18.swf',
         ]
 
         for vp in valid_paths:
@@ -131,7 +147,6 @@ class TestLogParser(unittest.TestCase):
     def test_has_valid_method_true(self):
         http_methods = [
             'GET',
-            'HEAD',
         ]
 
         for m in http_methods:
@@ -145,7 +160,8 @@ class TestLogParser(unittest.TestCase):
             'PATCH',
             'DELETE',
             'CONNECT',
-            'OPTIONS'
+            'OPTIONS',
+            'HEAD',
         ]
 
         for m in http_methods:
@@ -230,7 +246,7 @@ class TestLogParser(unittest.TestCase):
         lp.save(data)
 
         self.assertEqual(lp.stats.ignored_lines_bot, 3)
-        self.assertEqual(lp.stats.ignored_lines_invalid_method, 2)
+        self.assertEqual(lp.stats.ignored_lines_invalid_method, 3)
         self.assertEqual(lp.stats.ignored_lines_http_errors, 3)
         self.assertEqual(lp.stats.ignored_lines_http_redirects, 4)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
@@ -240,8 +256,8 @@ class TestLogParser(unittest.TestCase):
         self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
         self.assertEqual(lp.stats.ignored_lines_static_resources, 185)
         self.assertEqual(lp.stats.lines_parsed, 200)
-        self.assertEqual(lp.stats.total_imported_lines, 13)
-        self.assertEqual(lp.stats.total_ignored_lines, 187)
+        self.assertEqual(lp.stats.total_imported_lines, 12)
+        self.assertEqual(lp.stats.total_ignored_lines, 188)
 
     def test_parse_success_cub(self):
         lp = log_handler.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')
@@ -329,7 +345,7 @@ class TestLogParser(unittest.TestCase):
         obtained = self.lp.parse_line(line)
         self.assertListEqual(obtained, [
             '2024-02-12 03:23:09',
-            'CH',
+            'Chrome',
             '65.0.3432.118',
             '117.64.147.191',
             'CN',
@@ -341,7 +357,7 @@ class TestLogParser(unittest.TestCase):
         obtained = self.lp.parse_line(line)
         self.assertListEqual(obtained, [
             '2024-10-06 03:00:16',
-            'SF',
+            'Safari',
             '17.5',
             '45.65.189.47',
             'CR',
@@ -352,7 +368,7 @@ class TestLogParser(unittest.TestCase):
         line = '186.130.151.215 186.130.151.215 172.69.138.111 [10/Dec/2024:00:00:12 0300] "GET /scielo.php?pid=S0718-07642017000400014&script=sci_arttext HTTP/1.1" 304 166 "https://www.google.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"'
         expected = [
             '2024-12-09 21:00:12',
-            'CH',
+            'Chrome',
             '131.0.0.0',
             '186.130.151.215',
             'AR',
@@ -365,7 +381,7 @@ class TestLogParser(unittest.TestCase):
         line = '2806:108e:21:4720:552:4011:137c:a7fb 2806:108e:21:4720:552:4011:137c:a7fb 162.158.175.126 [10/Dec/2024:00:00:12 0300] "GET /scielo.php?pid=S0718-07642017000400014&script=sci_arttext HTTP/1.1" 200 20073 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"'
         expected = [
             '2024-12-09 21:00:12',
-            'CH',
+            'Chrome',
             '131.0.0.0',
             '2806:108e:21:4720:552:4011:137c:a7fb',
             'MX',
@@ -378,7 +394,7 @@ class TestLogParser(unittest.TestCase):
         line = '186.130.151.215 186.130.151.215 172.69.138.111 [10/Dec/2024:00:00:120300] "GET /scielo.php?pid=S0718-07642017000400014&script=sci_arttext HTTP/1.1" 304 166 "https://www.google.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"'
         expected = [
             '2024-12-09 21:00:12',
-            'CH',
+            'Chrome',
             '131.0.0.0',
             '186.130.151.215',
             'AR',
@@ -391,7 +407,7 @@ class TestLogParser(unittest.TestCase):
         line = '2806:108e:21:4720:552:4011:137c:a7fb 2806:108e:21:4720:552:4011:137c:a7fb 162.158.175.126 [10/Dec/2024:00:00:120300] "GET /scielo.php?pid=S0718-07642017000400014&script=sci_arttext HTTP/1.1" 200 20073 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"'
         expected = [
             '2024-12-09 21:00:12',
-            'CH',
+            'Chrome',
             '131.0.0.0',
             '2806:108e:21:4720:552:4011:137c:a7fb',
             'MX',
@@ -405,7 +421,7 @@ class TestLogParser(unittest.TestCase):
         obtained = self.lp.parse_line(line)
         self.assertListEqual(obtained, [
             '2024-10-06 03:00:16',
-            'SF',
+            'Safari',
             '17.5',
             '45.65.189.47',
             'CR',
@@ -422,7 +438,7 @@ class TestLogParser(unittest.TestCase):
         obtained = self.lp.parse_line(line)
         self.assertListEqual(obtained, [
             '2024-10-06 03:00:16',
-            'SF',
+            'Safari',
             '17.5',
             '45.65.189.47',
             'CR',
@@ -434,7 +450,7 @@ class TestLogParser(unittest.TestCase):
         obtained = self.lp.parse_line(line)
         self.assertListEqual(obtained, [
             '2024-10-05 21:00:16',
-            'SF',
+            'Safari',
             '17.5',
             '45.65.189.47',
             'CR',
@@ -446,7 +462,7 @@ class TestLogParser(unittest.TestCase):
         obtained = self.lp.parse_line(line)
         self.assertListEqual(obtained, [
             '2024-10-05 21:00:16',
-            'SF',
+            'Safari',
             '17.5',
             '45.65.189.47',
             'CR',
@@ -458,7 +474,7 @@ class TestLogParser(unittest.TestCase):
         obtained = self.lp.parse_line(line)
         self.assertListEqual(obtained, [
             '2024-10-05 21:00:16',
-            'SF',
+            'Safari',
             '17.5',
             '45.65.189.47',
             'CR',
@@ -470,7 +486,7 @@ class TestLogParser(unittest.TestCase):
         obtained = self.lp.parse_line(line)
         self.assertListEqual(obtained, [
             '2024-10-06 03:00:16',
-            'SF',
+            'Safari',
             '17.5',
             '45.65.189.47',
             'CR',
@@ -497,12 +513,12 @@ class TestLogParser(unittest.TestCase):
 
             self.assertSetEqual(
                 obtained_clients_names,
-                {'CM', 'CH', 'SF', '"LOCKSS cache"', 'UNK', 'THEN 1 ELSE', 'Google Search App'}
+                {'Chrome', 'Chrome Mobile', 'Safari', '"LOCKSS cache"', 'UNK', 'CHR', 'Google Search App', 'Android Browser'}
             )
 
             self.assertSetEqual(
                 obtained_clients_versions,
-                {'87.0.4280.101', '0', '90.0.4430.212', '137.2.345735309', '88.0.4324.190', '90.0.4430.210', 'UNK'}
+                {'60', 'UNK', '137.2.345735309', '87.0.4280.101', '90.0.4430.210', '90.0.4430.212', '88.0.4324.190'}
             )
 
     def test_parse_success_dataverse(self):
@@ -514,9 +530,9 @@ class TestLogParser(unittest.TestCase):
         data = lp.parse()
         lp.save(data)
 
-        self.assertEqual(lp.stats.ignored_lines_static_resources, 1172)
+        self.assertEqual(lp.stats.ignored_lines_static_resources, 1168)
         self.assertEqual(lp.stats.ignored_lines_bot, 19284)
-        self.assertEqual(lp.stats.ignored_lines_invalid_method, 290)
+        self.assertEqual(lp.stats.ignored_lines_invalid_method, 1098)
         self.assertEqual(lp.stats.ignored_lines_invalid_user_agent, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_name, 0)
         self.assertEqual(lp.stats.ignored_lines_invalid_client_version, 0)
@@ -532,6 +548,7 @@ class TestLogParser(unittest.TestCase):
 class TestStats(unittest.TestCase):
     @classmethod
     def setUpClass(self):
+        self.maxDiff = None
         self.stats = log_handler.LogStats()
 
     def test_increment(self):
@@ -609,3 +626,108 @@ class TestBunnynetLogParsing(unittest.TestCase):
             self.assertEqual(result['country_code'], 'BR')
             self.assertEqual(result['local_datetime'], '2025-09-10 23:59:46')
 
+    def test_parse_success_bunny(self):
+        self.lp.logfile = 'tests/fixtures/usage.scl.bunnynet.log'
+        self.lp.output = 'tests/fixtures/usage.scl.bunnynet.log.processed'
+        self.lp.stats.output = 'tests/fixtures/usage.scl.bunnynet.log.processed.summary'
+
+        data = self.lp.parse()
+        self.lp.save(data)
+
+        self.assertEqual(self.lp.stats.ignored_lines_bot, 6)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_method, 0)
+        self.assertEqual(self.lp.stats.ignored_lines_http_errors, 1)
+        self.assertEqual(self.lp.stats.ignored_lines_http_redirects, 8)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_client_name, 0)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_client_version, 0)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_country_code, 0)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_local_datetime, 0)
+        self.assertEqual(self.lp.stats.ignored_lines_invalid_user_agent, 0)
+        self.assertEqual(self.lp.stats.ignored_lines_static_resources, 41)
+        self.assertEqual(self.lp.stats.lines_parsed, 71)
+        self.assertEqual(self.lp.stats.total_imported_lines, 17)
+        self.assertEqual(self.lp.stats.total_ignored_lines, 54)
+
+    def test_parse_line_bunny_format_classic(self):
+        line = 'MISS|200|1755473648|1435|4339610|185.29.10.0|-|http://www.scielo.br/scielo.php?script=sci_arttext&pid=S0100-84042002000300008&lng=pt&nrm=iso&tlng=pt|SE|Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0|d0b6cb231fafac81cf42c524d05e0882|SE'
+        obtained = self.lp.parse_line(line)
+        self.assertDictEqual(
+            obtained,
+            {
+                'http_method': 'GET',
+                'http_response_status': '200',
+                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0',
+                'client_name': 'Firefox',
+                'client_version': '111.0',
+                'url': 'http://www.scielo.br/scielo.php?script=sci_arttext&pid=S0100-84042002000300008&lng=pt&nrm=iso&tlng=pt',
+                'ip_address': '185.29.10.0',
+                'country_code': 'SE',
+                'local_datetime': '2025-08-17 23:34:08',
+                'is_valid': True
+            }
+        )
+
+    def test_parse_line_bunny_format_opac_html(self):
+        line = 'MISS|200|1755473644|37617|4339610|185.29.10.0|-|http://www.scielo.br/j/rbz/a/CKSH5K8T7x7Y84zMnSb7L4L/?lang=pt|SE|Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0|61d8e51d071e39d6b7b770ddf6406ae6|SE'
+        obtained = self.lp.parse_line(line)
+        self.assertDictEqual(
+            obtained,
+            {
+                'http_method': 'GET',
+                'http_response_status': '200',
+                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0',
+                'client_name': 'Firefox',
+                'client_version': '111.0',
+                'url': 'http://www.scielo.br/j/rbz/a/CKSH5K8T7x7Y84zMnSb7L4L/?lang=pt',
+                'ip_address': '185.29.10.0',
+                'country_code': 'SE',
+                'local_datetime': '2025-08-17 23:34:04',
+                'is_valid': True
+            }
+        )
+
+    def test_parse_line_bunny_format_opac_pdf(self):
+        line = 'MISS|200|1755387228|263055|4339610|190.216.61.0|https://www.scielo.br/j/cadbto/a/Rj4pnrVyh3Pt9MnJ9pkNZtM/?format=pdf&lang=en|https://www.scielo.br/j/cadbto/a/Rj4pnrVyh3Pt9MnJ9pkNZtM/?format=pdf&lang=en|AR|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36|510a20260a79caca62a837dc37eb883f|AR'
+        obtained = self.lp.parse_line(line)
+        self.assertDictEqual(
+            obtained,
+            {
+                'http_method': 'GET',
+                'http_response_status': '200',
+                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
+                'client_name': 'Chrome',
+                'client_version': '135.0.0.0',
+                'url': 'https://www.scielo.br/j/cadbto/a/Rj4pnrVyh3Pt9MnJ9pkNZtM/?format=pdf&lang=en',
+                'ip_address': '190.216.61.0',
+                'country_code': 'AR',
+                'local_datetime': '2025-08-16 23:33:48',
+                'is_valid': True
+            }
+        )
+
+
+class TestBooksRealLogParsing(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.lp = log_handler.LogParser(
+            mmdb_path='tests/fixtures/map.mmdb',
+            robots_path='tests/fixtures/counter-robots.txt',
+            output_mode='dict',
+        )
+
+    def test_parse_real_books_lines_from_apache_and_bunnynet(self):
+        with open('tests/fixtures/usage.books.log') as f:
+            for line, expected in zip(f, BOOKS_LOG_EXPECTED):
+                case = expected.copy()
+                case['line'] = line
+                with self.subTest(case=line.strip()[:50]):
+                    obtained = self.lp.parse_line(line.strip())
+
+                    self.assertIsNotNone(obtained)
+                    self.assertEqual(obtained['http_method'], 'GET')
+                    self.assertEqual(obtained['http_response_status'], '200')
+                    self.assertEqual(obtained['url'], case['url'])
+                    self.assertEqual(obtained['country_code'], case['country_code'])
+                    self.assertEqual(obtained['local_datetime'], case['local_datetime'])
+                    self.assertTrue(obtained['is_valid'])

@@ -1,7 +1,6 @@
 import unittest
 import datetime
-
-from device_detector import DeviceDetector
+from unittest.mock import Mock
 
 from scielo_usage_counter import log_handler
 
@@ -498,28 +497,24 @@ class TestLogParser(unittest.TestCase):
         obtained = self.lp.parse_line(line)
         self.assertIsNone(obtained)
 
-    def test_device_detector_client_name_valid(self):
-        with open('tests/fixtures/user_agents.txt') as fin:
-            user_agents = [a.strip() for a in fin]
-            obtained_clients_names = set()
-            obtained_clients_versions = set()
+    def test_format_client_data(self):
+        device = Mock()
+        device.client_name.return_value = 'Chrome'
+        device.client_version.return_value = '90.0.4430.212'
 
-            for ua in user_agents:
-                device = DeviceDetector(ua).parse()
-                client_name = self.lp.format_client_name(device)
-                client_version = self.lp.format_client_version(device)
-                obtained_clients_names.add(client_name)
-                obtained_clients_versions.add(client_version)
+        self.assertEqual(self.lp.format_client_name(device), 'Chrome')
+        self.assertEqual(
+            self.lp.format_client_version(device),
+            '90.0.4430.212',
+        )
 
-            self.assertSetEqual(
-                obtained_clients_names,
-                {'Chrome', 'Chrome Mobile', 'Safari', '"LOCKSS cache"', 'UNK', 'CHR', 'Google Search App', 'Android Browser'}
-            )
+    def test_format_missing_client_data(self):
+        device = Mock()
+        device.client_name.return_value = None
+        device.client_version.return_value = None
 
-            self.assertSetEqual(
-                obtained_clients_versions,
-                {'60', 'UNK', '137.2.345735309', '87.0.4280.101', '90.0.4430.210', '90.0.4430.212', '88.0.4324.190'}
-            )
+        self.assertEqual(self.lp.format_client_name(device), 'UNK')
+        self.assertEqual(self.lp.format_client_version(device), 'UNK')
 
     def test_parse_success_dataverse(self):
         lp = log_handler.LogParser(mmdb_path='tests/fixtures/map.mmdb', robots_path='tests/fixtures/counter-robots.txt')

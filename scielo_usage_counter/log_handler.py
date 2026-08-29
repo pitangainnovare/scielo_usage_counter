@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import datetime
 import ipaddress
 import re
@@ -22,6 +24,7 @@ RESPONSE_STATUS_SUPPORTED = ['200', '304']
 HTTP_METHOD_SUPPORTED = ['GET']
 
 REGEX_BOOKS_SWF_PATH = re.compile(r'/id/\w+/swf/\d+\.swf(?:[?#]|$)', re.IGNORECASE)
+USER_AGENT_CACHE_MAX_SIZE = 4096
 
 
 class LogStats:
@@ -248,6 +251,7 @@ class LogParser:
         self.__stats = LogStats()
         self.__output = None
         self.__output_mode = output_mode
+        self.__user_agent_cache = OrderedDict()
 
     @property
     def output(self):
@@ -328,10 +332,38 @@ class LogParser:
         return False
 
     def user_agent_is_bot(self, user_agent):
+        cache_entry = self._get_user_agent_cache_entry(user_agent)
+        if 'is_bot' in cache_entry:
+            return cache_entry['is_bot']
+
         for regex in self.robots:
             if regex.search(user_agent):
+                cache_entry['is_bot'] = True
                 return True
+
+        cache_entry['is_bot'] = False
         return False
+
+    def _detect_client(self, user_agent):
+        cache_entry = self._get_user_agent_cache_entry(user_agent)
+        if 'client' not in cache_entry:
+            device = DeviceDetector(user_agent).parse()
+            cache_entry['client'] = (
+                self.format_client_name(device),
+                self.format_client_version(device),
+            )
+        return cache_entry['client']
+
+    def _get_user_agent_cache_entry(self, user_agent):
+        try:
+            cache_entry = self.__user_agent_cache.pop(user_agent)
+        except KeyError:
+            cache_entry = {}
+            if len(self.__user_agent_cache) >= USER_AGENT_CACHE_MAX_SIZE:
+                self.__user_agent_cache.popitem(last=False)
+
+        self.__user_agent_cache[user_agent] = cache_entry
+        return cache_entry
 
     def has_supported_url(self, path):
         if not self.url_is_static_file(path):
@@ -540,19 +572,21 @@ class LogParser:
                 processed_line['is_valid'] = False
 
             try:
-                device = DeviceDetector(processed_line['user_agent']).parse()
+                client_name, client_version = self._detect_client(
+                    processed_line['user_agent']
+                )
             except Exception as e:
-                device = DeviceDetector('').parse()
+                client_name, client_version = self._detect_client('')
                 self.stats.increment('ignored_lines_invalid_user_agent')
                 logging.error(f"Device detection failed for UserAgent {processed_line['user_agent']}: {e}")
                 processed_line['is_valid'] = False
 
-            processed_line['client_name'] = self.format_client_name(device)
+            processed_line['client_name'] = client_name
             if not processed_line['client_name']:
                 self.stats.increment('ignored_lines_invalid_client_name')
                 processed_line['is_valid'] = False
 
-            processed_line['client_version'] = self.format_client_version(device)
+            processed_line['client_version'] = client_version
             if not processed_line['client_version']:
                 self.stats.increment('ignored_lines_invalid_client_version')
                 processed_line['is_valid'] = False

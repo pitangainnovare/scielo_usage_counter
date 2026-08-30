@@ -1,12 +1,18 @@
-import geoip2.database
 import ipaddress
 
+import geoip2.database
 from geoip2.errors import AddressNotFoundError
+
+from .cache import BoundedLRUCache
+
+
+COUNTRY_CACHE_MAX_SIZE = 4096
 
 
 class GeoIp:
     def __init__(self):
         self.__map = None
+        self.__country_cache = BoundedLRUCache(COUNTRY_CACHE_MAX_SIZE)
 
     @property
     def map(self):
@@ -14,24 +20,33 @@ class GeoIp:
 
     @map.setter
     def map(self, mmbd):
+        self.__country_cache.clear()
         try:
             self.__map = geoip2.database.Reader(mmbd)
         except FileNotFoundError:
             return
         
     def ip_to_country_code(self, ip):
+        found, country_code = self.__country_cache.get(ip)
+        if found:
+            return country_code
+
         try:
             normalized = self.normalize_ip(ip)
             if not normalized:
                 return None
 
-            return self.map.country(normalized).country.iso_code
+            country_code = self.map.country(normalized).country.iso_code
 
         except AddressNotFoundError:
-            return None
+            country_code = None
 
-        except ValueError:
-            return None
+        except (AttributeError, ValueError):
+            country_code = None
+
+        self.__country_cache.set(ip, country_code)
+
+        return country_code
 
     def ip_to_geolocation(self, ip):
         try:

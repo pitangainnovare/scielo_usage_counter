@@ -1,6 +1,8 @@
 import unittest
+from unittest.mock import patch
 
 from scielo_usage_counter.url_translator import URLTranslationManager
+from scielo_usage_counter.translator import opac
 from scielo_usage_counter.translator.opac import URLTranslatorOPACSite
 from scielo_usage_counter.values import (
     MEDIA_FORMAT_HTML,
@@ -343,3 +345,13 @@ class TestTranslatorOPAC(unittest.TestCase):
         obtained = self.tm.translate(url)
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
         self.assertDictEqual(obtained, expected)
+
+    def test_pipeline_parses_url_once(self):
+        url = '/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/abstract/?lang=en'
+
+        with patch.object(opac, 'urlparse', wraps=opac.urlparse) as urlparse:
+            obtained = self.tm.translate(url)
+
+        self.assertEqual(obtained['pid_v3'], 'dqLRqnpmnncSmnzMCB8bzPG')
+        self.assertEqual(obtained['content_type'], CONTENT_TYPE_ABSTRACT)
+        urlparse.assert_called_once_with(url)

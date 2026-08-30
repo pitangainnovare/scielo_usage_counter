@@ -30,11 +30,10 @@ class URLTranslatorOPACSite:
         self.url_params = self.extract_url_params(url)
 
         pid_v3 = self.extract_pid_v3()
-        media_format = self.extract_media_format(url)
+        media_format = self.extract_media_format()
         media_language = self.extract_media_language(pid_v3)
         scielo_issn = self.extract_issn()
-
-        content_type = self.extract_content_type(url)
+        content_type = self.extract_content_type()
 
         return {
             'scielo_issn': scielo_issn,
@@ -60,8 +59,8 @@ class URLTranslatorOPACSite:
             'resource_ssm_path': ''
         }
 
-        url_parsed = urlparse(url)
-        params = dict(parse_qsl(url_parsed.query))
+        parsed_url = urlparse(url)
+        params = dict(parse_qsl(parsed_url.query))
         for k, v in params.items():
             if k == 'lang':
                 url_params['media_language'] = v
@@ -70,10 +69,24 @@ class URLTranslatorOPACSite:
             else:
                 url_params[k] = v
 
-        url_params['journal_acronym'], url_params['pid_v3'] = self._get_acronym_and_pid_from_url(url)
+        self.url_matches = {
+            'abstract': REGEX_OPAC_SITE_JOURNAL_ARTICLE_ABSTRACT.search(parsed_url.path),
+            'article': REGEX_OPAC_SITE_JOURNAL_ARTICLE.search(parsed_url.path),
+            'citation': REGEX_OPAC_SITE_CITATION_EXPORT.search(parsed_url.path),
+            'documentstore': None,
+        }
 
-        if 'resource_ssm_path' in url_parsed.query:
-            match = re.search(REGEX_OPAC_SITE_DOCUMENT_STORE, url_params['resource_ssm_path'])
+        article_match = self.url_matches['article']
+        citation_match = self.url_matches['citation']
+        if article_match:
+            url_params['journal_acronym'] = article_match.groupdict().get('journal_acronym')
+            url_params['pid_v3'] = article_match.groupdict().get('pid_v3')
+        elif citation_match:
+            url_params['pid_v3'] = citation_match.groupdict().get('pid_v3')
+
+        if url_params['resource_ssm_path']:
+            match = REGEX_OPAC_SITE_DOCUMENT_STORE.search(url_params['resource_ssm_path'])
+            self.url_matches['documentstore'] = match
             if match and len(match.groups()) == 3:
                 url_params['scielo_issn'] = match.groupdict().get('journal_issn')
                 url_params['pid_v3'] = match.groupdict().get('pid_v3')
@@ -82,28 +95,12 @@ class URLTranslatorOPACSite:
                     url_params['media_format'] = MEDIA_FORMAT_PDF
         
         return url_params
-    
-    def _get_acronym_and_pid_from_url(self, url):
-        journal_acronym = ''
-        pid_v3 = ''
 
-        for p in [
-            REGEX_OPAC_SITE_JOURNAL_ARTICLE,
-            REGEX_OPAC_SITE_CITATION_EXPORT,
-        ]:
-            match = re.search(p, url)
-            if match:
-                journal_acronym = match.groupdict().get('journal_acronym')
-                pid_v3 = match.groupdict().get('pid_v3')
-                break
+    def extract_media_format(self, url=None):
+        if url is not None:
+            self.url_params = self.extract_url_params(url)
 
-        return journal_acronym, pid_v3
-
-    def extract_media_format(self, url):
-        if not hasattr(self, 'url_params'):
-            self.extract_url_params(url)
-
-        if re.search(REGEX_OPAC_SITE_CITATION_EXPORT, url):
+        if self.url_matches['citation']:
             self.url_params['media_format'] = MEDIA_FORMAT_HTML
 
         return self.url_params.get('media_format') or MEDIA_FORMAT_HTML
@@ -116,20 +113,20 @@ class URLTranslatorOPACSite:
 
     def extract_pid_v3(self):
         return self.url_params.get('pid_v3')
-    
+
     def extract_issn(self):
         if not self.url_params.get('journal_acronym'):
             return self.documents_metadata['pid_v3_to_scielo_issn'].get(self.url_params.get('pid_v3'))
         return self.sources_metadata['acronym_to_scielo_issn'].get(self.url_params.get('journal_acronym'))
     
-    def extract_content_type(self, url):
-        if not hasattr(self, 'media_format'):
-            self.extract_media_format(url)
+    def extract_content_type(self, url=None):
+        if url is not None:
+            self.url_params = self.extract_url_params(url)
 
-        if re.search(REGEX_OPAC_SITE_JOURNAL_ARTICLE_ABSTRACT, url):
+        if self.url_matches['abstract']:
             return CONTENT_TYPE_ABSTRACT
         
-        if re.search(REGEX_OPAC_SITE_CITATION_EXPORT, url):
+        if self.url_matches['citation']:
             return CONTENT_TYPE_CITATION_EXPORT
         
         if self.url_params['media_format'] in (
@@ -138,12 +135,11 @@ class URLTranslatorOPACSite:
         ):
             return CONTENT_TYPE_FULL_TEXT
         
-        match = re.search(REGEX_OPAC_SITE_DOCUMENT_STORE, url)
+        match = self.url_matches['documentstore']
         if match and match.groupdict().get('file', '').endswith('.pdf'):
             return CONTENT_TYPE_FULL_TEXT
         
-        if re.search(REGEX_OPAC_SITE_JOURNAL_ARTICLE, url):
+        if self.url_matches['article']:
             return CONTENT_TYPE_FULL_TEXT
 
         return CONTENT_TYPE_UNDEFINED
-    

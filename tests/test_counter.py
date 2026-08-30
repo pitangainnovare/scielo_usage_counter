@@ -61,6 +61,11 @@ class TestGetValidClicks(unittest.TestCase):
         obtained_clicks = get_valid_clicks(clicks)
         self.assertEqual(expected_clicks, obtained_clicks)
 
+    def test_valid_clicks_accepts_integer_seconds(self):
+        clicks = {0: 1, 31: 1, 62: 1}
+
+        self.assertEqual(get_valid_clicks(clicks), 3)
+
 
 class TestIsRequest(unittest.TestCase):
     def test_is_request_full_text(self):
@@ -738,4 +743,3 @@ class TestBooksAccessCounting(unittest.TestCase):
         
         # Confirm 3 separate access records
         self.assertEqual(len(data), 3)
-

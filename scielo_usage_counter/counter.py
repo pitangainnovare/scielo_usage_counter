@@ -7,7 +7,7 @@ def get_valid_clicks(clicks: dict) -> int:
     A valid click is defined as a click that occurs within 30 seconds of the last click,
     and each value greater than 1 represents additional clicks (e.g., double-clicks).
 
-    :param clicks: dictionary where keys are timestamps (minute:second) and values are click counts
+    :param clicks: dictionary whose keys are timestamps as minute:second strings or integer seconds
 
     :return: number of valid clicks
 
@@ -26,24 +26,27 @@ def get_valid_clicks(clicks: dict) -> int:
     >>> get_valid_clicks(clicks)
     3
     """
-    sorted_clicks = sorted(clicks.items(), key=lambda x: x[0])
-    valid_clicks = 0
-    last_timestamp = None
+    click_seconds = []
+    for timestamp in clicks:
+        if isinstance(timestamp, int):
+            click_seconds.append(timestamp)
+            continue
 
-    for timestamp, _ in sorted_clicks:
         minutes, seconds = map(int, timestamp.split(':'))
-        current_time_in_seconds = minutes * 60 + seconds
+        click_seconds.append(minutes * 60 + seconds)
 
-        if last_timestamp is not None:
-            last_minutes, last_seconds = map(int, last_timestamp.split(':'))
-            last_time_in_seconds = last_minutes * 60 + last_seconds
+    click_seconds.sort()
+    valid_clicks = 0
+    last_time_in_seconds = None
 
+    for current_time_in_seconds in click_seconds:
+        if last_time_in_seconds is not None:
             if current_time_in_seconds - last_time_in_seconds <= 30:
-                last_timestamp = timestamp
+                last_time_in_seconds = current_time_in_seconds
                 continue
 
         valid_clicks += 1
-        last_timestamp = timestamp
+        last_time_in_seconds = current_time_in_seconds
 
     return valid_clicks
 

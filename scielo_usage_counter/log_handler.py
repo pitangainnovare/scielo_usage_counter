@@ -1,15 +1,14 @@
-from collections import OrderedDict
-
 import datetime
 import ipaddress
-import re
 import logging
+import re
 import time
 import urllib.parse
 
 from device_detector import DeviceDetector
 
 from . import geo, values
+from .cache import BoundedLRUCache
 from .utils import file_utils, resource_utils
 
 
@@ -27,7 +26,7 @@ REGEX_BOOKS_SWF_PATH = re.compile(r'/id/\w+/swf/\d+\.swf(?:[?#]|$)', re.IGNORECA
 USER_AGENT_CACHE_MAX_SIZE = 4096
 IP_ORIGIN_CACHE_MAX_SIZE = 4096
 
-_CLIENT_CACHE = OrderedDict()
+_CLIENT_CACHE = BoundedLRUCache(USER_AGENT_CACHE_MAX_SIZE)
 
 
 class LogStats:
@@ -254,8 +253,8 @@ class LogParser:
         self.__stats = LogStats()
         self.__output = None
         self.__output_mode = output_mode
-        self.__robot_cache = OrderedDict()
-        self.__ip_origin_cache = OrderedDict()
+        self.__robot_cache = BoundedLRUCache(USER_AGENT_CACHE_MAX_SIZE)
+        self.__ip_origin_cache = BoundedLRUCache(IP_ORIGIN_CACHE_MAX_SIZE)
 
     @property
     def output(self):
@@ -336,12 +335,8 @@ class LogParser:
         return False
 
     def user_agent_is_bot(self, user_agent):
-        try:
-            is_bot = self.__robot_cache.pop(user_agent)
-        except KeyError:
-            is_bot = None
-        else:
-            self.__robot_cache[user_agent] = is_bot
+        found, is_bot = self.__robot_cache.get(user_agent)
+        if found:
             return is_bot
 
         for regex in self.robots:
@@ -351,24 +346,19 @@ class LogParser:
         else:
             is_bot = False
 
-        if len(self.__robot_cache) >= USER_AGENT_CACHE_MAX_SIZE:
-            self.__robot_cache.popitem(last=False)
-        self.__robot_cache[user_agent] = is_bot
+        self.__robot_cache.set(user_agent, is_bot)
 
         return is_bot
 
     def _detect_client(self, user_agent):
-        try:
-            client = _CLIENT_CACHE.pop(user_agent)
-        except KeyError:
+        found, client = _CLIENT_CACHE.get(user_agent)
+        if not found:
             device = DeviceDetector(user_agent).parse()
             client = (
                 self.format_client_name(device),
                 self.format_client_version(device),
             )
-            if len(_CLIENT_CACHE) >= USER_AGENT_CACHE_MAX_SIZE:
-                _CLIENT_CACHE.popitem(last=False)
-        _CLIENT_CACHE[user_agent] = client
+            _CLIENT_CACHE.set(user_agent, client)
 
         return client
 
@@ -491,12 +481,8 @@ class LogParser:
         return match, ip_value
 
     def get_ip_origin_type(self, ip):
-        try:
-            origin_type = self.__ip_origin_cache.pop(ip)
-        except KeyError:
-            origin_type = None
-        else:
-            self.__ip_origin_cache[ip] = origin_type
+        found, origin_type = self.__ip_origin_cache.get(ip)
+        if found:
             return origin_type
 
         try:
@@ -511,9 +497,7 @@ class LogParser:
             else:
                 origin_type = IP_ORIGIN_UNKNOWN
 
-        if len(self.__ip_origin_cache) >= IP_ORIGIN_CACHE_MAX_SIZE:
-            self.__ip_origin_cache.popitem(last=False)
-        self.__ip_origin_cache[ip] = origin_type
+        self.__ip_origin_cache.set(ip, origin_type)
 
         return origin_type
 

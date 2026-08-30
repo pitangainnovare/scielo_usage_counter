@@ -1,10 +1,9 @@
-from collections import OrderedDict
-
 import ipaddress
 
 import geoip2.database
-
 from geoip2.errors import AddressNotFoundError
+
+from .cache import BoundedLRUCache
 
 
 COUNTRY_CACHE_MAX_SIZE = 4096
@@ -13,7 +12,7 @@ COUNTRY_CACHE_MAX_SIZE = 4096
 class GeoIp:
     def __init__(self):
         self.__map = None
-        self.__country_cache = OrderedDict()
+        self.__country_cache = BoundedLRUCache(COUNTRY_CACHE_MAX_SIZE)
 
     @property
     def map(self):
@@ -28,12 +27,8 @@ class GeoIp:
             return
         
     def ip_to_country_code(self, ip):
-        try:
-            country_code = self.__country_cache.pop(ip)
-        except KeyError:
-            country_code = None
-        else:
-            self.__country_cache[ip] = country_code
+        found, country_code = self.__country_cache.get(ip)
+        if found:
             return country_code
 
         try:
@@ -49,9 +44,7 @@ class GeoIp:
         except (AttributeError, ValueError):
             country_code = None
 
-        if len(self.__country_cache) >= COUNTRY_CACHE_MAX_SIZE:
-            self.__country_cache.popitem(last=False)
-        self.__country_cache[ip] = country_code
+        self.__country_cache.set(ip, country_code)
 
         return country_code
 

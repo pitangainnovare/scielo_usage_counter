@@ -25,6 +25,9 @@ HTTP_METHOD_SUPPORTED = ['GET']
 
 REGEX_BOOKS_SWF_PATH = re.compile(r'/id/\w+/swf/\d+\.swf(?:[?#]|$)', re.IGNORECASE)
 USER_AGENT_CACHE_MAX_SIZE = 4096
+IP_ORIGIN_CACHE_MAX_SIZE = 4096
+
+_CLIENT_CACHE = OrderedDict()
 
 
 class LogStats:
@@ -251,7 +254,8 @@ class LogParser:
         self.__stats = LogStats()
         self.__output = None
         self.__output_mode = output_mode
-        self.__user_agent_cache = OrderedDict()
+        self.__robot_cache = OrderedDict()
+        self.__ip_origin_cache = OrderedDict()
 
     @property
     def output(self):
@@ -332,38 +336,41 @@ class LogParser:
         return False
 
     def user_agent_is_bot(self, user_agent):
-        cache_entry = self._get_user_agent_cache_entry(user_agent)
-        if 'is_bot' in cache_entry:
-            return cache_entry['is_bot']
+        try:
+            is_bot = self.__robot_cache.pop(user_agent)
+        except KeyError:
+            is_bot = None
+        else:
+            self.__robot_cache[user_agent] = is_bot
+            return is_bot
 
         for regex in self.robots:
             if regex.search(user_agent):
-                cache_entry['is_bot'] = True
-                return True
+                is_bot = True
+                break
+        else:
+            is_bot = False
 
-        cache_entry['is_bot'] = False
-        return False
+        if len(self.__robot_cache) >= USER_AGENT_CACHE_MAX_SIZE:
+            self.__robot_cache.popitem(last=False)
+        self.__robot_cache[user_agent] = is_bot
+
+        return is_bot
 
     def _detect_client(self, user_agent):
-        cache_entry = self._get_user_agent_cache_entry(user_agent)
-        if 'client' not in cache_entry:
+        try:
+            client = _CLIENT_CACHE.pop(user_agent)
+        except KeyError:
             device = DeviceDetector(user_agent).parse()
-            cache_entry['client'] = (
+            client = (
                 self.format_client_name(device),
                 self.format_client_version(device),
             )
-        return cache_entry['client']
+            if len(_CLIENT_CACHE) >= USER_AGENT_CACHE_MAX_SIZE:
+                _CLIENT_CACHE.popitem(last=False)
+        _CLIENT_CACHE[user_agent] = client
 
-    def _get_user_agent_cache_entry(self, user_agent):
-        try:
-            cache_entry = self.__user_agent_cache.pop(user_agent)
-        except KeyError:
-            cache_entry = {}
-            if len(self.__user_agent_cache) >= USER_AGENT_CACHE_MAX_SIZE:
-                self.__user_agent_cache.popitem(last=False)
-
-        self.__user_agent_cache[user_agent] = cache_entry
-        return cache_entry
+        return client
 
     def has_supported_url(self, path):
         if not self.url_is_static_file(path):
@@ -377,7 +384,7 @@ class LogParser:
         except (ValueError, AttributeError):
             # Fallback for malformed URLs
             if not path:
-                return True  # Treat as static (will be ignored)
+                return True
             file_from_url = path.split('/')[-1]
 
         if REGEX_BOOKS_SWF_PATH.search(file_from_url):
@@ -485,16 +492,30 @@ class LogParser:
 
     def get_ip_origin_type(self, ip):
         try:
+            origin_type = self.__ip_origin_cache.pop(ip)
+        except KeyError:
+            origin_type = None
+        else:
+            self.__ip_origin_cache[ip] = origin_type
+            return origin_type
+
+        try:
             ipa = ipaddress.ip_address(ip)
         except ValueError:
-            return IP_ORIGIN_UNKNOWN
+            origin_type = IP_ORIGIN_UNKNOWN
+        else:
+            if ipa.is_global:
+                origin_type = IP_ORIGIN_REMOTE
+            elif ipa.is_private or ipa.is_loopback or ipa.is_link_local:
+                origin_type = IP_ORIGIN_LOCAL
+            else:
+                origin_type = IP_ORIGIN_UNKNOWN
 
-        if ipa.is_global:
-            return IP_ORIGIN_REMOTE
-        elif ipa.is_private or ipa.is_loopback or ipa.is_link_local:
-            return IP_ORIGIN_LOCAL
+        if len(self.__ip_origin_cache) >= IP_ORIGIN_CACHE_MAX_SIZE:
+            self.__ip_origin_cache.popitem(last=False)
+        self.__ip_origin_cache[ip] = origin_type
 
-        return IP_ORIGIN_UNKNOWN
+        return origin_type
 
     def parse_line(self, line):
         self.stats.increment('lines_parsed')
@@ -526,50 +547,65 @@ class LogParser:
             is_bunnynet = 'unix_ts' in data
             
             if is_bunnynet:
-                # Bunnynet logs don't have explicit method, assume GET
                 processed_line['http_method'] = 'GET'
                 processed_line['http_response_status'] = data.get('status')
                 processed_line['user_agent'] = self.format_user_agent(data.get('user_agent'))
                 processed_line['url'] = data.get('path')
                 processed_line['ip_address'] = ip_value
-                
-                # Bunnynet provides country code directly
                 processed_line['country_code'] = data.get('country')
-                if not processed_line['country_code']:
-                    processed_line['country_code'] = self.geoip.ip_to_country_code(processed_line['ip_address'])
-                
-                # Handle Unix timestamp
-                unix_ts = data.get('unix_ts')
-                processed_line['local_datetime'] = self.format_date(unix_ts, None)
-
             else:
-                # Standard Apache log format
                 processed_line['http_method'] = data.get('method')
                 processed_line['http_response_status'] = data.get('status')
                 processed_line['user_agent'] = self.format_user_agent(data.get('user_agent'))
                 processed_line['url'] = data.get('path')
                 processed_line['ip_address'] = ip_value
-                processed_line['country_code'] = self.geoip.ip_to_country_code(processed_line['ip_address'])
-                
-                date = data.get('date')
-                timezone = data.get('timezone')
-                processed_line['local_datetime'] = self.format_date(date, timezone)
 
-            # Validation checks
             if not self.has_valid_method(processed_line['http_method']):
                 self.stats.increment('ignored_lines_invalid_method')
-                processed_line['is_valid'] = False
+                self.stats.increment('total_ignored_lines')
+                return
 
             if not self.has_valid_status(processed_line['http_response_status']):
                 if self.status_is_redirect(processed_line['http_response_status']):
                     self.stats.increment('ignored_lines_http_redirects')
                 elif self.status_is_error(processed_line['http_response_status']):
                     self.stats.increment('ignored_lines_http_errors')
-                processed_line['is_valid'] = False
+                self.stats.increment('total_ignored_lines')
+                return
+
+            if not self.has_supported_url(processed_line['url']):
+                self.stats.increment('ignored_lines_static_resources')
+                self.stats.increment('total_ignored_lines')
+                return
 
             if self.user_agent_is_bot(processed_line['user_agent']):
                 self.stats.increment('ignored_lines_bot')
-                processed_line['is_valid'] = False
+                self.stats.increment('total_ignored_lines')
+                return
+
+            if not processed_line['country_code']:
+                processed_line['country_code'] = self.geoip.ip_to_country_code(
+                    processed_line['ip_address']
+                )
+            if not processed_line['country_code']:
+                self.stats.increment('ignored_lines_invalid_country_code')
+                self.stats.increment('total_ignored_lines')
+                return
+
+            if is_bunnynet:
+                processed_line['local_datetime'] = self.format_date(
+                    data.get('unix_ts'),
+                    None,
+                )
+            else:
+                processed_line['local_datetime'] = self.format_date(
+                    data.get('date'),
+                    data.get('timezone'),
+                )
+            if not processed_line['local_datetime']:
+                self.stats.increment('ignored_lines_invalid_local_datetime')
+                self.stats.increment('total_ignored_lines')
+                return
 
             try:
                 client_name, client_version = self._detect_client(
@@ -579,46 +615,34 @@ class LogParser:
                 client_name, client_version = self._detect_client('')
                 self.stats.increment('ignored_lines_invalid_user_agent')
                 logging.error(f"Device detection failed for UserAgent {processed_line['user_agent']}: {e}")
-                processed_line['is_valid'] = False
+                self.stats.increment('total_ignored_lines')
+                return
 
             processed_line['client_name'] = client_name
             if not processed_line['client_name']:
                 self.stats.increment('ignored_lines_invalid_client_name')
-                processed_line['is_valid'] = False
+                self.stats.increment('total_ignored_lines')
+                return
 
             processed_line['client_version'] = client_version
             if not processed_line['client_version']:
                 self.stats.increment('ignored_lines_invalid_client_version')
-                processed_line['is_valid'] = False
-
-            if not self.has_supported_url(processed_line['url']):
-                self.stats.increment('ignored_lines_static_resources')
-                processed_line['is_valid'] = False
-
-            if not processed_line['country_code']:
-                self.stats.increment('ignored_lines_invalid_country_code')
-                processed_line['is_valid'] = False
-
-            if not processed_line['local_datetime']:
-                self.stats.increment('ignored_lines_invalid_local_datetime')
-                processed_line['is_valid'] = False
-
-            if processed_line['is_valid']:
-                self.stats.increment('total_imported_lines')
-
-                if self.output_mode == 'list':
-                    return [
-                        processed_line['local_datetime'],
-                        processed_line['client_name'],
-                        processed_line['client_version'],
-                        processed_line['ip_address'],
-                        processed_line['country_code'],
-                        processed_line['url'],
-                    ]
-                elif self.output_mode == 'dict':
-                    return processed_line
-            else:
                 self.stats.increment('total_ignored_lines')
+                return
+
+            self.stats.increment('total_imported_lines')
+
+            if self.output_mode == 'list':
+                return [
+                    processed_line['local_datetime'],
+                    processed_line['client_name'],
+                    processed_line['client_version'],
+                    processed_line['ip_address'],
+                    processed_line['country_code'],
+                    processed_line['url'],
+                ]
+            elif self.output_mode == 'dict':
+                return processed_line
         else:
             self.stats.increment('total_ignored_lines')
 

@@ -1,12 +1,19 @@
-import geoip2.database
+from collections import OrderedDict
+
 import ipaddress
 
+import geoip2.database
+
 from geoip2.errors import AddressNotFoundError
+
+
+COUNTRY_CACHE_MAX_SIZE = 4096
 
 
 class GeoIp:
     def __init__(self):
         self.__map = None
+        self.__country_cache = OrderedDict()
 
     @property
     def map(self):
@@ -14,6 +21,7 @@ class GeoIp:
 
     @map.setter
     def map(self, mmbd):
+        self.__country_cache.clear()
         try:
             self.__map = geoip2.database.Reader(mmbd)
         except FileNotFoundError:
@@ -21,17 +29,31 @@ class GeoIp:
         
     def ip_to_country_code(self, ip):
         try:
+            country_code = self.__country_cache.pop(ip)
+        except KeyError:
+            country_code = None
+        else:
+            self.__country_cache[ip] = country_code
+            return country_code
+
+        try:
             normalized = self.normalize_ip(ip)
             if not normalized:
                 return None
 
-            return self.map.country(normalized).country.iso_code
+            country_code = self.map.country(normalized).country.iso_code
 
         except AddressNotFoundError:
-            return None
+            country_code = None
 
-        except ValueError:
-            return None
+        except (AttributeError, ValueError):
+            country_code = None
+
+        if len(self.__country_cache) >= COUNTRY_CACHE_MAX_SIZE:
+            self.__country_cache.popitem(last=False)
+        self.__country_cache[ip] = country_code
+
+        return country_code
 
     def ip_to_geolocation(self, ip):
         try:

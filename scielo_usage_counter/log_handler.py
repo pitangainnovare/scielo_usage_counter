@@ -356,7 +356,10 @@ class LogParser:
     def _detect_client(self, user_agent):
         found, client = _CLIENT_CACHE.get(user_agent)
         if not found:
-            device = DeviceDetector(user_agent).parse()
+            device = DeviceDetector(
+                user_agent,
+                skip_device_detection=True,
+            ).parse()
             client = (
                 self.format_client_name(device),
                 self.format_client_version(device),

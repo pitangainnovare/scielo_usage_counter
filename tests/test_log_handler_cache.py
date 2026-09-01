@@ -45,8 +45,8 @@ def test_reuses_device_detection_without_changing_parsed_lines(monkeypatch):
     detector_calls = []
 
     class CountingDeviceDetector:
-        def __init__(self, user_agent):
-            detector_calls.append(user_agent)
+        def __init__(self, user_agent, skip_device_detection=False):
+            detector_calls.append((user_agent, skip_device_detection))
 
         def parse(self):
             return ParsedDevice()
@@ -69,7 +69,7 @@ def test_reuses_device_detection_without_changing_parsed_lines(monkeypatch):
     assert first_result == second_result
     assert first_result['client_name'] == 'Firefox'
     assert first_result['client_version'] == '111.0'
-    assert detector_calls == ['Mozilla/5.0 Test Agent']
+    assert detector_calls == [('Mozilla/5.0 Test Agent', True)]
     assert parser.stats.lines_parsed == 2
     assert parser.stats.total_imported_lines == 2
 
@@ -78,8 +78,8 @@ def test_reuses_device_detection_between_parsers(monkeypatch):
     detector_calls = []
 
     class CountingDeviceDetector:
-        def __init__(self, user_agent):
-            detector_calls.append(user_agent)
+        def __init__(self, user_agent, skip_device_detection=False):
+            detector_calls.append((user_agent, skip_device_detection))
 
         def parse(self):
             return ParsedDevice()
@@ -90,7 +90,7 @@ def test_reuses_device_detection_between_parsers(monkeypatch):
 
     assert first_parser._detect_client('Shared Agent') == ('Firefox', '111.0')
     assert second_parser._detect_client('Shared Agent') == ('Firefox', '111.0')
-    assert detector_calls == ['Shared Agent']
+    assert detector_calls == [('Shared Agent', True)]
 
 
 def test_rejects_static_resource_before_robot_and_client_detection(monkeypatch):
@@ -98,7 +98,7 @@ def test_rejects_static_resource_before_robot_and_client_detection(monkeypatch):
     detector_calls = []
 
     class CountingDeviceDetector:
-        def __init__(self, user_agent):
+        def __init__(self, user_agent, skip_device_detection=False):
             detector_calls.append(user_agent)
 
         def parse(self):

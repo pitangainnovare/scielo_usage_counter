@@ -10,11 +10,11 @@ BOOKS_LOG_EXPECTED = [
     {'url': '/id/h8pyf/08', 'country_code': 'BR', 'local_datetime': '2012-04-01 03:30:27'},
     {'url': '/id/3hs/pdf/sampaio-9788523206277.pdf', 'country_code': 'BR', 'local_datetime': '2012-04-01 03:00:00'},
     {'url': '/id/hd5d8/epub/gelamo-9788598605951.epub', 'country_code': 'US', 'local_datetime': '2012-04-01 03:41:33'},
-    {'url': 'https://books.scielo.org/id/96spq', 'country_code': 'MI', 'local_datetime': '2025-09-14 23:59:27'},
-    {'url': 'https://books.scielo.org/id/3dqnm/10', 'country_code': 'DE', 'local_datetime': '2025-09-14 23:59:37'},
-    {'url': 'http://books.scielo.org/id/htnbt/pdf/caldeira-9788579830419-10.pdf', 'country_code': 'IL', 'local_datetime': '2025-09-14 23:59:41'},
-    {'url': 'https://books.scielo.org/id/wg88m/epub/ortigoza-9788579831287.epub', 'country_code': 'IL', 'local_datetime': '2025-09-14 23:58:48'},
-    {'url': 'https://books.scielo.org/id/p8kpd/Text/12.xhtml', 'country_code': 'DE', 'local_datetime': '2025-09-14 23:58:58'},
+    {'url': 'https://books.scielo.org/id/96spq', 'country_code': 'BR', 'local_datetime': '2025-09-14 23:59:27'},
+    {'url': 'https://books.scielo.org/id/3dqnm/10', 'country_code': 'RU', 'local_datetime': '2025-09-14 23:59:37'},
+    {'url': 'http://books.scielo.org/id/htnbt/pdf/caldeira-9788579830419-10.pdf', 'country_code': 'US', 'local_datetime': '2025-09-14 23:59:41'},
+    {'url': 'https://books.scielo.org/id/wg88m/epub/ortigoza-9788579831287.epub', 'country_code': 'US', 'local_datetime': '2025-09-14 23:58:48'},
+    {'url': 'https://books.scielo.org/id/p8kpd/Text/12.xhtml', 'country_code': 'PL', 'local_datetime': '2025-09-14 23:58:58'},
 ]
 
 

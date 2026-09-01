@@ -23,6 +23,9 @@ RESPONSE_STATUS_SUPPORTED = ['200', '304']
 HTTP_METHOD_SUPPORTED = ['GET']
 
 REGEX_BOOKS_SWF_PATH = re.compile(r'/id/\w+/swf/\d+\.swf(?:[?#]|$)', re.IGNORECASE)
+UNIX_TIMESTAMP_SECONDS_LENGTH = 10
+UNIX_TIMESTAMP_MILLISECONDS_LENGTH = 13
+MILLISECONDS_PER_SECOND = 1000
 USER_AGENT_CACHE_MAX_SIZE = 4096
 IP_ORIGIN_CACHE_MAX_SIZE = 4096
 
@@ -353,7 +356,10 @@ class LogParser:
     def _detect_client(self, user_agent):
         found, client = _CLIENT_CACHE.get(user_agent)
         if not found:
-            device = DeviceDetector(user_agent).parse()
+            device = DeviceDetector(
+                user_agent,
+                skip_device_detection=True,
+            ).parse()
             client = (
                 self.format_client_name(device),
                 self.format_client_version(device),
@@ -408,9 +414,15 @@ class LogParser:
     def format_date(self, date, timezone):
         # Check if date is Unix timestamp (bunnynet format)
         if timezone is None and date and date.isdigit():
+            if len(date) == UNIX_TIMESTAMP_MILLISECONDS_LENGTH:
+                date = int(date) // MILLISECONDS_PER_SECOND
+            elif len(date) == UNIX_TIMESTAMP_SECONDS_LENGTH:
+                date = int(date)
+            else:
+                return None
+
             try:
-                unix_ts = int(date)
-                dt_obj = datetime.datetime.utcfromtimestamp(unix_ts)
+                dt_obj = datetime.datetime.utcfromtimestamp(date)
                 return dt_obj.strftime('%Y-%m-%d %H:%M:%S')
             except (ValueError, OSError):
                 return None
@@ -536,7 +548,7 @@ class LogParser:
                 processed_line['user_agent'] = self.format_user_agent(data.get('user_agent'))
                 processed_line['url'] = data.get('path')
                 processed_line['ip_address'] = ip_value
-                processed_line['country_code'] = data.get('country')
+                processed_line['country_code'] = data.get('country_code')
             else:
                 processed_line['http_method'] = data.get('method')
                 processed_line['http_response_status'] = data.get('status')

@@ -1,5 +1,6 @@
 import argparse
 import csv
+import datetime
 import logging
 import os
 import shlex
@@ -50,6 +51,8 @@ SCRIPT_SORT_PATH = os.environ.get(
     'scripts/sort_uniq.sh'
 )
 
+DATE_FORMAT = '%Y-%m-%d'
+
 
 def _args_to_param(args, ignore):
     params = {}
@@ -57,6 +60,56 @@ def _args_to_param(args, ignore):
         if k not in ignore:
             params[k] = v
     return params
+
+
+def parse_period(value):
+    dates = [date.strip() for date in value.split(',')]
+    if len(dates) not in {1, 2}:
+        raise argparse.ArgumentTypeError(
+            'Use YYYY-MM-DD ou YYYY-MM-DD,YYYY-MM-DD'
+        )
+
+    try:
+        start_date = datetime.datetime.strptime(dates[0], DATE_FORMAT).date()
+        end_date = datetime.datetime.strptime(dates[-1], DATE_FORMAT).date()
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            'Use YYYY-MM-DD ou YYYY-MM-DD,YYYY-MM-DD'
+        )
+
+    if start_date > end_date:
+        raise argparse.ArgumentTypeError(
+            'A data inicial deve ser anterior ou igual a data final'
+        )
+
+    return start_date, end_date
+
+
+def filter_dates(dates, period):
+    if not period:
+        return dates
+
+    start_date, end_date = period
+    return [date for date in dates if start_date <= date <= end_date]
+
+
+def filter_existing_pretables(dates, pretables_directory):
+    if not pretables_directory:
+        return dates
+
+    missing_dates = []
+    for date in dates:
+        pretable_path = file_utils.translate_date_to_output_path(
+            date=date,
+            output_directory=pretables_directory,
+        )
+
+        if file_utils.is_valid_path(pretable_path):
+            logging.warning('Pré-tabela já existe e será ignorada: %s', pretable_path)
+        else:
+            missing_dates.append(date)
+
+    return missing_dates
 
 
 def extract_values(data, header, delimiter):
@@ -78,12 +131,14 @@ def extract_values(data, header, delimiter):
     """
     return delimiter.join([data.get(h) for h in header])
 
+
 def generate_pretables(
     parsed_file, 
     output_directory, 
     header=values.PRETABLE_FILE_HEADER, 
     extension='tsv', 
-    delimiter='\t'
+    delimiter='\t',
+    target_dates=None,
 ):
     """
     Gera arquivo(s) com os dados de log processados.
@@ -101,6 +156,8 @@ def generate_pretables(
         Extensão do nome dos arquivos a serem gerados
     delimiter : str
         Separador de colunas dos arquivos a serem gerados
+    target_dates : set
+        Datas YYYY-MM-DD que devem ser gravadas. Por padrão, grava todas.
     """
     logging.info('Lendo %s' % parsed_file)
     with open(parsed_file) as fin:
@@ -114,8 +171,11 @@ def generate_pretables(
                     logging.warning(f"Linha corrompida ignorada: {row}")
                     continue
                
-               # obtém yyyy-mm-dd do acesso
+                # obtém yyyy-mm-dd do acesso
                 ymd = row.get('serverTime').split(' ')[0]
+
+                if target_dates is not None and ymd not in target_dates:
+                    continue
 
                 # gera nome de arquivo relacionado a ymd
                 ymd_output_path = file_utils.generate_filepath_with_filename(
@@ -156,15 +216,34 @@ def generate_pretables_db(
     extension='tsv', 
     delimiter='\t', 
     processed_logs_directory=PROCESSED_LOGS_DIRECTORY,
+    pretables_directory=None,
+    period=None,
 ):
     non_pretable_dates = db.get_non_pretable_dates(str_connection, collection)
+    non_pretable_dates = filter_dates(non_pretable_dates, period)
+    non_pretable_dates = filter_existing_pretables(
+        non_pretable_dates,
+        pretables_directory,
+    )
+    target_dates = {date.strftime(DATE_FORMAT) for date in non_pretable_dates}
+
+    if period and not non_pretable_dates:
+        logging.warning('Não há datas a gerar no período solicitado')
+
     processed_files = []
     for npt in non_pretable_dates:
         processed_files.extend(file_utils.get_processed_files(npt, processed_logs_directory))
 
     output_files = {}
     for pf in set(sorted(processed_files)):
-        pf_results = generate_pretables(parsed_file=pf, output_directory=output_directory, header=header, extension=extension, delimiter=delimiter)
+        pf_results = generate_pretables(
+            parsed_file=pf,
+            output_directory=output_directory,
+            header=header,
+            extension=extension,
+            delimiter=delimiter,
+            target_dates=target_dates,
+        )
         output_files.update(pf_results)
 
     non_pretable_dates_str = [d.strftime('%Y-%m-%d') for d in non_pretable_dates]
@@ -178,8 +257,14 @@ def sort_pretables(
     collection,
     output_directory,
     unsorted_pretables_directory=UNSORTED_PRETABLES_DIRECTORY,
+    period=None,
     ):
     unsorted_pretables = db.get_unsorted_pretables(str_connection, collection)
+    unsorted_pretables = filter_dates(unsorted_pretables, period)
+
+    if period and not unsorted_pretables:
+        logging.warning('Não há pré-tabelas não ordenadas no período solicitado')
+
     for upt_date in unsorted_pretables:
         unsorted_pt_path = file_utils.translate_date_to_output_path(
             date=upt_date, 
@@ -193,6 +278,10 @@ def sort_pretables(
             date=upt_date,
             output_directory=output_directory,
         )
+
+        if file_utils.is_valid_path(sorted_pt_path):
+            logging.warning('Pré-tabela já existe e não será sobrescrita: %s', sorted_pt_path)
+            continue
         
         sort_result = subprocess.call(shlex.split('%s -i %s -o %s' % (SCRIPT_SORT_PATH, unsorted_pt_path, sorted_pt_path)))
         if sort_result == values.SORT_RESULT_SUCCESS:
@@ -248,6 +337,17 @@ def main():
         help='Diretório de arquivos de log pré-processados'
     )
 
+    database_parser_subparsers_generate.add_argument(
+        '--pretables-directory',
+        help='Diretório usado para ignorar pré-tabelas finais que já existem',
+    )
+
+    database_parser_subparsers_generate.add_argument(
+        '--period',
+        type=parse_period,
+        help='Data ou período inclusivo no formato YYYY-MM-DD ou YYYY-MM-DD,YYYY-MM-DD',
+    )
+
     database_parser_subparsers_sort = database_parser_subparsers.add_parser('sort')
 
     database_parser_subparsers_sort.add_argument(
@@ -255,6 +355,12 @@ def main():
         '--unsorted_pretables_directory',
         default=UNSORTED_PRETABLES_DIRECTORY,
         help='Diretório de pré-tabelas não ordenadas'
+    )
+
+    database_parser_subparsers_sort.add_argument(
+        '--period',
+        type=parse_period,
+        help='Data ou período inclusivo no formato YYYY-MM-DD ou YYYY-MM-DD,YYYY-MM-DD',
     )
 
     args = parser.parse_args()

@@ -36,11 +36,13 @@ OUTPUT_DIRECTORY = os.environ.get(
 
 
 def parse_file(logfile: str, output_directory: str, mmdb: str, robots: str, sample_size=0.05, validate=True):
-    logging.info(f'Validação iniciada para arquivo {logfile}')
-    validation_results = validator.pipeline_validate(
-        path=logfile, 
-        sample_size=sample_size
-    )
+    validation_results = {}
+    if validate:
+        logging.info(f'Validação iniciada para arquivo {logfile}')
+        validation_results = validator.pipeline_validate(
+            path=logfile,
+            sample_size=sample_size,
+        )
 
     if not validate or validation_results.get('is_valid', {}).get('all', False):
         output_filepath = file_utils.generate_filepath(output_directory, logfile)

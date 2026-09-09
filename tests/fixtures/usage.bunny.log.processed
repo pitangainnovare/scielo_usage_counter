@@ -1,11 +1,11 @@
 serverTime	browserName	browserVersion	ip	latitude	longitude	actionName
-2025-08-17 20:34:08	FF	111.0	185.29.10.0	59.3293	18.0686	http://www.scielo.br/j/pab/a/xBnG6SmJRwz7Hzs8dVKNfqv/?lang=pt
-2025-08-17 20:34:08	FF	111.0	185.29.10.0	59.3293	18.0686	http://www.scielo.br/j/cagro/a/z8d5Z5hGJxZgLRgQvcGLMdf/?lang=pt
-2025-08-17 20:34:04	FF	111.0	185.29.10.0	59.3293	18.0686	http://www.scielo.br/j/rbz/a/CKSH5K8T7x7Y84zMnSb7L4L/?lang=pt
-2025-08-16 20:33:48	CH	135.0.0.0	190.216.61.0	-34.6228	-58.3577	https://www.scielo.br/j/cadbto/a/Rj4pnrVyh3Pt9MnJ9pkNZtM/?format=pdf&lang=en
-2025-09-10 20:59:41	CH	105.0.0.46	240e:3b0:7c11:e2ba::	39.9042	116.407	http://www.scielo.br/
-2025-09-10 20:59:44	CH	139.0.0.0	201.87.253.0	-15.7797	-47.9297	https://www.scielo.br/j/rdbci/a/7qMcGcKQbBsqqNxyTQgJnyr/?lang=pt
-2025-09-10 20:59:43	CM	139.0.0.0	2804:29b8:5068:8edd::	-6.05537	-38.506	https://www.scielo.br/.bunny-shield/bunnyprint/collect
-2025-09-10 20:59:42	CM	139.0.0.0	187.92.246.0	-23.5505	-46.6333	https://www.scielo.br/j/rbccv/a/qYJb4RL66h5Wpmg6X5KJ6Sm/?format=html&lang=pt
-2025-09-10 20:59:42	CM	139.0.0.0	2804:29b8:5068:8edd::	-6.05537	-38.506	https://www.scielo.br/j/sausoc/a/bsyjWnYqPyyJHnBYd5zrL5x/?format=html&lang=pt
-2025-09-10 20:59:42	CH	139.0.0.0	143.107.252.0	-23.5614	-46.7308	https://www.scielo.br/.bunny-shield/bunnyprint/collect
+2025-08-17 23:34:08	FF	111.0	185.29.10.0	59.3293	18.0686	http://www.scielo.br/j/pab/a/xBnG6SmJRwz7Hzs8dVKNfqv/?lang=pt
+2025-08-17 23:34:08	FF	111.0	185.29.10.0	59.3293	18.0686	http://www.scielo.br/j/cagro/a/z8d5Z5hGJxZgLRgQvcGLMdf/?lang=pt
+2025-08-17 23:34:04	FF	111.0	185.29.10.0	59.3293	18.0686	http://www.scielo.br/j/rbz/a/CKSH5K8T7x7Y84zMnSb7L4L/?lang=pt
+2025-08-16 23:33:48	CH	135.0.0.0	190.216.61.0	-34.6228	-58.3577	https://www.scielo.br/j/cadbto/a/Rj4pnrVyh3Pt9MnJ9pkNZtM/?format=pdf&lang=en
+2025-09-10 23:59:41	CH	105.0.0.46	240e:3b0:7c11:e2ba::	39.9042	116.407	http://www.scielo.br/
+2025-09-10 23:59:44	CH	139.0.0.0	201.87.253.0	-15.7797	-47.9297	https://www.scielo.br/j/rdbci/a/7qMcGcKQbBsqqNxyTQgJnyr/?lang=pt
+2025-09-10 23:59:43	CM	139.0.0.0	2804:29b8:5068:8edd::	-6.05537	-38.506	https://www.scielo.br/.bunny-shield/bunnyprint/collect
+2025-09-10 23:59:42	CM	139.0.0.0	187.92.246.0	-23.5505	-46.6333	https://www.scielo.br/j/rbccv/a/qYJb4RL66h5Wpmg6X5KJ6Sm/?format=html&lang=pt
+2025-09-10 23:59:42	CM	139.0.0.0	2804:29b8:5068:8edd::	-6.05537	-38.506	https://www.scielo.br/j/sausoc/a/bsyjWnYqPyyJHnBYd5zrL5x/?format=html&lang=pt
+2025-09-10 23:59:42	CH	139.0.0.0	143.107.252.0	-23.5614	-46.7308	https://www.scielo.br/.bunny-shield/bunnyprint/collect

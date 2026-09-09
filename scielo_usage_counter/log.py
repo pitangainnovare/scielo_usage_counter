@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import datetime
 import ipaddress
 import re
@@ -9,6 +11,15 @@ from device_detector import DeviceDetector
 
 from . import exceptions, geo, values
 from .utils import file_utils, resource_utils
+
+
+UNIX_TIMESTAMP_SECONDS_LENGTH = 10
+UNIX_TIMESTAMP_MILLISECONDS_LENGTH = 13
+MILLISECONDS_PER_SECOND = 1000
+USER_AGENT_CACHE_MAX_SIZE = 4096
+IP_TYPE_CACHE_MAX_SIZE = 4096
+
+_CLIENT_CACHE = OrderedDict()
 
 
 class Stats:
@@ -316,6 +327,8 @@ class LogParser:
         )
         self.__stats = Stats()
         self.__output = None
+        self.__robot_cache = OrderedDict()
+        self.__ip_type_cache = OrderedDict()
 
     @property
     def output(self):
@@ -378,10 +391,46 @@ class LogParser:
         return False
 
     def user_agent_is_bot(self, user_agent):
+        try:
+            is_bot = self.__robot_cache.pop(user_agent)
+        except KeyError:
+            is_bot = None
+        else:
+            self.__robot_cache[user_agent] = is_bot
+            return is_bot
+
         for regex in self.robots:
             if regex.search(user_agent):
-                return True
-        return False
+                is_bot = True
+                break
+        else:
+            is_bot = False
+
+        if len(self.__robot_cache) >= USER_AGENT_CACHE_MAX_SIZE:
+            self.__robot_cache.popitem(last=False)
+        self.__robot_cache[user_agent] = is_bot
+
+        return is_bot
+
+    def _detect_client(self, user_agent):
+        try:
+            client = _CLIENT_CACHE.pop(user_agent)
+        except KeyError:
+            device = DeviceDetector(
+                user_agent,
+                skip_device_detection=True,
+            ).parse()
+            client = (
+                self.format_client_name(device),
+                self.format_client_version(device),
+            )
+
+            if len(_CLIENT_CACHE) >= USER_AGENT_CACHE_MAX_SIZE:
+                _CLIENT_CACHE.popitem(last=False)
+
+        _CLIENT_CACHE[user_agent] = client
+
+        return client
 
     def has_valid_path(self, path):
         if not self.action_is_static_file(path):
@@ -429,13 +478,19 @@ class LogParser:
 
     def format_date_from_timestamp(self, timestamp):
         try:
-            if isinstance(timestamp, str):
-                timestamp = int(timestamp)
+            timestamp = str(timestamp)
 
-            date = datetime.datetime.fromtimestamp(timestamp)
+            if len(timestamp) == UNIX_TIMESTAMP_MILLISECONDS_LENGTH:
+                timestamp = int(timestamp) // MILLISECONDS_PER_SECOND
+            elif len(timestamp) == UNIX_TIMESTAMP_SECONDS_LENGTH:
+                timestamp = int(timestamp)
+            else:
+                return
+
+            date = datetime.datetime.fromtimestamp(timestamp, datetime.timezone.utc)
             return date.strftime('%Y-%m-%d %H:%M:%S')
 
-        except (ValueError, TypeError, AttributeError):
+        except (ValueError, TypeError, AttributeError, OSError, OverflowError):
             return
 
     def format_user_agent(self, user_agent):
@@ -488,16 +543,30 @@ class LogParser:
 
     def get_ip_type(self, ip):
         try:
+            ip_type = self.__ip_type_cache.pop(ip)
+        except KeyError:
+            ip_type = None
+        else:
+            self.__ip_type_cache[ip] = ip_type
+            return ip_type
+
+        try:
             ipa = ipaddress.ip_address(ip)
         except ValueError:
-            return 'unknown'
+            ip_type = 'unknown'
+        else:
+            if ipa.is_global:
+                ip_type = 'remote'
+            elif ipa.is_private or ipa.is_loopback or ipa.is_link_local:
+                ip_type = 'local'
+            else:
+                ip_type = 'unknown'
 
-        if ipa.is_global:
-            return 'remote'
-        elif ipa.is_private or ipa.is_loopback or ipa.is_link_local:
-            return 'local'
+        if len(self.__ip_type_cache) >= IP_TYPE_CACHE_MAX_SIZE:
+            self.__ip_type_cache.popitem(last=False)
+        self.__ip_type_cache[ip] = ip_type
 
-        return 'unknown'
+        return ip_type
 
     def parse_line(self, line):
         self.stats.increment('lines_parsed')
@@ -528,26 +597,29 @@ class LogParser:
                     self.stats.increment('ignored_lines_http_errors')
                 hit.is_valid = False
 
-            hit.user_agent = self.format_user_agent(data.get('user_agent'))
+            hit.user_agent = self.format_user_agent(data.get('user_agent')) or ''
+
+            if len(hit.user_agent) > 1000:
+                hit.user_agent = hit.user_agent[:1000]
 
             if self.user_agent_is_bot(hit.user_agent):
                 self.stats.increment('ignored_lines_bot')
                 hit.is_valid = False
 
             try:
-                device = DeviceDetector(hit.user_agent).parse()
-            except ZeroDivisionError:
-                device = DeviceDetector('').parse()
+                hit.client_name, hit.client_version = self._detect_client(
+                    hit.user_agent
+                )
+            except (ZeroDivisionError, MemoryError):
+                hit.client_name, hit.client_version = self._detect_client('')
                 self.stats.increment('ignored_lines_invalid_user_agent')
                 logging.error(exceptions.DeviceDetectionError(f'Não foi possível identificar UserAgent {hit.user_agent} from line {decoded_line}'))
                 hit.is_valid = False
 
-            hit.client_name = self.format_client_name(device)
             if not hit.client_name:
                 self.stats.increment('ignored_lines_invalid_client_name')
                 hit.is_valid = False
 
-            hit.client_version = self.format_client_version(device)
             if not hit.client_version:
                 self.stats.increment('ignored_lines_invalid_client_version')
                 hit.is_valid = False

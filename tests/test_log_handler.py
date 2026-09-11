@@ -608,6 +608,20 @@ class TestBunnynetLogParsing(unittest.TestCase):
         self.assertEqual(data.get('status'), '200')
         self.assertEqual(data.get('unix_ts'), '1757548786')
         self.assertEqual(data.get('path'), 'https://www.scielo.br/j/neco/a/test/')
+
+    def test_bunnynet_accepts_revalidated_and_missing_cache_status(self):
+        for cache_status in ('REVALIDATED', '-'):
+            log_line = (
+                f'{cache_status}|200|1757548786|5432|4339610|186.225.0.1|-|'
+                'https://www.scielo.br/j/neco/a/test/|BR|Mozilla/5.0|'
+                '8dbbeef65a64c5235f863868a7c94d70|BR'
+            )
+
+            match, ip = self.lp.match_with_best_pattern(log_line)
+
+            self.assertIsNotNone(match)
+            self.assertEqual(match.groupdict()['cache'], cache_status)
+            self.assertEqual(ip, '186.225.0.1')
     
     def test_bunnynet_full_line_parse(self):
         """Test full bunnynet log line parsing"""

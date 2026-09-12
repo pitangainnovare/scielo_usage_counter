@@ -39,6 +39,20 @@ class TestBunnyNetLogContract(unittest.TestCase):
         self.assertEqual('IQ2', match.groupdict()['edge_location'])
         self.assertEqual('US', match.groupdict()['country_code'])
 
+    def test_accepts_additional_cache_statuses(self):
+        for cache_status in ('REVALIDATED', '-'):
+            with self.subTest(cache_status=cache_status):
+                line = (
+                    f'{cache_status}|200|1785887999998|5432|4339610|'
+                    '186.225.0.1|-|https://www.scielo.br/j/neco/a/test/|'
+                    'IQ2|Mozilla/5.0|8dbbeef65a64c5235f863868a7c94d70|US'
+                )
+
+                match = re.match(values.PATTERN_BUNNY, line)
+
+                self.assertIsNotNone(match)
+                self.assertEqual(cache_status, match.groupdict()['cache'])
+
 
 if __name__ == '__main__':
     unittest.main()

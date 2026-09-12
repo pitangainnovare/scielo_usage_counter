@@ -28,7 +28,7 @@ PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN_WITH_IP_LIST = (
 )
 
 PATTERN_BUNNY = (
-    r'^(?P<cache>HIT|MISS|BYPASS|EXPIRED|STALE)\|'
+    r'^(?P<cache>HIT|MISS|BYPASS|EXPIRED|STALE|REVALIDATED|-)\|'
     r'(?P<status>\d{3})\|'
     r'(?P<timestamp>\d{10}(?:\d{3})?)\|'
     r'(?P<length>\d+)\|'

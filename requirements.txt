@@ -3,6 +3,6 @@ geoip2==4.4.0
 mysqlclient==2.0.3
 requests==2.26.0
 reverse_geocoder==1.4
--e git+https://github.com/pitangainnovare/scielo_log_validator.git@b3cb171e1f4626de0e61029d011f0896292fe138#egg=scielo_log_validator
+-e git+https://github.com/pitangainnovare/scielo_log_validator.git@c979669b9d308cdd9fae542513608d99f1190bc7#egg=scielo_log_validator
 sqlalchemy==1.4.26
 wget==3.2

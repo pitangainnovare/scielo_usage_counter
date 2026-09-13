@@ -102,6 +102,32 @@ class TestTranslatorClassic(unittest.TestCase):
         
         self.assertDictEqual(obtained, expected)
 
+    def test_translate_classic_site_url_with_long_unused_parameter(self):
+        long_unused_parameter = '%C3' * 2048
+        url = (
+            '/scielo.php?lng=en&nrm='
+            f'{long_unused_parameter}'
+            '&pid=S0043-31442017000600634'
+            '&script=sci_arttext&tlng=en'
+        )
+        expected = {
+            'journal_acronym': 'wimj',
+            'journal_main_title': 'West Indian Medical Journal',
+            'journal_publisher_name': 'The University of the West Indies',
+            'journal_subject_area_capes': ['Health Sciences'],
+            'journal_subject_area_wos': ['HEALTH CARE SCIENCES & SERVICES'],
+            'year_of_publication': '2017',
+            'pid_v2': 'S0043-31442017000600634',
+            'scielo_issn': '0043-3144',
+            'media_format': MEDIA_FORMAT_HTML,
+            'media_language': 'en',
+            'content_type': CONTENT_TYPE_FULL_TEXT,
+        }
+
+        obtained = self.tm.translate(url)
+
+        self.assertDictEqual(obtained, expected)
+
     def test_translate_classic_site_url_pdf_path(self):
         url = 'https://westindies.scielo.org/pdf/wimj/v66n6/2309-5830-wimj-66-06-0634.pdf'
         

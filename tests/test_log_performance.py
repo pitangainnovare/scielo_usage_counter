@@ -35,7 +35,82 @@ class TestLogPerformance(unittest.TestCase):
         parser._LogParser__robots = robots or []
         parser._LogParser__robot_cache = log.OrderedDict()
         parser._LogParser__ip_type_cache = log.OrderedDict()
+        parser._LogParser__stats = log.Stats()
         return parser
+
+    def test_invalid_lines_stop_before_geolocation_and_client_detection(self):
+        parser = self.make_parser([RobotPattern()])
+        parser._LogParser__geoip = mock.Mock()
+
+        base_data = {
+            'method': 'GET',
+            'status': '200',
+            'path': '/scielo.php?script=sci_arttext',
+            'user_agent': 'Mozilla/5.0',
+        }
+        invalid_cases = [
+            {'method': 'POST'},
+            {'status': '404'},
+            {'path': '/static/example.css'},
+            {'user_agent': 'ExampleBot/1.0'},
+        ]
+
+        for invalid_data in invalid_cases:
+            with self.subTest(invalid_data=invalid_data):
+                match = mock.Mock()
+                match.groupdict.return_value = {**base_data, **invalid_data}
+                parser.match_with_best_pattern = mock.Mock(
+                    return_value=(match, '192.0.2.1')
+                )
+                parser._detect_client = mock.Mock()
+                parser.geoip.reset_mock()
+
+                self.assertEqual([], parser.parse_line('line'))
+                parser._detect_client.assert_not_called()
+                parser.geoip.ip_to_geolocation.assert_not_called()
+
+    def test_invalid_geolocation_stops_before_client_detection(self):
+        parser = self.make_parser()
+        parser._LogParser__geoip = mock.Mock()
+        parser.geoip.ip_to_geolocation.return_value = None
+        parser._detect_client = mock.Mock()
+
+        match = mock.Mock()
+        match.groupdict.return_value = {
+            'method': 'GET',
+            'status': '200',
+            'path': '/scielo.php?script=sci_arttext',
+            'user_agent': 'Mozilla/5.0',
+        }
+        parser.match_with_best_pattern = mock.Mock(
+            return_value=(match, '192.0.2.1')
+        )
+
+        self.assertEqual([], parser.parse_line('line'))
+        parser._detect_client.assert_not_called()
+
+    def test_invalid_date_stops_before_client_detection(self):
+        parser = self.make_parser()
+        parser._LogParser__geoip = mock.Mock()
+        parser.geoip.ip_to_geolocation.return_value = object()
+        parser.geoip.geolocation_to_str.return_value = '0\t0'
+        parser.format_date = mock.Mock(return_value=None)
+        parser.format_date_from_timestamp = mock.Mock(return_value=None)
+        parser._detect_client = mock.Mock()
+
+        match = mock.Mock()
+        match.groupdict.return_value = {
+            'method': 'GET',
+            'status': '200',
+            'path': '/scielo.php?script=sci_arttext',
+            'user_agent': 'Mozilla/5.0',
+        }
+        parser.match_with_best_pattern = mock.Mock(
+            return_value=(match, '192.0.2.1')
+        )
+
+        self.assertEqual([], parser.parse_line('line'))
+        parser._detect_client.assert_not_called()
 
     @mock.patch('scielo_usage_counter.log.DeviceDetector')
     def test_reuses_client_detection_and_skips_physical_device(self, detector):

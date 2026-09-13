@@ -1,6 +1,5 @@
 import re
-
-from urllib.parse import urlparse, urlsplit, parse_qsl
+from urllib.parse import parse_qsl, urlsplit
 
 from scielo_usage_counter.values import (
     MEDIA_LANGUAGE_UNDEFINED,
@@ -23,10 +22,9 @@ REGEX_CLASSIC_SITE_SCIELO_PHP = re.compile(r'/?scielo.php', re.IGNORECASE)
 REGEX_CLASSIC_SITE_ARTICLE_PLUS_PHP = re.compile(r'/?articleplus.php', re.IGNORECASE)
 REGEX_CLASSIC_SITE_PDF_READCUBE_EPDF_PHP = re.compile(r'/?pdf/readcube/epdf.php', re.IGNORECASE)
 REGEX_CLASSIC_SITE_SCIELO_ORG_PHP = re.compile(r'/?scieloorg/php/', re.IGNORECASE)
-REGEX_CLASSIC_SITE_ARTICLE_PDF = re.compile(r'.*\.pdf$', re.IGNORECASE)
-REGEX_CLASSIC_SITE_ARTICLE_PDF_PATH = re.compile(r'.*(/pdf/.*/.*)', re.IGNORECASE)
-REGEX_CLASSIC_SITE_ARTICLE_PDF_FULL_PATH = re.compile(r'(.*)(/pdf/.*/.*)', re.IGNORECASE)
-REGEX_CLASSIC_SITE_ARTICLE_XML = re.compile(r'.*articlexml', re.IGNORECASE)
+ARTICLE_XML_MARKER = 'articlexml'
+PDF_EXTENSION = '.pdf'
+PDF_PATH_MARKER = '/pdf/'
 
 
 class URLTranslatorClassicSite:
@@ -111,12 +109,18 @@ class URLTranslatorClassicSite:
         return new_url_params
 
     def extract_media_format(self, url):
-        if re.search(REGEX_CLASSIC_SITE_ARTICLE_PDF, url) or re.search(REGEX_CLASSIC_SITE_ARTICLE_PDF_PATH, url):
+        normalized_url = url.lower()
+        pdf_path = normalized_url.partition(PDF_PATH_MARKER)[2]
+
+        if normalized_url.endswith(PDF_EXTENSION) or (
+            pdf_path and '/' in pdf_path
+        ):
             return MEDIA_FORMAT_PDF
-        elif re.search(REGEX_CLASSIC_SITE_ARTICLE_XML, url):
+
+        if ARTICLE_XML_MARKER in normalized_url:
             return MEDIA_FORMAT_XML
-        else:
-            return MEDIA_FORMAT_HTML
+
+        return MEDIA_FORMAT_HTML
 
     def extract_media_language(self, pid_v2):
         media_language = self.url_params.get('media_language')
@@ -137,24 +141,28 @@ class URLTranslatorClassicSite:
         return pid_v2
 
     def _get_pid_from_pdf_path(self, url):
-        url_parsed = urlparse(url)
+        path = urlsplit(url).path
+        normalized_path = path.lower()
+        marker_index = normalized_path.rfind(PDF_PATH_MARKER)
 
-        # Get pdf path
-        pdf_path = url_parsed.path
+        # Preserve the previous greedy match: use the last /pdf/ segment that
+        # still contains both the journal directory and the file name.
+        while marker_index >= 0:
+            path_after_marker = normalized_path[
+                marker_index + len(PDF_PATH_MARKER):
+            ]
+            if '/' in path_after_marker:
+                break
+            marker_index = normalized_path.rfind(
+                PDF_PATH_MARKER,
+                0,
+                marker_index,
+            )
 
-        # Check if path is really a pdf
-        if not re.search(REGEX_CLASSIC_SITE_ARTICLE_PDF_PATH, pdf_path):
-            matched_pdf_path = re.search(REGEX_CLASSIC_SITE_ARTICLE_PDF_PATH, pdf_path)
-            if matched_pdf_path:
-                pdf_path = matched_pdf_path.group()
-            else:
-                return ''
+        if marker_index < 0:
+            return ''
 
-        # Check if there is a scielo.br prefix in the pdf path
-        if re.search(REGEX_CLASSIC_SITE_ARTICLE_PDF_FULL_PATH, pdf_path):
-            matched_pdf_full_path = re.search(REGEX_CLASSIC_SITE_ARTICLE_PDF_FULL_PATH, pdf_path)
-            if matched_pdf_full_path and len(matched_pdf_full_path.groups()) == 2:
-                pdf_path = matched_pdf_full_path.group(2)
+        pdf_path = path[marker_index:]
 
         # Remove the trailing slash, if it exists
         # All dictionary keys do not contain the trailing slash
@@ -180,6 +188,8 @@ class URLTranslatorClassicSite:
     def extract_content_type(self, url):
         if not hasattr(self, 'url_params'):
             self.extract_url_params(url)
+
+        normalized_url = url.lower()
             
         if re.search(REGEX_CLASSIC_SITE_SCIELO_PHP, url):
             if 'script' in self.url_params:
@@ -198,23 +208,23 @@ class URLTranslatorClassicSite:
         if re.search(REGEX_CLASSIC_SITE_ARTICLE_PLUS_PHP, url):
             return CONTENT_TYPE_FULL_TEXT
         
-        if re.search(REGEX_CLASSIC_SITE_ARTICLE_PDF, url):
+        if normalized_url.endswith(PDF_EXTENSION):
             return CONTENT_TYPE_FULL_TEXT
         
         if re.search(REGEX_CLASSIC_SITE_PDF_READCUBE_EPDF_PHP, url):
             return CONTENT_TYPE_FULL_TEXT
         
         if re.search(REGEX_CLASSIC_SITE_SCIELO_ORG_PHP, url):
-            if 'articlexml' in url.lower():
+            if ARTICLE_XML_MARKER in normalized_url:
                 return CONTENT_TYPE_FULL_TEXT
             
-            if 'reference' in url.lower():
+            if 'reference' in normalized_url:
                 return CONTENT_TYPE_REFERENCES_LIST
 
-            if 'related' in url.lower():
+            if 'related' in normalized_url:
                 return CONTENT_TYPE_RELATED_DOCUMENTS
             
-            if 'translate' in url.lower():
+            if 'translate' in normalized_url:
                 return CONTENT_TYPE_TRANSLATE_DOCUMENT
 
         return CONTENT_TYPE_UNDEFINED

@@ -15,10 +15,11 @@ from scielo_usage_counter.values import (
 
 
 # Patterns to support parameter extraction
-REGEX_OPAC_SITE_JOURNAL_ARTICLE_ABSTRACT = re.compile(r'.*/j/(?P<journal_acronym>\w*)/a/(?P<pid_v3>\w*)/abstract', re.IGNORECASE)
-REGEX_OPAC_SITE_JOURNAL_ARTICLE = re.compile(r'.*/j/(?P<journal_acronym>\w*)/a/(?P<pid_v3>\w*)', re.IGNORECASE)
-REGEX_OPAC_SITE_DOCUMENT_STORE = re.compile(r'documentstore/(?P<journal_issn>[\w|-]*)/(?P<pid_v3>\w*)/(?P<file>[\w|\.]*)', re.IGNORECASE)
-REGEX_OPAC_SITE_CITATION_EXPORT = re.compile(r'.*/?citation/export/(?P<pid_v3>\w*)/', re.IGNORECASE)
+REGEX_OPAC_SITE_JOURNAL_ARTICLE_ABSTRACT = re.compile(r'.*/j/(?P<journal_acronym>\w*)/a/(?P<pid_v3>[\w-]+)/abstract', re.IGNORECASE)
+REGEX_OPAC_SITE_JOURNAL_ARTICLE = re.compile(r'.*/j/(?P<journal_acronym>\w*)/a/(?P<pid_v3>[\w-]+)', re.IGNORECASE)
+REGEX_OPAC_SITE_DOCUMENT_STORE = re.compile(r'documentstore/(?P<journal_issn>[\w|-]*)/(?P<pid_v3>[\w-]+)/(?P<file>[\w|\.]*)', re.IGNORECASE)
+REGEX_OPAC_SITE_CITATION_EXPORT = re.compile(r'.*/?citation/export/(?P<pid_v3>[\w-]+)/', re.IGNORECASE)
+REGEX_PID_V2 = re.compile(r'S[0-9X]{4}-?[0-9X]{4}[0-9]{13}', re.IGNORECASE)
 
 
 class URLTranslatorOPACSite:
@@ -29,10 +30,22 @@ class URLTranslatorOPACSite:
     def pipeline_translate(self, url):
         self.url_params = self.extract_url_params(url)
 
-        pid_v3 = self.extract_pid_v3()
+        raw_pid = self.extract_pid_v3()
+        is_pid_v2 = bool(REGEX_PID_V2.fullmatch(raw_pid or ''))
+        if is_pid_v2:
+            raw_pid = raw_pid.upper()
+
+        pid_v2_to_pid_v3 = self.documents_metadata.get('pid_v2_to_pid_v3', {})
+        if raw_pid in pid_v2_to_pid_v3 or is_pid_v2:
+            pid_v2 = raw_pid
+            pid_v3 = pid_v2_to_pid_v3.get(raw_pid)
+        else:
+            pid_v3 = raw_pid
+            pid_v2 = self.documents_metadata.get('pid_v3_to_pid_v2', {}).get(pid_v3)
+
         media_format = self.extract_media_format()
-        media_language = self.extract_media_language(pid_v3)
-        scielo_issn = self.extract_issn()
+        media_language = self.extract_media_language(pid_v3, pid_v2)
+        scielo_issn = self.extract_issn(pid_v3, pid_v2)
         content_type = self.extract_content_type()
 
         return {
@@ -42,12 +55,15 @@ class URLTranslatorOPACSite:
             'journal_subject_area_wos': self.sources_metadata.get('issn_to_subject_area_wos', {}).get(scielo_issn),
             'journal_publisher_name': self.sources_metadata.get('issn_to_publisher_name', {}).get(scielo_issn),
             'journal_acronym': self.sources_metadata.get('issn_to_acronym', {}).get(scielo_issn),
-            'pid_v2': self.documents_metadata.get('pid_v3_to_pid_v2', {}).get(pid_v3),
+            'pid_v2': pid_v2,
             'pid_v3': pid_v3,
             'media_format': media_format,
             'media_language': media_language,
             'content_type': content_type,
-            'year_of_publication': self.documents_metadata.get('pid_v3_to_publication_year', {}).get(pid_v3),
+            'year_of_publication': (
+                self.documents_metadata.get('pid_v3_to_publication_year', {}).get(pid_v3)
+                or self.documents_metadata.get('pid_v2_to_publication_year', {}).get(pid_v2)
+            ),
         }
 
     def extract_url_params(self, url):
@@ -105,18 +121,25 @@ class URLTranslatorOPACSite:
 
         return self.url_params.get('media_format') or MEDIA_FORMAT_HTML
 
-    def extract_media_language(self, pid_v3):
+    def extract_media_language(self, pid_v3, pid_v2=None):
         media_language = self.url_params.get('media_language')
         if not media_language:
-            media_language = self.documents_metadata['pid_v3_to_default_lang'].get(pid_v3, MEDIA_LANGUAGE_UNDEFINED)
+            media_language = (
+                self.documents_metadata['pid_v3_to_default_lang'].get(pid_v3)
+                or self.documents_metadata['pid_v2_to_default_lang'].get(pid_v2)
+                or MEDIA_LANGUAGE_UNDEFINED
+            )
         return media_language
 
     def extract_pid_v3(self):
         return self.url_params.get('pid_v3')
 
-    def extract_issn(self):
+    def extract_issn(self, pid_v3, pid_v2=None):
         if not self.url_params.get('journal_acronym'):
-            return self.documents_metadata['pid_v3_to_scielo_issn'].get(self.url_params.get('pid_v3'))
+            return (
+                self.documents_metadata['pid_v3_to_scielo_issn'].get(pid_v3)
+                or self.documents_metadata['pid_v2_to_scielo_issn'].get(pid_v2)
+            )
         return self.sources_metadata['acronym_to_scielo_issn'].get(self.url_params.get('journal_acronym'))
     
     def extract_content_type(self, url=None):

@@ -346,6 +346,56 @@ class TestTranslatorOPAC(unittest.TestCase):
         self.assertIsInstance(self.tm.translator, URLTranslatorOPACSite)
         self.assertDictEqual(obtained, expected)
 
+    def test_pid_v2_urls_use_the_article_pid_v3(self):
+        pid_v2 = 'S0103-63512021000100001'
+        pid_v3 = 'dqLRqnpmnncSmnzMCB8bzPG'
+        article = next(
+            item for item in self.articles_metadata if item['pid_v3'] == pid_v3
+        )
+        article['pid_v2'] = pid_v2
+        manager = URLTranslationManager(
+            self.journals_metadata,
+            self.articles_metadata,
+        )
+        urls = (
+            (f'/j/neco/a/{pid_v2}/', CONTENT_TYPE_FULL_TEXT, MEDIA_FORMAT_HTML),
+            (f'/j/neco/a/{pid_v2.lower()}/', CONTENT_TYPE_FULL_TEXT, MEDIA_FORMAT_HTML),
+            (f'/j/neco/a/{pid_v2}/abstract/?lang=en', CONTENT_TYPE_ABSTRACT, MEDIA_FORMAT_HTML),
+            (f'/citation/export/{pid_v2}/?format=bib', CONTENT_TYPE_CITATION_EXPORT, MEDIA_FORMAT_HTML),
+            (
+                '/article/ssm/content/raw/?resource_ssm_path='
+                f'/documentstore/0103-6351/{pid_v2}/file.pdf',
+                CONTENT_TYPE_FULL_TEXT,
+                MEDIA_FORMAT_PDF,
+            ),
+        )
+
+        for url, content_type, media_format in urls:
+            with self.subTest(url=url):
+                result = manager.translate(url)
+
+                self.assertEqual(result['pid_v2'], pid_v2)
+                self.assertEqual(result['pid_v3'], pid_v3)
+                self.assertEqual(result['scielo_issn'], '0103-6351')
+                self.assertEqual(result['year_of_publication'], '2021')
+                self.assertEqual(result['content_type'], content_type)
+                self.assertEqual(result['media_format'], media_format)
+                self.assertNotEqual(result['media_language'], 'un')
+
+    def test_article_url_with_suffix_keeps_pid_v3(self):
+        pid_v3 = 'dqLRqnpmnncSmnzMCB8bzPG'
+        result = self.tm.translate(f'/j/neco/a/{pid_v3}.pdf')
+
+        self.assertEqual(result['pid_v3'], pid_v3)
+        self.assertEqual(result['content_type'], CONTENT_TYPE_FULL_TEXT)
+
+    def test_unmapped_pid_v2_is_not_truncated(self):
+        pid_v2 = 'S0103-63512021000100002'
+        result = self.tm.translate(f'/j/neco/a/{pid_v2}/?lang=pt')
+
+        self.assertEqual(result['pid_v2'], pid_v2)
+        self.assertNotIn('pid_v3', result)
+
     def test_pipeline_parses_url_once(self):
         url = '/j/neco/a/dqLRqnpmnncSmnzMCB8bzPG/abstract/?lang=en'
 
